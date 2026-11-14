@@ -90,14 +90,13 @@ pub fn view(s: &State, cx: &mut Cx<State>) -> El {
     motion::wrap(s, screen)
 }
 
-/// A chunky game button: solid fill with a darker bottom edge.
-pub fn button(s: &State, key: &str, label: &str, fill: Color, edge: Color, ink: Color, on: impl Fn(&mut State) + 'static) -> El {
+/// Hover lift and press sink shared by every pressable control.
+fn tactile(s: &State, key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
     let scale = s.motion.hover_scale(key);
     if s.reduced_motion || s.motion.system_reduced.get() { scale.set(1.0); }
     let on_hover = scale.clone();
     el().key(key.to_string()).role("button").label(label.to_string()).focusable(true)
-        .h(50.0).px(24.0).radius(16.0).fill(fill).shadow(4.0, 0.0, edge).center()
-        .origin(0.5, 1.0).live_scale(scale.smooth(rune::Spring::new(0.16, 0.55)))
+        .live_scale(scale.smooth(rune::Spring::new(0.16, 0.55)))
         .on_hover_change(move |s: &mut State, hovered, tx| {
             let reduced = s.reduced_motion || s.motion.system_reduced.get();
             on_hover.set(if hovered && !reduced { 1.03 } else { 1.0 });
@@ -105,6 +104,12 @@ pub fn button(s: &State, key: &str, label: &str, fill: Color, edge: Color, ink: 
         })
         .press_scale(0.96)
         .on_press(on)
+}
+
+/// A chunky game button: solid fill with a darker bottom edge.
+pub fn button(s: &State, key: &str, label: &str, fill: Color, edge: Color, ink: Color, on: impl Fn(&mut State) + 'static) -> El {
+    tactile(s, key, label, on)
+        .h(50.0).px(24.0).radius(16.0).fill(fill).shadow(4.0, 0.0, edge).center().origin(0.5, 1.0)
         .child(text(label.to_string()).font(STRONG).color(ink))
 }
 
@@ -139,8 +144,10 @@ pub fn disabled(key: &str, label: &str) -> El {
 /// "✕" back to the map.
 pub fn close(s: &State, on: impl Fn(&mut State) + 'static) -> El {
     let p = pal();
-    button(s, "close", "✕", p.surface, p.border, p.muted, on)
-        .label("Volver al mapa").size(44.0, 44.0).px(0.0).radius(22.0)
+    // ponytail: flat on purpose; the raised edge clipped into a crescent at this size.
+    tactile(s, "close", "Volver al mapa", on)
+        .size(44.0, 44.0).radius(22.0).fill(p.surface).border(2.0, p.border).center().origin(0.5, 0.5)
+        .child(text("✕").font(H2).color(p.muted))
 }
 
 pub fn stars(n: u8) -> String {

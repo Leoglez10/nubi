@@ -576,6 +576,11 @@ const SCENES: &[Scene] = &[
     ("class", |s| {
         s.open_class("s3-buckets");
     }),
+    ("class-2", |s| {
+        s.progress.record("s3-buckets", 0);
+        s.progress.record("lab-primer-bucket", 0);
+        s.open_class("s3-objetos");
+    }),
     ("lesson", |s| {
         s.open_stop("s3-buckets");
         s.lesson.choice = Some(1);
@@ -662,6 +667,31 @@ mod tests {
         rt.frame(0.0);
         rt.frame(1.0 / 60.0);
         rt
+    }
+
+    #[test]
+    fn every_class_section_has_a_picture() {
+        for scene in ["class", "class-2"] {
+            let rt = render(state(scene));
+            for key in ["class-diagram", "class-example-visual", "class-review-visual"] {
+                assert!(rt.find(key).is_some(), "{scene}: missing {key}");
+            }
+        }
+    }
+
+    #[test]
+    fn keyboard_alone_starts_the_games_from_a_class() {
+        let mut rt = render(state("class"));
+        rt.set_tab_visits_controls(true);
+        // Back, then games: Space on the second stop opens the lesson.
+        for _ in 0..2 {
+            rt.key(rune::Key::Tab.into());
+            rt.frame(1.0 / 60.0);
+        }
+        rt.key(rune::Key::Text(" ".into()).into());
+        rt.frame(1.0 / 60.0);
+        assert_eq!(rt.state.screen, Screen::Lesson);
+        assert_eq!(rt.state.lesson.id, "s3-buckets");
     }
 
     #[test]

@@ -1,7 +1,7 @@
 //! Teaching and review for a guided class, with a small diagram for the idea.
 use labcloud::course::Diagram;
 use rune::{Color, El, ScrollSpec, col, el, row, spacer, text};
-use super::{BODY, H2, SMALL, STRONG, TITLE, disabled, pal, plain, primary};
+use super::{BODY, H2, MONO, SMALL, STRONG, TITLE, disabled, pal, plain, primary};
 use crate::State;
 
 pub fn view(s: &State) -> El {
@@ -25,9 +25,13 @@ pub fn view(s: &State) -> El {
     }
     content = content
         .child(text("Ejemplo resuelto").font(H2).color(p.text))
-        .child(text(teaching.example.clone()).font(BODY).color(p.text).wrap())
+        .child(text(teaching.example.clone()).font(BODY).color(p.text).wrap());
+    if let Some(diagram) = teaching.diagram {
+        content = content.child(example_view(diagram));
+    }
+    content = content
         .child(text("Para recordar").font(H2).color(p.text))
-        .child(text(teaching.review.clone()).font(BODY).color(p.text).wrap());
+        .child(review_card(&teaching.review));
     if s.class_return.is_none() {
         let lab = if s.class_lab_ready() { primary(s, "class-lab", "Ir al laboratorio", |s: &mut State| s.start_class_lab()) }
             else { disabled("class-lab", "Completa los juegos primero") };
@@ -51,6 +55,53 @@ fn diagram_view(diagram: Diagram, caption: &str) -> El {
     col().key("class-diagram").w_full().gap(10.0).padding(18.0).radius(18.0).fill(p.blue_light).border(2.0, p.border)
         .child(art)
         .child(text(caption.to_string()).font(STRONG).color(p.blue_dark).wrap())
+}
+
+/// The worked example drawn as what you type and what you get.
+fn example_view(diagram: Diagram) -> El {
+    let p = pal();
+    let (command, result) = match diagram {
+        Diagram::BucketObjects => ("aws s3api create-bucket --bucket mi-bucket", empty_bucket()),
+        Diagram::KeyPrefixes => ("aws s3 cp enero.txt s3://archivo-nubi/informes/enero.txt", looks_vs_is()),
+    };
+    col().key("class-example-visual").w_full().gap(10.0).padding(18.0).radius(18.0).fill(p.surface).border(2.0, p.border)
+        .child(text("Escribes").font(SMALL).color(p.muted))
+        .child(el().w_full().padding(12.0).radius(12.0).fill(p.text)
+            .child(text(format!("$ {command}")).font(MONO).color(Color::WHITE).wrap()))
+        .child(text("↓  y obtienes").font(SMALL).color(p.muted))
+        .child(result)
+}
+
+/// The new bucket: it exists, but holds nothing yet.
+fn empty_bucket() -> El {
+    let p = pal();
+    col().w_full().gap(6.0).padding(16.0).radius(16.0).fill(p.blue_light).border(3.0, p.blue).center()
+        .child(text("mi-bucket").font(H2).color(p.text))
+        .child(text("vacío · listo para guardar objetos").font(SMALL).color(p.blue_dark))
+}
+
+/// What the console shows (folders) next to what S3 stores (flat keys).
+fn looks_vs_is() -> El {
+    let p = pal();
+    let card = |title: &str, lines: &[&str], fill: Color| {
+        let mut c = col().grow(1.0).min_w(240.0).gap(6.0).padding(14.0).radius(14.0).fill(fill).border(2.0, p.border)
+            .child(text(title.to_string()).font(STRONG).color(p.text));
+        for line in lines {
+            c = c.child(text(line.to_string()).font(MONO).color(p.text));
+        }
+        c
+    };
+    row().w_full().gap(12.0).flex_wrap()
+        .child(card("Lo que parece", &["📁 informes/", "    enero.txt", "    febrero.txt"], p.orange_light))
+        .child(card("Lo que S3 guarda", &["informes/enero.txt", "informes/febrero.txt"], p.blue_light))
+}
+
+/// The takeaway as a card with a check, easy to spot when revisiting.
+fn review_card(review: &str) -> El {
+    let p = pal();
+    row().key("class-review-visual").w_full().gap(14.0).center_y().padding(16.0).radius(16.0).fill(p.green_light).border(2.0, p.green)
+        .child(el().size(36.0, 36.0).radius(18.0).fill(p.green).center().child(text("✓").font(H2).color(Color::WHITE)))
+        .child(text(review.to_string()).font(BODY).color(p.text).wrap().grow(1.0))
 }
 
 /// One bucket with three objects inside: the bucket holds keys, not folders.
