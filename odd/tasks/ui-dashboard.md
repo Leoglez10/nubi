@@ -19,7 +19,7 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - [x] T4 · S2, S3, S4 · inline · Clase: article + steps aside + Nubi tip — tip shows the class's visual line; RED y=930 (sidebar pushed off-screen by long page) → GREEN via grow+scroll; snapshot inspected
 - [x] T5 · S2, S3 · inline · Práctica: card layout, Nubi mood in the footer — three Nubi faces (neutral/happy/worried) rasterized once; result says 'Volver al inicio'; snapshots of question, wrong answer and result inspected
 - [x] T6 · S3 · inline · Laboratorio inside the shell — header in content, flat objectives, darker terminal; ✕ control removed (sidebar is the way back, test updated); snapshot inspected
-- [ ] T7 · S1 · inline · short fade transition, Splash/Setup/Profiles palette, docs, snapshots
+- [x] T7 · S1 · inline · short fade transition, Splash/Setup/Profiles palette, docs, snapshots — fade through the background keeps the tested cover/reveal timing; unused cloud art removed; 'Lab Cloud' wordmark; README updated; intro/setup/profiles snapshots inspected
 
 ## Log
 

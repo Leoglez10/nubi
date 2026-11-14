@@ -3,7 +3,7 @@
 
 use rune::{Color, El, LoopSpec, Transition, col, el, row, text};
 
-use super::{BODY, HERO, STRONG, nubi, pal, picture, reward};
+use super::{BODY, HERO, STRONG, nubi, pal, picture, primary};
 use crate::State;
 
 pub fn view(s: &State) -> El {
@@ -20,7 +20,7 @@ pub fn view(s: &State) -> El {
     if s.intro_started {
         let mut center = col().key("intro-center").w_full().h_full().center().gap(14.0)
             .child(nubi(s, 200.0).transition(Transition::offset(0.0, 140.0)))
-            .child(text("labcloud").key("logo").font(HERO).color(p.blue).transition(Transition::opacity()).enter_delay(0.5))
+            .child(text("Lab Cloud").key("logo").font(HERO).color(p.text).transition(Transition::opacity()).enter_delay(0.5))
             .child(text("Aprende AWS en tu propia nube").font(BODY).color(p.blue_dark).transition(Transition::opacity()).enter_delay(0.8));
 
         let checks = [
@@ -47,7 +47,7 @@ pub fn view(s: &State) -> El {
         if let Some(report) = s.setup {
             let label = if report.ready() { "Entrar" } else { "Preparar mi computadora" };
             center = center.child(el().h(8.0)).child(
-                reward("enter", label, |s: &mut State| s.enter()).transition(Transition::scale(0.8)).enter_delay(1.9),
+                primary("enter", label, |s: &mut State| s.enter()).transition(Transition::scale(0.8)).enter_delay(1.9),
             );
         }
         root = root.child(center.absolute(0.0, 0.0));

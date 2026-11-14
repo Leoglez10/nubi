@@ -263,10 +263,10 @@ mod motion_tests {
             let mut rt = Runtime::new(s, view, size, Env { system_dark: false, scale: 1.0 });
             rt.frame(0.0);
             assert!(rt.find("motion-toggle").is_some());
-            assert!(rt.find("cloud-curtain").is_some());
+            assert!(rt.find("screen-fade").is_some());
             rt.update(|s, _| { crate::motion::tick(s, 1.23); });
             rt.frame(1.0 / 60.0);
-            let (rect, opacity) = rt.presented("cloud-cover").expect("opaque full cover");
+            let (rect, opacity) = rt.presented("screen-fade-cover").expect("opaque full cover");
             assert_eq!(opacity, 1.0);
             assert!(rt.find("setup-card").is_some());
             // The inset frame keeps the cover inside the 9pt app padding.

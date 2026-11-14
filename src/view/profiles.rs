@@ -18,7 +18,7 @@ pub fn avatar(name: &str, color: &str, size: f32) -> El {
 pub fn view(s: &State) -> El {
     let p = pal();
     let mut page = col().key("profiles").w_full().h_full().fill(p.bg).padding(40.0).gap(28.0).center()
-        .child(text("labcloud").font(H2).color(p.blue))
+        .child(text("Lab Cloud").font(H2).color(p.text))
         .child(text("¿Quién va a aprender hoy?").key("profiles-title").font(TITLE).color(p.text));
 
     let Some(cards) = &s.profiles else {
