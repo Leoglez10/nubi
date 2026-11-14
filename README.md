@@ -35,7 +35,7 @@ Course content is Spanish TOML under `content/`, no code changes needed:
 
 `cargo test` validates every file (ids, answers in range, labs with objectives, …).
 
-Headless snapshots of the screens: `cargo run -- --snap out.png --scene setup|lab|result`.
+Headless snapshots of the screens: `cargo run -- --snap out.png --scene <name>` with `intro`, `setup`, `profiles`, `map`, `lesson`, `lesson-wrong`, `lesson-order`, `lesson-match`, `lesson-done` or `lab`.
 
 Progress lives in the OS app-data folder (macOS: `~/Library/Application Support/LabCloud/`).
 The lab terminal runs only `aws` commands, without a shell, inside `labs/<id>/` there.
