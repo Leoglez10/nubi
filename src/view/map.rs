@@ -61,7 +61,7 @@ pub fn view(s: &State) -> El {
                 .child(primary("continue-class", label, move |s: &mut State| s.open_class(&id)))));
     }
     page = page.child(module(s));
-    el().w_full().h_full().scroll(ScrollSpec { stick_bottom: false }).child(row().w_full().justify_center().child(page))
+    col().w_full().h_full().child(el().w_full().grow(1.0).scroll(ScrollSpec { stick_bottom: false }).child(row().w_full().justify_center().child(page)))
 }
 
 fn card() -> El {

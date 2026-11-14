@@ -16,7 +16,7 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - [x] T1 · S1 · inline · theme: palette, flat buttons with hover fill, focus ring, fonts — Rune .hover(tint) replaces per-key hover state; Inter + Plex Mono are already Rune defaults (no bundling); button tests rewritten for tint-not-grow; 64 tests + Clippy clean
 - [x] T2 · S3 · inline · app shell: sidebar + top bar around Inicio/Clase/Práctica/Laboratorio — sidebar resumes attempts (no restart), lab entry gated on practice; motion toggle moved into the sidebar; tests written after code (no observed RED); keyboard test now checks focus via Tx::focused
 - [x] T3 · S2, S3 · inline · Inicio dashboard: greeting + Nubi, progress cards, continue card, module table — replaces the cloud map; all numbers from saved progress; snapshot inspected
-- [ ] T4 · S2, S3, S4 · inline · Clase: article + steps aside + Nubi tip
+- [x] T4 · S2, S3, S4 · inline · Clase: article + steps aside + Nubi tip — tip shows the class's visual line; RED y=930 (sidebar pushed off-screen by long page) → GREEN via grow+scroll; snapshot inspected
 - [ ] T5 · S2, S3 · inline · Práctica: card layout, Nubi mood in the footer
 - [ ] T6 · S3 · inline · Laboratorio inside the shell
 - [ ] T7 · S1 · inline · short fade transition, Splash/Setup/Profiles palette, docs, snapshots

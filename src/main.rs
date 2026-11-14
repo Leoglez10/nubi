@@ -724,10 +724,17 @@ mod tests {
     fn every_class_section_has_a_picture() {
         for scene in ["class", "class-2"] {
             let rt = render(state(scene));
-            for key in ["class-diagram", "class-example-visual", "class-review-visual"] {
+            for key in ["class-diagram", "class-example-visual", "class-review-visual", "class-steps", "class-nubi"] {
                 assert!(rt.find(key).is_some(), "{scene}: missing {key}");
             }
         }
+    }
+
+    #[test]
+    fn a_long_class_scrolls_inside_and_keeps_the_sidebar_on_screen() {
+        let rt = render(state("class-2"));
+        let (_, y) = rt.find("environment").expect("sidebar environment card");
+        assert!(y < 760.0, "the environment card was pushed below the window: y = {y}");
     }
 
     #[test]
