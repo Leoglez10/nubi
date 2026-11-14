@@ -21,6 +21,13 @@ install or start whatever is missing. The emulator can also be managed by hand:
 `scripts/emulator.sh stop` stops the emulator (its resources live in memory and are lost).
 To use the AWS CLI against the emulator in your own shell: `eval "$(scripts/emulator.sh env)"`.
 
+## Course content
+
+The foundations island currently has four stops: S3 buckets, a versioning lab,
+object keys and prefixes, and an archive lab with two starter files. The archive
+lab checks the complete object keys and resets its bucket when replayed.
+IAM/STS, DynamoDB, SQS and SNS are planned next; Phase 4 is not complete.
+
 ## Adding content
 
 Course content is Spanish TOML under `content/`, no code changes needed:

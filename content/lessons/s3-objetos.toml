@@ -1,0 +1,32 @@
+id = "s3-objetos"
+title = "S3: claves y prefijos"
+kind = "leccion"
+
+[[exercises]]
+type = "choice"
+prompt = "En s3://archivo-nubi/informes/enero.txt, ¿qué identifica al objeto dentro del bucket?"
+options = ["Solo enero.txt", "La clave completa: informes/enero.txt", "El nombre del bucket: archivo-nubi"]
+answer = 1
+hint = "La clave incluye el prefijo informes/ y el nombre enero.txt."
+
+[[exercises]]
+type = "command"
+prompt = "Sube enero.txt al bucket archivo-nubi con la clave informes/enero.txt."
+answers = ["aws s3 cp enero.txt s3://archivo-nubi/informes/enero.txt"]
+hint = "aws s3 cp <archivo-local> s3://<bucket>/<clave-completa>"
+
+[[exercises]]
+type = "order"
+prompt = "Ordena los pasos para guardar y comprobar tu informe."
+steps = ["Crear el bucket archivo-nubi", "Subir enero.txt con la clave informes/enero.txt", "Listar los objetos con el prefijo informes/"]
+hint = "El bucket debe existir antes de subir el informe; comprueba la carga después."
+
+[[exercises]]
+type = "match"
+prompt = "Une cada parte de s3://archivo-nubi/informes/enero.txt con su significado."
+pairs = [
+  ["archivo-nubi", "Bucket que contiene el objeto"],
+  ["informes/", "Prefijo de la clave, no una carpeta real"],
+  ["informes/enero.txt", "Clave completa del objeto"],
+]
+hint = "S3 guarda objetos en una estructura plana: las barras forman parte de la clave."

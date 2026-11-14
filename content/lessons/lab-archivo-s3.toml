@@ -1,0 +1,26 @@
+id = "lab-archivo-s3"
+title = "Lab: organiza tus informes en S3"
+kind = "lab"
+
+[[objectives]]
+text = "Crea el bucket archivo-nubi en tu nube local"
+hint = "aws s3api create-bucket --bucket archivo-nubi"
+check = { type = "bucket_exists", bucket = "archivo-nubi" }
+
+[[objectives]]
+text = "Sube enero.txt con la clave informes/enero.txt"
+hint = "aws s3 cp enero.txt s3://archivo-nubi/informes/enero.txt"
+check = { type = "object_exists", bucket = "archivo-nubi", key = "informes/enero.txt" }
+
+[[objectives]]
+text = "Sube febrero.txt con la clave informes/febrero.txt"
+hint = "aws s3 cp febrero.txt s3://archivo-nubi/informes/febrero.txt"
+check = { type = "object_exists", bucket = "archivo-nubi", key = "informes/febrero.txt" }
+
+[[files]]
+name = "enero.txt"
+content = "Informe de enero: mi primer archivo organizado en la nube local.\n"
+
+[[files]]
+name = "febrero.txt"
+content = "Informe de febrero: otro objeto bajo el mismo prefijo.\n"

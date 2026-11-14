@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn the_shipped_course_is_valid() {
         let content = load(&shipped()).unwrap();
-        assert_eq!(content.order(), vec!["s3-buckets", "lab-primer-bucket"]);
+        assert_eq!(content.order(), vec!["s3-buckets", "lab-primer-bucket", "s3-objetos", "lab-archivo-s3"]);
         assert_eq!(content.nodes["s3-buckets"].kind, NodeKind::Lesson);
         assert_eq!(content.nodes["s3-buckets"].exercises.len(), 5);
         assert_eq!(content.nodes["lab-primer-bucket"].objectives.len(), 3);

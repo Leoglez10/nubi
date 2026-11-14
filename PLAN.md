@@ -131,6 +131,10 @@ Scope:
 
 ### Phase 4 — Module 1: foundations (highest-fidelity services)
 - IAM/STS, S3, DynamoDB, SQS, SNS.
+- Started on `feat/fase-4-fundamentos`: S3 object keys/prefixes lesson and a
+  two-file archive lab. Tracking: `odd/tasks/fase-4-fundamentos.md`.
+- Remaining services need their own checker types and emulator validation; this
+  opening slice does not complete Phase 4.
 
 ### Phase 5 — Module 2: serverless
 - Lambda, API Gateway, EventBridge.
