@@ -1,0 +1,21 @@
+[package]
+name = "labcloud"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+# Rune is pre-release: always pin a rev of its `dev` branch.
+rune = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
+aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws-sdk-s3 = "1"
+tokio = { version = "1", features = ["rt"] }
+
+# Rune builds against patched copies of these crates (see Rune's own Cargo.toml);
+# a dependency's [patch] does not apply to us, so we repeat it at the same rev.
+[patch.crates-io]
+wgpu-hal = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
+winit = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
+parley_engine = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
+accesskit_windows = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
+accesskit_macos = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }

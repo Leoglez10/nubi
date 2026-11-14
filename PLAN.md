@@ -86,7 +86,18 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
   picker, horizontal sky map, exercise screen, lab with integrated terminal, mini-game,
   result screen with mastery stars.
 
-### Phase 1 — Proof of concept
+### Phase 1 — Proof of concept (done 2026-11-14, branch `feat/poc`)
+Findings:
+- `scripts/emulator.sh` builds the image from the official Dockerfile (aarch64 on Apple
+  silicon) and starts it with `--telemetry off`, bound to 127.0.0.1 only.
+- The emulator requires SigV4 and writes new credentials, `config` and `ca.pem` to
+  `~/.aws/emulator/9297/` on every start; the app points itself at those files.
+- The Rust SDK trusts the emulator through `SSL_CERT_FILE=ca.pem`; the CLI through `AWS_CA_BUNDLE`.
+- Apps that depend on Rune must repeat Rune's `[patch.crates-io]` table at the same rev.
+- Rune's headless `--script` runs on simulated time, so it does not wait for a real `aws`
+  process; the emulator round trip is covered by an `#[ignore]` integration test instead.
+
+Scope:
 - Start aws-emulator in Docker.
 - Minimal Rune app from `examples/hello`.
 - Background thread calls `ListBuckets` via `aws-sdk-s3` and shows the result.
