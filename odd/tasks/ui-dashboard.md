@@ -14,8 +14,8 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 
 - [x] T0 · S4 · inline · settle the open feat/ui-pulido work: flat close, class example/review visuals, keyboard test — RED class-2 scene locked → GREEN; 65 non-emulator tests + Clippy clean
 - [x] T1 · S1 · inline · theme: palette, flat buttons with hover fill, focus ring, fonts — Rune .hover(tint) replaces per-key hover state; Inter + Plex Mono are already Rune defaults (no bundling); button tests rewritten for tint-not-grow; 64 tests + Clippy clean
-- [ ] T2 · S3 · inline · app shell: sidebar + top bar around Inicio/Clase/Práctica/Laboratorio
-- [ ] T3 · S2, S3 · inline · Inicio dashboard: greeting + Nubi, progress cards, continue card, module table
+- [x] T2 · S3 · inline · app shell: sidebar + top bar around Inicio/Clase/Práctica/Laboratorio — sidebar resumes attempts (no restart), lab entry gated on practice; motion toggle moved into the sidebar; tests written after code (no observed RED); keyboard test now checks focus via Tx::focused
+- [x] T3 · S2, S3 · inline · Inicio dashboard: greeting + Nubi, progress cards, continue card, module table — replaces the cloud map; all numbers from saved progress; snapshot inspected
 - [ ] T4 · S2, S3, S4 · inline · Clase: article + steps aside + Nubi tip
 - [ ] T5 · S2, S3 · inline · Práctica: card layout, Nubi mood in the footer
 - [ ] T6 · S3 · inline · Laboratorio inside the shell
@@ -24,3 +24,4 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 ## Log
 
 - L1 (user): "si, pásalo a rune" (after approving the dashboard prototype with Nubi: "me gusta mas, pero deja la mascota de la nube").
+- 2026-11-14: T0 e9e932c, T1 af75952. T2+T3 one commit: the old map test pinned the cloud map that Inicio replaces, so the shell and Inicio ship together to keep every commit green. Mono font stays IBM Plex Mono (Rune default) instead of JetBrains Mono.

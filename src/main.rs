@@ -53,6 +53,15 @@ pub struct Art {
     pub cloud_current: Image,
     pub cloud_locked: Image,
     pub cloud_soft: Image,
+    pub icon_home: Image,
+    pub icon_book: Image,
+    pub icon_check: Image,
+    pub icon_term: Image,
+}
+
+/// A 24px stroke icon in the sidebar's ink.
+fn icon_svg(path: &str) -> String {
+    format!(r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#344054" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{path}"/></svg>"##)
 }
 
 const NUBI: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 96"><path d="M30 80h62a22 22 0 0 0 2-44 30 30 0 0 0-57-6A24 24 0 0 0 30 80z" fill="#FFFFFF" stroke="#1F6FD1" stroke-width="4" stroke-linejoin="round"/><circle cx="50" cy="54" r="5" fill="#0F2A44"/><circle cx="74" cy="54" r="5" fill="#0F2A44"/><circle cx="52" cy="52" r="1.6" fill="#FFFFFF"/><circle cx="76" cy="52" r="1.6" fill="#FFFFFF"/><path d="M54 64q8 7 16 0" fill="none" stroke="#0F2A44" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="64" r="4" fill="#FFB8A8"/><circle cx="82" cy="64" r="4" fill="#FFB8A8"/></svg>"##;
@@ -70,6 +79,10 @@ fn load_art(s: &mut State, waker: Waker) {
         cloud_current: svg(cloud_svg("#FFFFFF", "#FF9900"), 120.0),
         cloud_locked: svg(cloud_svg("#EEF3F8", "#C3D0DE"), 120.0),
         cloud_soft: svg(cloud_svg("#FFFFFF", "#FFFFFF"), 300.0),
+        icon_home: svg(icon_svg("M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"), 18.0),
+        icon_book: svg(icon_svg("M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 5v16M8 7h7"), 18.0),
+        icon_check: svg(icon_svg("M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"), 18.0),
+        icon_term: svg(icon_svg("M4 17l6-5-6-5M12 19h8"), 18.0),
         _cache: cache,
     });
 }
@@ -296,6 +309,44 @@ impl State {
     pub fn show_class_review(&mut self) {
         self.revisit_class();
         if self.screen == Screen::Class { self.class_review = true; }
+    }
+
+    /// The class to work on next: the first whose lab is not done (or the last one).
+    pub fn current_class(&self) -> Option<(String, String)> {
+        let classes = self.content.classes();
+        classes.iter().find(|(_, t)| !self.progress.completed(&t.lab)).or(classes.last())
+            .map(|(node, t)| (node.id.clone(), t.lab.clone()))
+    }
+
+    /// Number and title of the class the current screen belongs to.
+    pub fn shown_class(&self) -> Option<(usize, String)> {
+        let id = match self.screen {
+            Screen::Class => self.class_id.as_deref()?,
+            Screen::Lesson => &self.lesson.id,
+            Screen::Lab => &self.lab.id,
+            _ => return None,
+        };
+        self.content.classes().into_iter().find(|(node, t)| node.id == id || t.lab == id)
+            .map(|(_, t)| (t.number, t.title.clone()))
+    }
+
+    /// Sidebar navigation: resumes an attempt in progress instead of restarting it.
+    pub fn go_to(&mut self, target: Screen) {
+        if target == self.screen { return; }
+        if target == Screen::Map { return self.to_map(); }
+        let Some((lesson, lab)) = self.current_class() else { return };
+        match target {
+            Screen::Lesson if self.lesson.id == lesson && !self.lesson.session.finished() => self.screen = Screen::Lesson,
+            Screen::Lab if self.lab.id == lab && !self.lab.session.complete() => self.screen = Screen::Lab,
+            _ => {
+                self.open_class(&lesson);
+                match target {
+                    Screen::Lesson => self.start_class_lesson(),
+                    Screen::Lab => self.start_class_lab(),
+                    _ => {}
+                }
+            }
+        }
     }
 
     pub fn to_map(&mut self) {
@@ -683,11 +734,16 @@ mod tests {
     fn keyboard_alone_starts_the_games_from_a_class() {
         let mut rt = render(state("class"));
         rt.set_tab_visits_controls(true);
-        // Back, then games: Space on the second stop opens the lesson.
-        for _ in 0..2 {
+        let on_games = std::rc::Rc::new(std::cell::Cell::new(false));
+        // Tab through the sidebar and the page until the games button has focus.
+        for _ in 0..30 {
             rt.key(rune::Key::Tab.into());
             rt.frame(1.0 / 60.0);
+            let flag = on_games.clone();
+            rt.update(move |_, tx| flag.set(tx.focused() == Some("class-games")));
+            if on_games.get() { break; }
         }
+        assert!(on_games.get(), "Tab must reach the games button");
         rt.key(rune::Key::Text(" ".into()).into());
         rt.frame(1.0 / 60.0);
         assert_eq!(rt.state.screen, Screen::Lesson);
@@ -793,13 +849,12 @@ mod tests {
     }
 
     #[test]
-    fn the_map_shows_every_stop_and_the_selected_detail() {
+    fn home_lists_every_class_and_the_one_to_continue() {
         let rt = render(state("map"));
         assert!(rt.find("class-1").is_some());
         assert!(rt.find("class-2").is_some());
-        assert!(rt.find("detail").is_some());
-        assert_eq!(rt.state.selected, 1, "the next stop is selected");
-        assert!(rt.find("class-cta-1").is_some());
+        assert!(rt.find("continue").is_some());
+        assert!(rt.find("continue-class").is_some());
     }
 
     #[test]

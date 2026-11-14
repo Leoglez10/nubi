@@ -8,6 +8,7 @@ mod lesson;
 mod map;
 mod profiles;
 mod setup;
+mod shell;
 
 use rune::color::hex;
 use rune::tok::TextStyle;
@@ -78,14 +79,15 @@ pub const MONO: TextStyle = TextStyle::new(14.0, 400.0).mono();
 pub fn view(s: &State, cx: &mut Cx<State>) -> El {
     s.motion.system_reduced.set(cx.system_reduced_motion());
     cx.reduced_motion(s.reduced_motion || cx.system_reduced_motion());
-    let screen = match s.motion.displayed(s.screen) {
+    let shown = s.motion.displayed(s.screen);
+    let screen = match shown {
         Screen::Splash => intro::view(s),
         Screen::Setup => setup::view(s),
         Screen::Profiles => profiles::view(s),
-        Screen::Map => map::view(s),
-        Screen::Class => class::view(s),
-        Screen::Lesson => lesson::view(s),
-        Screen::Lab => lab::view(s),
+        Screen::Map => shell::wrap(s, shown, map::view(s)),
+        Screen::Class => shell::wrap(s, shown, class::view(s)),
+        Screen::Lesson => shell::wrap(s, shown, lesson::view(s)),
+        Screen::Lab => shell::wrap(s, shown, lab::view(s)),
     };
     motion::wrap(s, screen)
 }

@@ -2,7 +2,7 @@
 use rune::{Color, El, col, el, row};
 
 use super::{pal, plain};
-use crate::State;
+use crate::{Screen, State};
 
 /// Space kept clear for the window's own controls and the screen edges.
 const INSET: f32 = 9.0;
@@ -31,10 +31,14 @@ pub fn wrap(s: &State, screen: El) -> El {
             ),
         );
     }
-    root.child(toggle(s))
+    // Learning screens carry the control in their sidebar instead of floating it.
+    if matches!(s.motion.displayed(s.screen), Screen::Splash | Screen::Setup | Screen::Profiles) {
+        root = root.child(row().w_full().absolute(0.0, 0.0).justify_end().child(el().px(INSET).pt(INSET).child(toggle(s).h(34.0).px(14.0))));
+    }
+    root
 }
 
-fn toggle(s: &State) -> El {
+pub fn toggle(s: &State) -> El {
     let label = if s.motion.system_reduced.get() {
         if s.reduced_motion { "Movimiento reducido: activado (sistema)" } else { "El sistema pide movimiento reducido" }
     } else if s.reduced_motion {
@@ -42,9 +46,5 @@ fn toggle(s: &State) -> El {
     } else {
         "Movimiento: normal"
     };
-    row().w_full().absolute(0.0, 0.0).justify_end()
-        .child(
-            el().px(INSET).pt(INSET)
-                .child(plain("motion-toggle", label, |s| s.reduced_motion = !s.reduced_motion).h(34.0).px(14.0)),
-        )
+    plain("motion-toggle", label, |s| s.reduced_motion = !s.reduced_motion)
 }
