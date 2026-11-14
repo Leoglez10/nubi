@@ -17,7 +17,7 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - [x] T2 · S3 · inline · app shell: sidebar + top bar around Inicio/Clase/Práctica/Laboratorio — sidebar resumes attempts (no restart), lab entry gated on practice; motion toggle moved into the sidebar; tests written after code (no observed RED); keyboard test now checks focus via Tx::focused
 - [x] T3 · S2, S3 · inline · Inicio dashboard: greeting + Nubi, progress cards, continue card, module table — replaces the cloud map; all numbers from saved progress; snapshot inspected
 - [x] T4 · S2, S3, S4 · inline · Clase: article + steps aside + Nubi tip — tip shows the class's visual line; RED y=930 (sidebar pushed off-screen by long page) → GREEN via grow+scroll; snapshot inspected
-- [ ] T5 · S2, S3 · inline · Práctica: card layout, Nubi mood in the footer
+- [x] T5 · S2, S3 · inline · Práctica: card layout, Nubi mood in the footer — three Nubi faces (neutral/happy/worried) rasterized once; result says 'Volver al inicio'; snapshots of question, wrong answer and result inspected
 - [ ] T6 · S3 · inline · Laboratorio inside the shell
 - [ ] T7 · S1 · inline · short fade transition, Splash/Setup/Profiles palette, docs, snapshots
 

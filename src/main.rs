@@ -49,6 +49,8 @@ pub enum Job {
 pub struct Art {
     _cache: ImageCache,
     pub nubi: Image,
+    pub nubi_happy: Image,
+    pub nubi_worried: Image,
     pub cloud: Image,
     pub cloud_current: Image,
     pub cloud_locked: Image,
@@ -64,7 +66,10 @@ fn icon_svg(path: &str) -> String {
     format!(r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#344054" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{path}"/></svg>"##)
 }
 
-const NUBI: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 96"><path d="M30 80h62a22 22 0 0 0 2-44 30 30 0 0 0-57-6A24 24 0 0 0 30 80z" fill="#FFFFFF" stroke="#1F6FD1" stroke-width="4" stroke-linejoin="round"/><circle cx="50" cy="54" r="5" fill="#0F2A44"/><circle cx="74" cy="54" r="5" fill="#0F2A44"/><circle cx="52" cy="52" r="1.6" fill="#FFFFFF"/><circle cx="76" cy="52" r="1.6" fill="#FFFFFF"/><path d="M54 64q8 7 16 0" fill="none" stroke="#0F2A44" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="64" r="4" fill="#FFB8A8"/><circle cx="82" cy="64" r="4" fill="#FFB8A8"/></svg>"##;
+/// Nubi with a given mouth: neutral, happy or worried.
+fn nubi_svg(mouth: &str) -> String {
+    format!(r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 96"><path d="M30 80h62a22 22 0 0 0 2-44 30 30 0 0 0-57-6A24 24 0 0 0 30 80z" fill="#FFFFFF" stroke="#101828" stroke-width="3.5" stroke-linejoin="round"/><circle cx="50" cy="54" r="5" fill="#101828"/><circle cx="74" cy="54" r="5" fill="#101828"/><circle cx="52" cy="52" r="1.6" fill="#FFFFFF"/><circle cx="76" cy="52" r="1.6" fill="#FFFFFF"/><path d="{mouth}" fill="none" stroke="#101828" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="64" r="4" fill="#FDA29B"/><circle cx="82" cy="64" r="4" fill="#FDA29B"/></svg>"##)
+}
 
 fn cloud_svg(fill: &str, stroke: &str) -> String {
     format!(r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 96"><path d="M30 80h62a22 22 0 0 0 2-44 30 30 0 0 0-57-6A24 24 0 0 0 30 80z" fill="{fill}" stroke="{stroke}" stroke-width="4" stroke-linejoin="round"/></svg>"##)
@@ -74,7 +79,9 @@ fn load_art(s: &mut State, waker: Waker) {
     let cache = ImageCache::new(waker);
     let svg = |text: String, size: f32| cache.svg(text.into_bytes(), size, 2.0);
     s.art = Some(Art {
-        nubi: svg(NUBI.to_string(), 200.0),
+        nubi: svg(nubi_svg("M54 64q8 7 16 0"), 200.0),
+        nubi_happy: svg(nubi_svg("M51 62q11 11 22 0"), 120.0),
+        nubi_worried: svg(nubi_svg("M54 68q8-7 16 0"), 120.0),
         cloud: svg(cloud_svg("#FFFFFF", "#1F6FD1"), 120.0),
         cloud_current: svg(cloud_svg("#FFFFFF", "#FF9900"), 120.0),
         cloud_locked: svg(cloud_svg("#EEF3F8", "#C3D0DE"), 120.0),
@@ -892,6 +899,7 @@ mod tests {
     fn a_wrong_answer_shows_the_hint_and_a_retry() {
         let rt = render(state("lesson-wrong"));
         assert!(rt.find("feedback-wrong").is_some());
+        assert!(rt.find("lesson-nubi").is_some(), "Nubi reacts beside the feedback");
         assert!(rt.find("retry").is_some());
     }
 

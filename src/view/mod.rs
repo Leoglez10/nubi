@@ -166,10 +166,14 @@ pub fn nubi(s: &State, w: f32) -> El {
     picture(s.art.as_ref().map(|a| &a.nubi), w, w * 0.8).label("Nubi, la mascota").looping(float)
 }
 
-/// A speech bubble next to Nubi.
-pub fn bubble(content: El) -> El {
-    let p = pal();
-    el().px(18.0).py(14.0).radius(18.0).fill(p.surface).border(2.0, p.border).child(content)
+/// How Nubi reacts to an answer.
+#[derive(Clone, Copy, PartialEq)]
+pub enum Mood { Neutral, Happy, Worried }
+
+/// Nubi's face for a mood, still (it sits beside text the student is reading).
+pub fn nubi_face(s: &State, mood: Mood, w: f32) -> El {
+    let img = s.art.as_ref().map(|a| match mood { Mood::Neutral => &a.nubi, Mood::Happy => &a.nubi_happy, Mood::Worried => &a.nubi_worried });
+    picture(img, w, w * 0.8).label("Nubi")
 }
 
 pub fn progress_bar(key: &str, fraction: f32, fill: Color, height: f32) -> El {

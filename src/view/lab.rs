@@ -158,7 +158,7 @@ fn result(s: &State) -> El {
     }
     let again = if errors > 0 { reward("perfect", "Perfeccionar", |s: &mut State| s.restart_lab()) } else { primary("again", "Repetir lab", |s: &mut State| s.restart_lab()) };
     panel.child(again).child(plain("class-review", "Repasar la clase", |s: &mut State| s.show_class_review()))
-        .child(primary("back-to-map", "Seguir en el mapa", |s: &mut State| s.to_map()))
+        .child(plain("back-to-map", "Volver al inicio", |s: &mut State| s.to_map()))
 }
 
 fn run_input(s: &mut State) {

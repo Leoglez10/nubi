@@ -6,7 +6,7 @@ use labcloud::grading::{Answer, stars as stars_for};
 use labcloud::lesson::{Feedback, prompt, shuffled};
 use rune::{Color, El, col, el, row, spacer, text, text_input};
 
-use super::{BODY, H2, MONO, SMALL, STRONG, TITLE, bubble, close, disabled, good, nubi, pal, plain, plural, primary, progress_bar, reward, stars};
+use super::{BODY, H2, MONO, Mood, SMALL, STRONG, TITLE, disabled, good, nubi_face, pal, plain, plural, primary, progress_bar, reward, stars};
 use crate::{Job, LessonView, State};
 
 /// The student's answer for `ex`, or `None` while it is incomplete.
@@ -54,20 +54,24 @@ fn retry(s: &mut State) {
 pub fn view(s: &State) -> El {
     let p = pal();
     let l = &s.lesson;
-    let top = row().key("lesson-top").w_full().max_w(1000.0).gap(18.0).center_y().px(24.0).pt(26.0)
-        .child(close(|s: &mut State| s.to_map()))
-        .child(plain("lesson-explanation", "Ver explicación", |s: &mut State| s.revisit_class()))
-        .child(el().grow(1.0).child(progress_bar("lesson-progress", l.session.progress(), p.blue, 18.0)))
-        .child(text(format!("{} / {}", (l.session.index + 1).min(l.session.total), l.session.total)).font(STRONG).color(p.muted));
+    let n = (l.session.index + 1).min(l.session.total);
+    let top = row().key("lesson-top").w_full().gap(14.0).center_y().px(24.0).py(14.0).border_sides([0.0, 0.0, 1.0, 0.0], p.border)
+        .child(text(format!("Pregunta {n} de {}", l.session.total)).font(rune::tok::TextStyle::new(13.0, 600.0)).color(p.muted))
+        .child(el().grow(1.0).child(progress_bar("lesson-progress", l.session.progress(), p.blue, 6.0)))
+        .child(plain("lesson-explanation", "Ver explicación", |s: &mut State| s.revisit_class()).h(36.0).px(12.0));
 
-    let body = if l.session.finished() { result(s) } else { exercise(s) };
-    let mut page = col().key("lesson").w_full().h_full().fill(p.surface).items_center()
-        .child(top)
-        .child(el().w_full().max_w(780.0).grow(1.0).px(24.0).py(32.0).child(body));
-    if !l.session.finished() {
-        page = page.child(footer(s));
+    let finished = l.session.finished();
+    let body = if finished { result(s) } else { exercise(s) };
+    let mut card = col().key("lesson").w_full().max_w(760.0).radius(12.0).fill(p.surface).border(1.0, p.border).clip_rounded(12.0);
+    if !finished {
+        card = card.child(top);
     }
-    page
+    card = card.child(el().w_full().px(24.0).py(28.0).child(body));
+    if !finished {
+        card = card.child(footer(s));
+    }
+    col().w_full().h_full().child(el().w_full().grow(1.0).scroll(rune::ScrollSpec { stick_bottom: false })
+        .child(row().w_full().justify_center().items_start().padding(28.0).child(card)))
 }
 
 fn exercise(s: &State) -> El {
@@ -80,9 +84,9 @@ fn exercise(s: &State) -> El {
         Exercise::Match { .. } => "Une las parejas",
     };
     let locked = s.lesson.session.feedback.is_some();
-    col().w_full().gap(24.0)
-        .child(text(title).key("exercise-title").font(TITLE).color(p.text))
-        .child(row().gap(14.0).items_start().child(nubi(s, 110.0)).child(bubble(text(prompt(ex).to_string()).font(BODY).color(p.text).wrap()).grow(1.0)))
+    col().w_full().gap(16.0)
+        .child(text(title.to_uppercase()).key("exercise-title").font(rune::tok::TextStyle::new(12.0, 600.0)).color(p.blue))
+        .child(text(prompt(ex).to_string()).font(rune::tok::TextStyle::new(20.0, 600.0)).color(p.text).wrap())
         .child(match ex {
             Exercise::Choice { options, .. } => choice(s, options, locked),
             Exercise::Command { .. } => command(s),
@@ -93,22 +97,21 @@ fn exercise(s: &State) -> El {
 
 fn tile(key: String, label: El, on: bool, enabled: bool, press: impl Fn(&mut State) + 'static) -> El {
     let p = pal();
-    let t = el().key(key).role("button").focusable(enabled).checked(on).px(16.0).py(14.0).radius(16.0)
+    let t = el().key(key).role("button").focusable(enabled).checked(on).px(16.0).py(14.0).radius(10.0)
         .fill(if on { p.blue_light } else { p.surface })
-        .border(2.0, if on { rune::color::hex("#5FA8F0").unwrap_or(p.blue) } else { p.border })
-        .shadow(4.0, 0.0, if on { rune::color::hex("#5FA8F0").unwrap_or(p.blue) } else { p.border })
+        .border(1.5, if on { p.blue } else { rune::color::hex("#D0D5DD").unwrap_or(p.border) })
         .child(label);
-    if enabled { t.on_press(press) } else { t }
+    if enabled { t.hover(p.text.alpha(0.03)).press_scale(0.99).focus_ring(2.0, 2.0, p.blue).on_press(press) } else { t }
 }
 
 fn choice(s: &State, options: &[String], locked: bool) -> El {
     let p = pal();
-    let mut grid = row().w_full().gap(14.0).flex_wrap();
+    let mut grid = col().w_full().gap(10.0);
     for (i, o) in options.iter().enumerate() {
         let label = row().gap(12.0).center_y()
-            .child(el().size(30.0, 30.0).radius(9.0).border(2.0, p.border).center().child(text((i + 1).to_string()).font(SMALL).color(p.muted)))
+            .child(el().size(26.0, 26.0).radius(6.0).border(1.0, p.border).center().child(text((i + 1).to_string()).font(SMALL).color(p.muted)))
             .child(text(o.clone()).font(MONO).color(p.text).wrap().grow(1.0));
-        grid = grid.child(tile(format!("option-{i}"), label, s.lesson.choice == Some(i), !locked, move |s: &mut State| s.lesson.choice = Some(i)).w_frac(0.48));
+        grid = grid.child(tile(format!("option-{i}"), label, s.lesson.choice == Some(i), !locked, move |s: &mut State| s.lesson.choice = Some(i)).w_full());
     }
     grid
 }
@@ -193,37 +196,36 @@ fn matching(s: &State, pairs: &[(String, String)], locked: bool) -> El {
 fn footer(s: &State) -> El {
     let p = pal();
     let ready = current(s).and_then(|ex| answer(ex, &s.lesson)).is_some();
-    let (fill, line, content) = match &s.lesson.session.feedback {
+    let (fill, mood, content) = match &s.lesson.session.feedback {
         None => (
-            p.surface,
-            p.border,
-            row().w_full().center_y()
-                .child(plain("skip-check", "Volver al mapa", |s: &mut State| s.to_map()))
-                .child(spacer())
-                .child(if ready { good("check", "Comprobar", check) } else { disabled("check", "Comprobar") }),
+            p.bg,
+            Mood::Neutral,
+            row().w_full().gap(16.0).center_y()
+                .child(text(if ready { "¿Lista tu respuesta? Compruébala." } else { "Elige una respuesta para comprobar." }).font(rune::tok::TextStyle::new(14.0, 400.0)).color(p.muted).grow(1.0))
+                .child(if ready { primary("check", "Comprobar", check) } else { disabled("check", "Comprobar") }),
         ),
         Some(Feedback::Right) => (
             p.green_light,
-            rune::color::hex("#8FD9B5").unwrap_or(p.green),
-            row().key("feedback-right").w_full().center_y()
-                .child(text("¡Excelente!").font(TITLE).color(p.green_dark))
-                .child(spacer())
+            Mood::Happy,
+            row().key("feedback-right").w_full().gap(16.0).center_y()
+                .child(text("¡Correcto!").font(H2).color(p.green_dark).grow(1.0))
                 .child(good("continue", "Continuar", next)),
         ),
         Some(Feedback::Wrong { hint }) => (
             p.red_light,
-            rune::color::hex("#F5B5B8").unwrap_or(p.red),
+            Mood::Worried,
             row().key("feedback-wrong").w_full().gap(16.0).center_y()
                 .child(
                     col().grow(1.0).gap(4.0)
-                        .child(text("Casi. Inténtalo otra vez, sin límite.").font(H2).color(p.red_dark))
-                        .child(text(format!("Pista: {hint}")).font(STRONG).color(p.red_dark).wrap()),
+                        .child(text("Casi. Inténtalo otra vez, sin límite.").font(STRONG).color(p.red_dark))
+                        .child(text(format!("Pista: {hint}")).font(rune::tok::TextStyle::new(14.0, 400.0)).color(p.red_dark).wrap()),
                 )
-                .child(super::button("retry", "Reintentar", p.red, p.red_dark, Color::WHITE, retry)),
+                .child(super::button("retry", "Reintentar", p.red_dark, p.red_dark, Color::WHITE, retry)),
         ),
     };
-    col().key("lesson-footer").w_full().fill(fill).border(2.0, line).px(24.0).py(20.0).items_center()
-        .child(el().w_full().max_w(1000.0).child(content))
+    row().key("lesson-footer").w_full().gap(14.0).center_y().fill(fill).border_sides([1.0, 0.0, 0.0, 0.0], p.border).px(24.0).py(16.0)
+        .child(nubi_face(s, mood, 44.0).key("lesson-nubi"))
+        .child(content.grow(1.0))
 }
 
 fn result(s: &State) -> El {
@@ -232,12 +234,12 @@ fn result(s: &State) -> El {
     let n = stars_for(l.errors);
     let title = if l.errors == 0 { "¡Lección perfecta!" } else { "¡Lección completada!" };
     let mut col_ = col().key("lesson-result").w_full().gap(16.0).center()
-        .child(nubi(s, 150.0))
-        .child(text(title).font(TITLE).color(p.orange_dark))
+        .child(nubi_face(s, if l.errors == 0 { Mood::Happy } else { Mood::Neutral }, 120.0))
+        .child(text(title).font(TITLE).color(p.text))
         .child(text(stars(n)).key("lesson-stars").font(rune::tok::TextStyle::new(56.0, 800.0)).color(p.orange))
         .child(text(if l.errors == 0 { "Cero errores: dominas esta lección.".to_string() } else { format!("Tuviste {}. 3 estrellas = cero errores.", plural(l.errors, "error", "errores")) }).font(BODY).color(p.muted));
     if !l.mistakes.is_empty() {
-        let mut review = col().w_full().gap(8.0).padding(18.0).radius(20.0).fill(p.orange_light).border(2.0, rune::color::hex("#FFD9A0").unwrap_or(p.orange))
+        let mut review = col().w_full().gap(8.0).padding(18.0).radius(10.0).fill(p.orange_light).border(1.0, rune::color::hex("#F9DBAF").unwrap_or(p.orange))
             .child(text("Para repasar").font(H2).color(p.text));
         for m in &l.mistakes {
             review = review.child(text(format!("• {m}")).font(STRONG).color(p.text).wrap());
@@ -253,6 +255,6 @@ fn result(s: &State) -> El {
     if s.content.nodes.get(&s.lesson.id).is_some_and(|n| n.teaching.is_some()) {
         buttons = buttons.child(primary("lesson-to-lab", "Ir al laboratorio", |s: &mut State| s.lesson_to_lab()));
     }
-    col_.child(buttons.child(primary("back-to-map", "Seguir en el mapa", |s: &mut State| s.to_map())))
+    col_.child(buttons.child(plain("back-to-map", "Volver al inicio", |s: &mut State| s.to_map())))
         .child(text(if s.profile.is_some() { "Tu resultado quedó guardado." } else { "" }).font(SMALL).color(p.muted))
 }
