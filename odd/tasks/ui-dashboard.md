@@ -25,3 +25,4 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 
 - L1 (user): "si, pásalo a rune" (after approving the dashboard prototype with Nubi: "me gusta mas, pero deja la mascota de la nube").
 - 2026-11-14: T0 e9e932c, T1 af75952. T2+T3 one commit: the old map test pinned the cloud map that Inicio replaces, so the shell and Inicio ship together to keep every commit green. Mono font stays IBM Plex Mono (Rune default) instead of JetBrains Mono.
+- 2026-11-14 close: T4 6fe519c, T5 143f6cd, T6 93ecb85, T7 52e0562. Full suite incl. emulator 74 passing (35 lib + 30 UI + 3 + 3 + 1 + 2), Clippy -D warnings clean. Branch feat/ui-pulido is ~7 commits ahead of main (well over 400 authored lines); not pushed. Pending: live window run (cargo run) not done; reduced-motion fade only covered by existing timing tests.
