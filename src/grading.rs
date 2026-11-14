@@ -78,9 +78,40 @@ pub fn is_unlocked(order: &[&str], id: &str, completed: impl Fn(&str) -> bool) -
     }
 }
 
+/// How a stop looks on the map.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Stop {
+    /// Completed, with its best stars.
+    Done(u8),
+    /// Open and not completed yet: the next place to play.
+    Current,
+    Locked,
+}
+
+pub fn stop_status(order: &[&str], id: &str, stars_of: impl Fn(&str) -> Option<u8>) -> Stop {
+    match stars_of(id) {
+        Some(stars) if stars > 0 => Stop::Done(stars),
+        _ if is_unlocked(order, id, |prev| stars_of(prev).is_some_and(|s| s > 0)) => Stop::Current,
+        _ => Stop::Locked,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_map_shows_done_current_and_locked_stops() {
+        let order = ["a", "b", "c"];
+        let stars = |id: &str| match id {
+            "a" => Some(2),
+            _ => None,
+        };
+        assert_eq!(stop_status(&order, "a", stars), Stop::Done(2));
+        assert_eq!(stop_status(&order, "b", stars), Stop::Current);
+        assert_eq!(stop_status(&order, "c", stars), Stop::Locked);
+        assert_eq!(stop_status(&order, "a", |_| None), Stop::Current, "the first stop is open from the start");
+    }
 
     fn choice() -> Exercise {
         Exercise::Choice { prompt: "?".into(), options: vec!["a".into(), "b".into()], answer: 1, hint: "h".into() }

@@ -6,5 +6,6 @@ pub mod course;
 pub mod emulator;
 pub mod grading;
 pub mod lab;
+pub mod lesson;
 pub mod progress;
 pub mod setup;
