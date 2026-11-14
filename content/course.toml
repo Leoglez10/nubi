@@ -1,0 +1,7 @@
+# Course map: islands (units) and their stops (lessons, labs, challenges), in order.
+# Each id in `nodes` is a file in content/lessons/<id>.toml.
+
+[[units]]
+id = "fundamentos"
+title = "Isla 1 · Fundamentos"
+nodes = ["s3-buckets", "lab-primer-bucket"]

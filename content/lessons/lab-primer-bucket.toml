@@ -1,0 +1,18 @@
+id = "lab-primer-bucket"
+title = "Lab: tu primer bucket con versionado"
+kind = "lab"
+
+[[objectives]]
+text = "Crea el bucket mi-primer-bucket"
+hint = "aws s3api create-bucket --bucket mi-primer-bucket"
+check = { type = "bucket_exists", bucket = "mi-primer-bucket" }
+
+[[objectives]]
+text = "Activa el versionado"
+hint = "aws s3api put-bucket-versioning --bucket mi-primer-bucket --versioning-configuration Status=Enabled"
+check = { type = "bucket_versioning", bucket = "mi-primer-bucket", status = "Enabled" }
+
+[[objectives]]
+text = "Sube el archivo hola.txt"
+hint = "aws s3 cp hola.txt s3://mi-primer-bucket/"
+check = { type = "object_exists", bucket = "mi-primer-bucket", key = "hola.txt" }

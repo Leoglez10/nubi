@@ -23,6 +23,11 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
   look like Duolingo's vertical path.
 - **Animated intro.** A short launch animation (Nubi rises, logo, "turning on your local
   cloud" checks for Docker and the emulator), then the profile screen.
+- **Guided setup before playing.** If Docker, the AWS CLI or the emulator image is missing,
+  or the emulator is not running, the app shows a setup screen first: what is missing, why
+  it is needed, and one-click buttons ("Instalar Docker", "Instalar AWS CLI",
+  "Iniciar emulador"; via Homebrew/winget/package manager or the official download page).
+  The same requirements and steps are documented on the website.
 - **Local profiles, no accounts.** "Who is learning today?" picker with name + avatar,
   no password. Everything is saved on the student's machine.
 - **Integrated terminal.** The student practices in a terminal that lives inside the app,
@@ -125,6 +130,24 @@ Scope:
 ### Phase 6 — More game
 - Mini-games (architecture builder, command puzzles), achievements for perfect units,
   "what happens inside" animations.
+
+### Phase 7 — Website (GitHub Pages)
+- Landing page for the project, published with GitHub Pages from a repo the user will
+  provide (pending: repo URL).
+- Explicit download section per OS (.dmg, .exe, Linux packages), Homebrew install
+  command, notices (requirements: Docker + AWS CLI, unsigned-build warnings until code
+  signing exists, telemetry note for the emulator) and release notes.
+
+### Phase 8 — Installers and updates (GitHub Actions)
+- Release workflow on tag: build and attach macOS `.dmg`, Windows `.exe` installer and
+  Linux packages (AppImage / .deb / .rpm) to a GitHub Release.
+- Homebrew: a tap with a cask (macOS) / formula (Linux) updated by the release workflow.
+- Automatic updates: the app checks the latest GitHub Release and offers to update.
+- Code signing / notarization (Apple, Windows) to avoid OS warnings; needs certificates.
+
+### Optional (future) — MCP integration
+- An MCP server that exposes the game (progress, current mission, hints, checker results)
+  so an AI assistant can act as a tutor. Decide later whether it adds real value.
 
 ### Later
 - Language switcher (English).

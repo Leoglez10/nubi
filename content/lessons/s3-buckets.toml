@@ -1,0 +1,44 @@
+id = "s3-buckets"
+title = "S3: buckets y objetos"
+kind = "leccion"
+
+[[exercises]]
+type = "choice"
+prompt = "¿Qué identifica a un objeto dentro de un bucket?"
+options = ["Su tamaño", "Su clave (key)", "La fecha en que se subió"]
+answer = 1
+hint = "Mismo bucket + misma ___ = mismo objeto."
+
+[[exercises]]
+type = "choice"
+prompt = "Quiero guardar mis fotos. ¿Qué comando crea un bucket llamado fotos?"
+options = [
+  "aws s3 ls fotos",
+  "aws s3api create-bucket --bucket fotos",
+  "aws dynamodb create-table --table-name fotos",
+  "aws s3 rm s3://fotos",
+]
+answer = 1
+hint = "Buscas un comando de S3 que cree algo, no que liste ni borre."
+
+[[exercises]]
+type = "command"
+prompt = "Escribe el comando para subir hola.txt al bucket fotos."
+answers = ["aws s3 cp hola.txt s3://fotos/", "aws s3 cp hola.txt s3://fotos"]
+hint = "Usa: aws s3 cp <archivo> s3://<bucket>/"
+
+[[exercises]]
+type = "order"
+prompt = "Ordena los pasos para guardar un archivo con versionado."
+steps = ["Crear el bucket", "Activar el versionado", "Subir el archivo"]
+hint = "Primero tiene que existir el bucket."
+
+[[exercises]]
+type = "match"
+prompt = "Une cada concepto con su significado."
+pairs = [
+  ["Bucket", "Contenedor con un nombre único"],
+  ["Key", "Nombre completo del objeto"],
+  ["Objeto", "Los datos y sus metadatos"],
+]
+hint = "La key es como la ruta completa de un archivo."
