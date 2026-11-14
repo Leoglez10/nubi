@@ -35,12 +35,26 @@ pub struct Node {
     pub title: String,
     pub kind: NodeKind,
     #[serde(default)]
+    pub teaching: Option<Teaching>,
+    #[serde(default)]
     pub exercises: Vec<Exercise>,
     #[serde(default)]
     pub objectives: Vec<Objective>,
     /// Starter files a lab puts in its terminal folder.
     #[serde(default)]
     pub files: Vec<LabFile>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Teaching {
+    pub number: usize,
+    pub title: String,
+    pub lab: String,
+    pub explanation: String,
+    pub visual: String,
+    pub example: String,
+    pub review: String,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq)]
@@ -88,6 +102,13 @@ pub struct Content {
 }
 
 impl Content {
+    pub fn classes(&self) -> Vec<(&Node, &Teaching)> {
+        self.order().into_iter().filter_map(|id| {
+            let node = self.nodes.get(id)?;
+            Some((node, node.teaching.as_ref()?))
+        }).collect()
+    }
+
     /// Every stop's id, in map order.
     pub fn order(&self) -> Vec<&str> {
         self.course.units.iter().flat_map(|u| u.nodes.iter().map(String::as_str)).collect()
@@ -125,7 +146,24 @@ pub fn load(dir: &Path) -> Result<Content, String> {
             return Err(format!("course.toml: stop \"{id}\" appears twice"));
         }
     }
+    validate_classes(&content)?;
     Ok(content)
+}
+
+/// Validate teaching text and its ordered lesson/lab pair against the map.
+pub fn validate_classes(content: &Content) -> Result<(), String> {
+    let order = content.order();
+    for (i, (node, teaching)) in content.classes().iter().enumerate() {
+        let position = order.iter().position(|id| *id == node.id).unwrap();
+        if node.kind != NodeKind::Lesson || teaching.number != i + 1
+            || order.get(position + 1).copied() != Some(teaching.lab.as_str())
+            || content.nodes.get(&teaching.lab).is_none_or(|lab| lab.kind != NodeKind::Lab)
+            || [&teaching.title, &teaching.explanation, &teaching.visual, &teaching.example, &teaching.review].iter().any(|s| s.trim().is_empty())
+        {
+            return Err(format!("{}: invalid class teaching or lab mapping", node.id));
+        }
+    }
+    Ok(())
 }
 
 fn fs_read(path: &Path) -> Result<String, String> {

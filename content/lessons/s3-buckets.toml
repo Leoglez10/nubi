@@ -2,6 +2,15 @@ id = "s3-buckets"
 title = "S3: buckets y objetos"
 kind = "leccion"
 
+[teaching]
+number = 1
+title = "Buckets y objetos"
+lab = "lab-primer-bucket"
+explanation = "Amazon S3 guarda objetos dentro de buckets. Un bucket es el contenedor; cada objeto incluye datos y una clave que lo identifica dentro de ese bucket."
+visual = "Bucket: mi-bucket  →  Objeto: foto.jpg  →  Clave: foto.jpg"
+example = "Para crear un contenedor llamado mi-bucket, usamos: aws s3api create-bucket --bucket mi-bucket. Después podemos guardar objetos en él."
+review = "Un bucket contiene objetos. La clave identifica cada objeto dentro de su bucket."
+
 [[exercises]]
 type = "choice"
 prompt = "¿Qué identifica a un objeto dentro de un bucket?"
