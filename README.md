@@ -23,9 +23,15 @@ To use the AWS CLI against the emulator in your own shell: `eval "$(scripts/emul
 
 ## Course content
 
-The foundations island currently has four stops: S3 buckets, a versioning lab,
-object keys and prefixes, and an archive lab with two starter files. The archive
-lab checks the complete object keys and resets its bucket when replayed.
+The foundations island groups its four existing stops into two numbered classes:
+
+1. **Buckets y objetos:** explanation and worked example → games → versioning lab → review.
+2. **Claves y prefijos:** explanation and worked example → games → two-file archive lab → review.
+
+Open a class from the map before practicing. During a game or lab, **Ver explicación**
+lets you consult the teaching material and return without restarting your attempt.
+Complete a class's games to unlock its lab. Existing node progress and mastery stars
+are preserved. The archive lab checks complete object keys and resets its bucket on replay.
 IAM/STS, DynamoDB, SQS and SNS are planned next; Phase 4 is not complete.
 
 ## Adding content
@@ -37,12 +43,15 @@ Course content is Spanish TOML under `content/`, no code changes needed:
   - Lessons/challenges list `[[exercises]]` with `type`: `choice` (`options`, `answer`
     index), `command` (`answers`), `order` (`steps` in the right order) or `match`
     (`pairs` in the right order). Each has a `prompt` and a `hint`.
+  - A lesson's optional `[teaching]` table defines a guided class: `number`, `title`,
+    `lab` (the next mapped lab id), `explanation`, `visual`, `example` and `review`.
+    Class numbers follow map order starting at 1; all teaching strings must be nonempty.
   - Labs list `[[objectives]]` with `text`, `hint` and a `check`: `bucket_exists`,
     `bucket_versioning` (`status`) or `object_exists` (`key`).
 
 `cargo test` validates every file (ids, answers in range, labs with objectives, …).
 
-Headless snapshots of the screens: `cargo run -- --snap out.png --scene <name>` with `intro`, `setup`, `profiles`, `map`, `lesson`, `lesson-wrong`, `lesson-order`, `lesson-match`, `lesson-done` or `lab`.
+Headless snapshots of the screens: `cargo run -- --snap out.png --scene <name>` with `intro`, `setup`, `profiles`, `map`, `lesson`, `lesson-wrong`, `lesson-order`, `lesson-match`, `lesson-done`, `class` or `lab`.
 
 Progress lives in the OS app-data folder (macOS: `~/Library/Application Support/LabCloud/`).
 The lab terminal runs only `aws` commands, without a shell, inside `labs/<id>/` there.

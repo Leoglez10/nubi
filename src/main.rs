@@ -5,6 +5,7 @@
 //! and hands results back with `AppHandle::update`.
 
 mod view;
+mod motion;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -27,6 +28,7 @@ pub enum Screen {
     Setup,
     Profiles,
     Map,
+    Class,
     Lesson,
     Lab,
 }
@@ -139,6 +141,8 @@ pub struct State {
     pub content: Arc<Content>,
     pub art: Option<Art>,
     pub screen: Screen,
+    pub motion: motion::Motion,
+    pub reduced_motion: bool,
     /// Set on the first poll, so the intro's pieces enter with motion (nothing animates on
     /// the first frame).
     pub intro_started: bool,
@@ -156,6 +160,9 @@ pub struct State {
     pub progress: Progress,
     /// Selected stop on the map, by position in the course order.
     pub selected: usize,
+    pub class_id: Option<String>,
+    pub class_return: Option<Screen>,
+    pub class_review: bool,
     pub lesson: LessonView,
     pub lab: LabState,
 }
@@ -168,6 +175,8 @@ impl Default for State {
             content: Arc::new(empty),
             art: None,
             screen: Screen::Splash,
+            motion: motion::Motion::default(),
+            reduced_motion: false,
             intro_started: false,
             setup: None,
             has_brew: false,
@@ -180,6 +189,9 @@ impl Default for State {
             profile: None,
             progress: Progress::default(),
             selected: 0,
+            class_id: None,
+            class_return: None,
+            class_review: false,
             lesson: LessonView::default(),
             lab: LabState { id: String::new(), title: String::new(), objectives: Vec::new(), session: Session::new(0), input: TextEdit::new(""), running: false, saved: false },
         }
@@ -227,6 +239,65 @@ impl State {
         }
     }
 
+    /// Map entry always presents the teaching before launching a practice.
+    pub fn open_class(&mut self, id: &str) {
+        let found = self.content.classes().into_iter().find(|(node, t)| node.id == id || t.lab == id)
+            .map(|(node, _)| node.id.clone());
+        let Some(id) = found else { return };
+        if !labcloud::grading::is_unlocked(&self.order(), &id, |prev| self.progress.completed(prev)) { return; }
+        self.class_id = Some(id);
+        self.class_return = None;
+        self.class_review = false;
+        self.screen = Screen::Class;
+    }
+
+    pub fn class_lab_ready(&self) -> bool {
+        self.class_id.as_ref().is_some_and(|id| self.progress.completed(id)
+            || (self.lesson.id == *id && self.lesson.session.finished()))
+    }
+
+    pub fn start_class_lesson(&mut self) {
+        if self.class_return.is_some() { return; }
+        if let Some(id) = self.class_id.clone() { self.open_stop(&id); }
+    }
+
+    pub fn start_class_lab(&mut self) {
+        if self.class_return.is_some() || !self.class_lab_ready() { return; }
+        let lab = self.class_id.as_ref().and_then(|id| self.content.nodes.get(id))
+            .and_then(|node| node.teaching.as_ref()).map(|t| t.lab.clone());
+        if let Some(id) = lab { self.open_stop(&id); }
+    }
+
+    pub fn revisit_class(&mut self) {
+        let id = match self.screen { Screen::Lesson => &self.lesson.id, Screen::Lab => &self.lab.id, _ => return };
+        let found = self.content.classes().into_iter().find(|(node, t)| node.id == *id || t.lab == *id)
+            .map(|(node, _)| node.id.clone());
+        if let Some(id) = found {
+            self.class_id = Some(id);
+            self.class_return = Some(self.screen);
+            self.class_review = false;
+            self.screen = Screen::Class;
+        }
+    }
+
+    pub fn return_to_attempt(&mut self) {
+        if let Some(screen) = self.class_return.take() { self.screen = screen; }
+    }
+
+    pub fn lesson_to_lab(&mut self) {
+        if self.screen != Screen::Lesson || !self.lesson.session.finished() { return; }
+        self.revisit_class();
+        if self.screen == Screen::Class {
+            self.class_return = None;
+            self.start_class_lab();
+        }
+    }
+
+    pub fn show_class_review(&mut self) {
+        self.revisit_class();
+        if self.screen == Screen::Class { self.class_review = true; }
+    }
+
     pub fn to_map(&mut self) {
         self.selected = self.current_index();
         self.screen = Screen::Map;
@@ -247,9 +318,10 @@ impl State {
     }
 }
 
-fn poll(s: &mut State, _: f64, _: &mut Tx) -> bool {
+fn poll(s: &mut State, now: f64, _: &mut Tx) -> bool {
+    let changed = motion::tick(s, now);
     if s.intro_started {
-        return false;
+        return changed;
     }
     s.intro_started = true;
     true
@@ -377,6 +449,11 @@ impl Worker {
         self.ui.update(move |s, _| {
             s.profile = Some(profile);
             s.progress = shown;
+            // A completed in-memory lesson must not unlock labs for a different profile.
+            s.lesson = LessonView::default();
+            s.class_id = None;
+            s.class_return = None;
+            s.class_review = false;
             s.creating = false;
             s.new_name = TextEdit::new("");
             s.to_map();
@@ -496,6 +573,9 @@ const SCENES: &[Scene] = &[
         s.progress.record("s3-buckets", 1);
         s.to_map();
     }),
+    ("class", |s| {
+        s.open_class("s3-buckets");
+    }),
     ("lesson", |s| {
         s.open_stop("s3-buckets");
         s.lesson.choice = Some(1);
@@ -585,6 +665,74 @@ mod tests {
     }
 
     #[test]
+    fn class_gates_practice_and_restores_attempts() {
+        let mut s = state("map");
+        s.progress = Progress::default();
+        s.open_class("s3-buckets");
+        assert_eq!(s.screen, Screen::Class);
+        s.start_class_lab();
+        assert_eq!(s.screen, Screen::Class, "lab requires a completed lesson");
+        s.start_class_lesson();
+        assert_eq!(s.screen, Screen::Lesson);
+        s.lesson.choice = Some(1);
+        s.lesson.session.errors = 2;
+        s.revisit_class();
+        s.return_to_attempt();
+        assert_eq!(s.screen, Screen::Lesson);
+        assert_eq!(s.lesson.choice, Some(1));
+        assert_eq!(s.lesson.session.errors, 2);
+    }
+
+    #[test]
+    fn class_result_flow_and_lab_revisit_preserve_attempt() {
+        let mut s = state("map");
+        s.progress = Progress::default();
+        s.open_class("s3-objetos");
+        assert_eq!(s.screen, Screen::Map, "second class requires the previous lab");
+        s.open_class("lab-primer-bucket");
+        assert_eq!(s.screen, Screen::Class);
+        s.start_class_lesson();
+        s.lesson.session.index = s.lesson.session.total;
+        let (tx, rx) = mpsc::channel();
+        s.jobs = Some(tx);
+        s.lesson_to_lab();
+        assert_eq!(s.screen, Screen::Lab);
+        assert!(matches!(rx.try_recv(), Ok(Job::StartLab(id)) if id == "lab-primer-bucket"));
+        s.lab.input = TextEdit::new("aws s3 ls");
+        s.lab.session.errors = 2;
+        s.progress.record("s3-buckets", 1);
+        let before = s.progress.clone();
+        s.revisit_class();
+        assert_eq!(s.screen, Screen::Class);
+        s.start_class_lab();
+        assert!(rx.try_recv().is_err(), "revisit cannot start a new lab");
+        s.return_to_attempt();
+        assert_eq!(s.screen, Screen::Lab);
+        assert_eq!(s.lab.input.text, "aws s3 ls");
+        assert_eq!(s.lab.session.errors, 2);
+        assert_eq!(s.progress, before);
+        s.lab.session.done.fill(true);
+        s.show_class_review();
+        assert_eq!(s.screen, Screen::Class);
+        assert!(s.class_review);
+        s.return_to_attempt();
+        assert!(s.lab.session.complete());
+        assert!(rx.try_recv().is_err());
+    }
+
+    #[test]
+    fn class_teaching_and_revisit_controls_render() {
+        let rt = render(state("class"));
+        assert!(rt.find("class-title").is_some());
+        assert!(rt.find("class-visual").is_some());
+        assert!(rt.find("class-games").is_some());
+        assert!(rt.find("class-lab").is_some());
+        assert!(render(state("lesson")).find("lesson-explanation").is_some());
+        assert!(render(state("lab")).find("lab-explanation").is_some());
+        assert!(render(state("lesson-done")).find("lesson-to-lab").is_some());
+    }
+
+    #[test]
     fn the_intro_offers_to_enter_once_checked() {
         let rt = render(state("intro"));
         assert!(rt.find("enter").is_some());
@@ -616,11 +764,11 @@ mod tests {
     #[test]
     fn the_map_shows_every_stop_and_the_selected_detail() {
         let rt = render(state("map"));
-        assert!(rt.find("stop-s3-buckets").is_some());
-        assert!(rt.find("stop-lab-primer-bucket").is_some());
+        assert!(rt.find("class-1").is_some());
+        assert!(rt.find("class-2").is_some());
         assert!(rt.find("detail").is_some());
         assert_eq!(rt.state.selected, 1, "the next stop is selected");
-        assert!(rt.find("cta").is_some());
+        assert!(rt.find("class-cta-1").is_some());
     }
 
     #[test]

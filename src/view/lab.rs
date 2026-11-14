@@ -6,7 +6,7 @@ use labcloud::lab::Kind;
 use rune::color::hex;
 use rune::{Color, El, Key, KeyEvent, ScrollSpec, TextEdit, Tx, col, el, row, spacer, text, text_input};
 
-use super::{BODY, H2, MONO, SMALL, STRONG, close, pal, plural, primary, reward, stars};
+use super::{BODY, H2, MONO, SMALL, STRONG, close, pal, plain, plural, primary, reward, stars};
 use crate::{Job, State};
 
 struct Term {
@@ -48,7 +48,8 @@ pub fn view(s: &State) -> El {
     };
     let total = s.progress.total_stars();
     let mut header = row().key("lab-header").w_full().gap(16.0).center_y().px(20.0).py(12.0).fill(p.surface).border(2.0, p.border)
-        .child(close(|s: &mut State| s.to_map()))
+        .child(close(s, |s: &mut State| s.to_map()))
+        .child(plain(s, "lab-explanation", "Ver explicación", |s: &mut State| s.revisit_class()))
         .child(
             col().grow(1.0).gap(2.0)
                 .child(text("LAB PRÁCTICO").font(SMALL).color(p.muted))
@@ -116,7 +117,7 @@ pub fn view(s: &State) -> El {
                 .child(text(label.to_string()).font(MONO).color(t.text)),
         );
     }
-    chips = chips.child(spacer()).child(reward("run", "Ejecutar", run_input));
+    chips = chips.child(spacer()).child(reward(s, "run", "Ejecutar", run_input));
 
     let terminal = col().key("terminal").grow(1.0).h_full().radius(20.0).clip_rounded(20.0).fill(t.bg).shadow(6.0, 0.0, t.edge)
         .child(
@@ -155,8 +156,9 @@ fn result(s: &State) -> El {
                 .child(text(m.error.clone()).font(SMALL).color(p.text).wrap()),
         );
     }
-    let again = if errors > 0 { reward("perfect", "Perfeccionar", |s: &mut State| s.restart_lab()) } else { primary("again", "Repetir lab", |s: &mut State| s.restart_lab()) };
-    panel.child(again).child(primary("back-to-map", "Seguir en el mapa", |s: &mut State| s.to_map()))
+    let again = if errors > 0 { reward(s, "perfect", "Perfeccionar", |s: &mut State| s.restart_lab()) } else { primary(s, "again", "Repetir lab", |s: &mut State| s.restart_lab()) };
+    panel.child(again).child(plain(s, "class-review", "Repasar la clase", |s: &mut State| s.show_class_review()))
+        .child(primary(s, "back-to-map", "Seguir en el mapa", |s: &mut State| s.to_map()))
 }
 
 fn run_input(s: &mut State) {

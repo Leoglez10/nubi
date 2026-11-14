@@ -55,7 +55,8 @@ pub fn view(s: &State) -> El {
     let p = pal();
     let l = &s.lesson;
     let top = row().key("lesson-top").w_full().max_w(1000.0).gap(18.0).center_y().px(24.0).pt(26.0)
-        .child(close(|s: &mut State| s.to_map()))
+        .child(close(s, |s: &mut State| s.to_map()))
+        .child(plain(s, "lesson-explanation", "Ver explicación", |s: &mut State| s.revisit_class()))
         .child(el().grow(1.0).child(progress_bar("lesson-progress", l.session.progress(), p.blue, 18.0)))
         .child(text(format!("{} / {}", (l.session.index + 1).min(l.session.total), l.session.total)).font(STRONG).color(p.muted));
 
@@ -197,9 +198,9 @@ fn footer(s: &State) -> El {
             p.surface,
             p.border,
             row().w_full().center_y()
-                .child(plain("skip-check", "Volver al mapa", |s: &mut State| s.to_map()))
+                .child(plain(s, "skip-check", "Volver al mapa", |s: &mut State| s.to_map()))
                 .child(spacer())
-                .child(if ready { good("check", "Comprobar", check) } else { disabled("check", "Comprobar") }),
+                .child(if ready { good(s, "check", "Comprobar", check) } else { disabled("check", "Comprobar") }),
         ),
         Some(Feedback::Right) => (
             p.green_light,
@@ -207,7 +208,7 @@ fn footer(s: &State) -> El {
             row().key("feedback-right").w_full().center_y()
                 .child(text("¡Excelente!").font(TITLE).color(p.green_dark))
                 .child(spacer())
-                .child(good("continue", "Continuar", next)),
+                .child(good(s, "continue", "Continuar", next)),
         ),
         Some(Feedback::Wrong { hint }) => (
             p.red_light,
@@ -218,7 +219,7 @@ fn footer(s: &State) -> El {
                         .child(text("Casi. Inténtalo otra vez, sin límite.").font(H2).color(p.red_dark))
                         .child(text(format!("Pista: {hint}")).font(STRONG).color(p.red_dark).wrap()),
                 )
-                .child(super::button("retry", "Reintentar", p.red, p.red_dark, Color::WHITE, retry)),
+                .child(super::button(s, "retry", "Reintentar", p.red, p.red_dark, Color::WHITE, retry)),
         ),
     };
     col().key("lesson-footer").w_full().fill(fill).border(2.0, line).px(24.0).py(20.0).items_center()
@@ -248,7 +249,10 @@ fn result(s: &State) -> El {
         s.open_stop(&id);
     };
     let mut buttons = row().gap(14.0);
-    buttons = if l.errors > 0 { buttons.child(reward("perfect", "Perfeccionar", again)) } else { buttons.child(plain("again", "Repetir", again)) };
-    col_.child(buttons.child(primary("back-to-map", "Seguir en el mapa", |s: &mut State| s.to_map())))
+    buttons = if l.errors > 0 { buttons.child(reward(s, "perfect", "Perfeccionar", again)) } else { buttons.child(plain(s, "again", "Repetir", again)) };
+    if s.content.nodes.get(&s.lesson.id).is_some_and(|n| n.teaching.is_some()) {
+        buttons = buttons.child(primary(s, "lesson-to-lab", "Ir al laboratorio", |s: &mut State| s.lesson_to_lab()));
+    }
+    col_.child(buttons.child(primary(s, "back-to-map", "Seguir en el mapa", |s: &mut State| s.to_map())))
         .child(text(if s.profile.is_some() { "Tu resultado quedó guardado." } else { "" }).font(SMALL).color(p.muted))
 }
