@@ -18,7 +18,7 @@ Branch: `feat/fase-2` · Delivery: ask-on-risk · Runner: `cargo test` (+ `-- --
 - [x] T1 · S1, S5 · inline · course format + loader + validation + first Spanish content — 1125db0 (RED 5 failing → GREEN 5 passing)
 - [x] T2 · S3 · inline · grading: answer checks, stars, level, unlock — 6c6097b (RED 7 failing → GREEN 7 passing)
 - [x] T3 · S2, S4 · inline · profiles + progress store, atomic writes, export/import — cde2cf9 (RED 7 failing → GREEN 7 passing)
-- [ ] T4 · S1 · inline · lab checker (S3 checks via SDK) + emulator integration test — pending
+- [x] T4 · S1 · inline · lab checker (S3 checks via SDK) + emulator integration test — 8052597 (RED 2 failing → GREEN 2 passing vs live emulator)
 
 Route evidence: one coherent engine (~600 lines) with shared types; no parallel units with disjoint surfaces, so no writer trigger → inline.
 
@@ -31,3 +31,4 @@ Route evidence: one coherent engine (~600 lines) with shared types; no parallel 
 - T2 done: src/grading.rs; level names 1–6: Despegando, Explorador, Constructor de nubes, Arquitecto, Arquitecto senior, Maestro de la nube.
 - T3 done: src/progress.rs; ids are slugs [a-z0-9-] (path-safe), corrupt progress.json errors instead of resetting, import derives a fresh id.
 - L4 (2026-11-14, user, mid-T3): "Este es el repo con el que quiero que te bases o la skill en la que instalemos y hagas el diseño de la página web" (https://github.com/Leonxlnx/taste-skill) → recorded in PLAN.md Phase 7; out of scope here.
+- T4 done: src/checker.rs, src/emulator.rs (moved from main.rs unchanged), tests/checker.rs. Close: cargo test -- --include-ignored → 19 lib + 2 bin + 2 checker passing; clippy clean. Feature complete; next: Phase 3 (integrated terminal v1 + screens).
