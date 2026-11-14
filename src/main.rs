@@ -929,6 +929,6 @@ mod tests {
         let rt = render(state("lab"));
         assert!(rt.find("input").is_some());
         assert!(rt.find("goal-2").is_some());
-        assert!(rt.find("close").is_some());
+        assert!(rt.find("nav-home").is_some(), "the sidebar is the way back");
     }
 }

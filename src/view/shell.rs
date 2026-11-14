@@ -35,7 +35,7 @@ fn sidebar(s: &State, screen: Screen) -> El {
         ("nav-home", "Inicio", Screen::Map, icons.map(|a| &a.icon_home), true),
         ("nav-class", "Clase actual", Screen::Class, icons.map(|a| &a.icon_book), current.is_some()),
         ("nav-practice", "Práctica", Screen::Lesson, icons.map(|a| &a.icon_check), current.is_some()),
-        ("nav-lab", "Laboratorio", Screen::Lab, icons.map(|a| &a.icon_term), lab_ready),
+        ("nav-lab", "Laboratorio", Screen::Lab, icons.map(|a| &a.icon_term), lab_ready || screen == Screen::Lab),
     ];
     for (key, label, target, icon, enabled) in items {
         bar = bar.child(nav_item(key, label, icon, target == screen, enabled, target));

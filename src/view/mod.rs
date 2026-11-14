@@ -136,14 +136,6 @@ pub fn disabled(key: &str, label: &str) -> El {
         .child(text(label.to_string()).font(STRONG).color(hex("#667085").unwrap_or(p.muted)))
 }
 
-/// "✕" back to the start: a flat round control.
-pub fn close(on: impl Fn(&mut State) + 'static) -> El {
-    let p = pal();
-    pressable("close", "Volver al inicio", p.text.alpha(0.06), on)
-        .size(40.0, 40.0).radius(20.0).fill(p.surface).border(1.0, hex("#D0D5DD").unwrap_or(p.border)).center()
-        .child(text("✕").font(H2).color(p.muted))
-}
-
 pub fn stars(n: u8) -> String {
     (0..3).map(|i| if i < n { '★' } else { '☆' }).collect()
 }

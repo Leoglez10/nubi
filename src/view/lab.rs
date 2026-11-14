@@ -1,12 +1,12 @@
 //! A lab: objectives on the left, the integrated terminal on the right, and the result with
 //! stars, what went wrong and "Perfeccionar".
 
-use labcloud::grading::{self, stars as stars_for};
+use labcloud::grading::stars as stars_for;
 use labcloud::lab::Kind;
 use rune::color::hex;
 use rune::{Color, El, Key, KeyEvent, ScrollSpec, TextEdit, Tx, col, el, row, spacer, text, text_input};
 
-use super::{BODY, H2, MONO, SMALL, STRONG, close, pal, plain, plural, primary, reward, stars};
+use super::{BODY, H2, MONO, SMALL, pal, plain, plural, primary, reward, stars};
 use crate::{Job, State};
 
 struct Term {
@@ -24,15 +24,15 @@ struct Term {
 fn term() -> Term {
     let c = |h: &str| hex(h).unwrap_or(Color::BLACK);
     Term {
-        bg: c("#0E1B2A"),
-        bar: c("#14263A"),
-        text: c("#D6E4F2"),
-        prompt: c("#5FB2FF"),
-        ok: c("#6EE7A8"),
-        err: c("#FF9EA1"),
-        info: c("#9FB6CC"),
-        chip_border: c("#2B4866"),
-        edge: c("#071019"),
+        bg: c("#0C111D"),
+        bar: c("#161B26"),
+        text: c("#E4E7EC"),
+        prompt: c("#7CD4FD"),
+        ok: c("#75E0A7"),
+        err: c("#FDA29B"),
+        info: c("#98A2B3"),
+        chip_border: c("#333741"),
+        edge: c("#1F242F"),
     }
 }
 
@@ -46,35 +46,28 @@ pub fn view(s: &State) -> El {
     } else {
         (p.orange_light, hex("#8A5300").unwrap_or(p.text), plural(errors, "error", "errores"))
     };
-    let total = s.progress.total_stars();
-    let mut header = row().key("lab-header").w_full().gap(16.0).center_y().px(20.0).py(12.0).fill(p.surface).border(2.0, p.border)
-        .child(close(|s: &mut State| s.to_map()))
-        .child(plain("lab-explanation", "Ver explicación", |s: &mut State| s.revisit_class()))
-        .child(
-            col().grow(1.0).gap(2.0)
-                .child(text("LAB PRÁCTICO").font(SMALL).color(p.muted))
-                .child(text(l.title.clone()).key("lab-title").font(H2).color(p.text)),
-        );
-    if let Some(profile) = &s.profile {
-        header = header.child(text(format!("{} · Nivel {} · {} ★", profile.name, grading::level(total).number, total)).font(SMALL).color(p.muted));
-    }
-    header = header.child(el().key("errors").px(14.0).h(34.0).radius(17.0).fill(chip_bg).center().child(text(chip).font(SMALL).color(chip_ink)));
+    let header = row().key("lab-header").w_full().gap(14.0).center_y()
+        .child(col().grow(1.0).gap(4.0)
+            .child(text("LABORATORIO").font(rune::tok::TextStyle::new(12.0, 600.0)).color(p.blue))
+            .child(text(l.title.clone()).key("lab-title").font(rune::tok::TextStyle::new(22.0, 700.0)).color(p.text)))
+        .child(el().key("errors").px(12.0).h(28.0).radius(14.0).fill(chip_bg).center().child(text(chip).font(rune::tok::TextStyle::new(12.0, 500.0)).color(chip_ink)))
+        .child(plain("lab-explanation", "Ver explicación", |s: &mut State| s.revisit_class()).h(36.0).px(12.0));
 
-    let mut goals = col().key("objectives").w_full().gap(10.0).padding(20.0).radius(20.0).fill(p.surface).border(2.0, p.border)
-        .child(text("Objetivos").font(H2).color(p.text));
+    let mut goals = col().key("objectives").w_full().gap(8.0).padding(18.0).radius(12.0).fill(p.surface).border(1.0, p.border)
+        .child(text("Objetivos").font(rune::tok::TextStyle::new(14.0, 600.0)).color(p.text).pb(4.0));
     for (i, (txt, _)) in l.objectives.iter().enumerate() {
         let done = l.session.done.get(i).copied().unwrap_or(false);
         goals = goals.child(
-            row().key(format!("goal-{i}")).w_full().gap(12.0).center_y().padding(12.0).radius(14.0)
-                .fill(if done { p.green_light } else { p.bg })
+            row().key(format!("goal-{i}")).w_full().gap(10.0).center_y().px(12.0).py(10.0).radius(8.0)
+                .fill(if done { p.green_light } else { p.surface }).border(1.0, if done { hex("#ABEFC6").unwrap_or(p.green) } else { p.border })
                 .child(
-                    el().size(30.0, 30.0).radius(15.0).fill(if done { p.green } else { p.border }).center()
+                    el().size(22.0, 22.0).radius(11.0).fill(if done { p.green } else { p.locked }).center()
                         .child(text(if done { "✓".to_string() } else { (i + 1).to_string() }).font(SMALL).color(if done { Color::WHITE } else { p.muted })),
                 )
-                .child(text(txt.clone()).font(STRONG).color(p.text).wrap().grow(1.0)),
+                .child(text(txt.clone()).font(rune::tok::TextStyle::new(14.0, 500.0)).color(p.text).wrap().grow(1.0)),
         );
     }
-    let mut left = col().key("left").w(360.0).gap(16.0).child(goals);
+    let mut left = col().key("left").w(340.0).gap(16.0).child(goals);
     if l.session.complete() {
         left = left.child(result(s));
     }
@@ -112,14 +105,15 @@ pub fn view(s: &State) -> El {
     for (label, value) in suggestions {
         chips = chips.child(
             el().key(format!("chip-{label}")).role("button").label(label.to_string()).focusable(true)
-                .h(34.0).px(12.0).radius(10.0).fill(t.bar).border(1.0, t.chip_border).center()
+                .h(32.0).px(12.0).radius(8.0).fill(t.bar).border(1.0, t.chip_border).center()
+                .hover(Color::WHITE.alpha(0.06)).focus_ring(2.0, 2.0, p.blue)
                 .on_press(move |s: &mut State| s.lab.input = TextEdit::new(value.clone()))
                 .child(text(label.to_string()).font(MONO).color(t.text)),
         );
     }
-    chips = chips.child(spacer()).child(reward("run", "Ejecutar", run_input));
+    chips = chips.child(spacer()).child(primary("run", "Ejecutar", run_input).h(36.0));
 
-    let terminal = col().key("terminal").grow(1.0).h_full().radius(20.0).clip_rounded(20.0).fill(t.bg).shadow(6.0, 0.0, t.edge)
+    let terminal = col().key("terminal").grow(1.0).h_full().radius(12.0).clip_rounded(12.0).fill(t.bg).border(1.0, t.edge)
         .child(
             row().w_full().px(18.0).py(12.0).fill(t.bar).justify_between()
                 .child(text("Terminal").font(SMALL).color(t.info))
@@ -128,9 +122,9 @@ pub fn view(s: &State) -> El {
         .child(el().key("scroll").w_full().grow(1.0).padding(18.0).scroll(ScrollSpec { stick_bottom: true }).child(log))
         .child(col().w_full().gap(12.0).px(18.0).py(14.0).child(prompt).child(chips));
 
-    col().w_full().h_full().fill(p.bg)
+    col().w_full().h_full().gap(20.0).padding(28.0)
         .child(header)
-        .child(row().key("body").w_full().grow(1.0).gap(24.0).padding(24.0).items_start().child(left).child(terminal))
+        .child(row().key("body").w_full().grow(1.0).min_h(0.0).gap(20.0).items_start().child(left).child(terminal))
 }
 
 fn result(s: &State) -> El {
@@ -142,7 +136,7 @@ fn result(s: &State) -> El {
     } else {
         ("¡Misión completada!".to_string(), format!("Tuviste {}. Repítelo desde cero para lograr la perfección.", plural(errors, "error", "errores")))
     };
-    let mut panel = col().key("result").w_full().gap(10.0).padding(18.0).radius(20.0).fill(p.green_light).border(2.0, hex("#8FD9B5").unwrap_or(p.green))
+    let mut panel = col().key("result").w_full().gap(10.0).padding(18.0).radius(12.0).fill(p.green_light).border(1.0, hex("#ABEFC6").unwrap_or(p.green))
         .child(text(title).font(H2).color(p.green_dark))
         .child(text(stars(stars_for(errors))).key("stars").font(rune::tok::TextStyle::new(30.0, 800.0)).color(p.orange))
         .child(text(body).font(BODY).color(p.green_dark).wrap());
