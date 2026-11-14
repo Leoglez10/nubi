@@ -12,10 +12,12 @@ Game-like desktop app to learn AWS in Spanish, with every lab running locally ag
 ## Run
 
 ```sh
-scripts/emulator.sh start     # builds the emulator image once, starts it on 127.0.0.1:9297
-cargo run                     # opens the app
+cargo run
 ```
 
+The app checks for Docker, the AWS CLI and the emulator first, and offers a button to
+install or start whatever is missing. The emulator can also be managed by hand:
+`scripts/emulator.sh start` builds the image once and starts it on 127.0.0.1:9297, and
 `scripts/emulator.sh stop` stops the emulator (its resources live in memory and are lost).
 To use the AWS CLI against the emulator in your own shell: `eval "$(scripts/emulator.sh env)"`.
 
@@ -32,6 +34,11 @@ Course content is Spanish TOML under `content/`, no code changes needed:
     `bucket_versioning` (`status`) or `object_exists` (`key`).
 
 `cargo test` validates every file (ids, answers in range, labs with objectives, …).
+
+Headless snapshots of the screens: `cargo run -- --snap out.png --scene setup|lab|result`.
+
+Progress lives in the OS app-data folder (macOS: `~/Library/Application Support/LabCloud/`).
+The lab terminal runs only `aws` commands, without a shell, inside `labs/<id>/` there.
 
 ## Test
 

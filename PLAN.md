@@ -120,7 +120,12 @@ Scope:
   errors per node, unlocked nodes, level.
 - Content can be added without touching UI code.
 
-### Phase 3 — Integrated terminal v1
+### Phase 3 — Integrated terminal v1 (done 2026-11-14, branch `feat/fase-3`)
+Shipped with the guided setup screen and the lab screen in the new design; tracking in
+`odd/tasks/fase-3-terminal.md`. Until the map and profile screens exist, the app opens the
+first lab with the first local profile.
+
+Scope:
 - Command runner widget, allow-list, history, colored output, hints.
 - Live objective ticking from checker results.
 
