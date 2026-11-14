@@ -44,6 +44,7 @@ Branch: `feat/ui-clases-guiadas` · Delivery: feature-branch-chain, local work-u
   - Map: island plate moved below the cloud labels, canvas grew to fit.
   - Closure: 68 tests passing incl. emulator, Clippy clean, map/class/lesson captures re-inspected. Committed 731f642 (178 lines); native assess medium, reviewDue false (under_budget).
   - Still pending from the user's list: more class imagery than one diagram each (only the first idea is drawn), live-window proof of the hover/transition feel, and the ✕ close button style.
+- L7 (user): "asi dejalo, dejalo en commits y en engram" — stopped the round here. Docs committed 1607f59; working tree clean. Branch feat/ui-clases-guiadas ends at 1607f59 with 8 commits since main; nothing pushed.
 - Pending / handoff for a later session:
   - Cosmetic: the 44px ✕ close button inherits the raised shadow and reads as a clipped crescent in the lesson and lab headers; give it a flat style.
   - Unverified: live `cargo run` flow and real-cloud transition feel; cross-screen keyboard focus; live OS reduced-motion changes; hover over a long real pointer session.
