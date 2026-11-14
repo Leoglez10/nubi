@@ -17,7 +17,7 @@ Branch: `feat/fase-3` (from `feat/fase-2`) · Delivery: ask-on-risk · Runner: `
 ## Tasks
 
 - [x] T1 · S1 · inline · setup: detect Docker / daemon / AWS CLI / emulator, platform actions, start emulator from the app — b25ceab (RED 3 failing → GREEN; + ignored emulator start test passing)
-- [ ] T2 · S2, S4 · inline · lab session logic: command parsing + allow-list, built-ins, history, errors, hints, completion, lab sandbox and resource reset — pending
+- [x] T2 · S2, S4 · inline · lab session logic: command parsing + allow-list, built-ins, history, errors, hints, completion, lab sandbox and resource reset — fa0a570 (RED 7 lab + 1 reset failing → GREEN; file-name validation written with its test, no separate RED)
 - [ ] T3 · S1, S2, S3, S5 · inline · UI: light theme, setup screen, lab screen with terminal, live objectives, result + Perfeccionar, progress saved — pending
 
 Route evidence: one app, units share the worker/job channel and state; no disjoint parallel units → inline.
@@ -26,3 +26,4 @@ Route evidence: one app, units share the worker/job channel and state; no disjoi
 
 - L1 (2026-11-14, user): "sigue" (after the proposal: "Fase 3: la terminal integrada y las primeras pantallas reales con el diseño, empezando por la pantalla de preparación")
 - T1 done: src/setup.rs (needs, per-OS actions), src/emulator.rs (start/build from embedded Dockerfile, run_args 127.0.0.1-only, healthy, PATH gets /opt/homebrew/bin and /usr/local/bin for Finder launches), tests/emulator.rs.
+- T2 done: src/lab.rs (parse allow-list + forbidden --endpoint-url/--profile, Session: built-ins, history, errors+mistakes, objective ticks, sandbox), course LabFile starter files, checker::reset (deletes all versions + bucket). 30 lib + 3 checker + 1 emulator + 2 bin passing.
