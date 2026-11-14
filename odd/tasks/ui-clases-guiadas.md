@@ -36,6 +36,14 @@ Branch: `feat/ui-clases-guiadas` · Delivery: feature-branch-chain, local work-u
   - Correction 2: Clippy rejected my test's Default field reassignment; switched to struct-update initialization.
   - Suite job-6 reached the end with every test binary passing; Clippy was the only failure. Fresh suite + Clippy job-7 and snapshots job-8 are running.
 - Final checks: job-7 full suite incl. emulator: 35 lib + 24 UI + 3 checker + 2 foundations + 1 emulator + 2 classes = 67 passing, 0 ignored; Clippy --all-targets -D warnings clean; job-8 regenerated map/class/lesson/lab captures, all inspected. UI integration committed e62bb7f (688 authored lines). Native assess f515753..e62bb7f: medium, reviewDue false (under_budget), no independent verifier required. Slice overage accepted: motion and class flow share main.rs/view/mod.rs, so splitting would ship an unbuildable intermediate.
+- Round 3 (user reported visual defects): "los botones chocan con las orillas…", "me gustaria que las clases tivieran mas imagenes o visualizadores", "mejorar el diseño al jace rhover en los botones", "las nubes estan como mal el diseño de los numeros, no se centran", "las transiciones no son tan smooth, como que se traban al continuar", padding "de un poco de 9px".
+  - Root cause of the sticky transitions: Rune interpolates layout changes by default, so the curtain width lagged the clock every frame. cloud-cover now uses instant_changes(); cover/reveal became 0.22s/0.26s with smoothstep easing.
+  - App chrome: 9pt global inset plus a 26pt safe band and a rounded clipped frame; the reduced-motion control is now a small floating pill instead of a 64pt bottom bar.
+  - Hover now lifts (1.03) and press sinks; cloud numbers re-centred on the cloud body.
+  - Classes gained optional `diagram` (bucket_objects / key_prefixes) drawn in the view, with content values and a data test.
+  - Map: island plate moved below the cloud labels, canvas grew to fit.
+  - Closure: 68 tests passing incl. emulator, Clippy clean, map/class/lesson captures re-inspected. Committed 731f642 (178 lines); native assess medium, reviewDue false (under_budget).
+  - Still pending from the user's list: more class imagery than one diagram each (only the first idea is drawn), live-window proof of the hover/transition feel, and the ✕ close button style.
 - Pending / handoff for a later session:
   - Cosmetic: the 44px ✕ close button inherits the raised shadow and reads as a clipped crescent in the lesson and lab headers; give it a flat style.
   - Unverified: live `cargo run` flow and real-cloud transition feel; cross-screen keyboard focus; live OS reduced-motion changes; hover over a long real pointer session.
