@@ -132,8 +132,10 @@ Scope:
   "what happens inside" animations.
 
 ### Phase 7 — Website (GitHub Pages)
-- Landing page for the project, published with GitHub Pages from a repo the user will
-  provide (pending: repo URL).
+- Landing page for the project, published with GitHub Pages.
+- Design it with the agent skill from https://github.com/Leonxlnx/taste-skill (MIT; art
+  direction, reference images and a browser check). Install the skill at the start of
+  this phase, after reviewing its contents.
 - Explicit download section per OS (.dmg, .exe, Linux packages), Homebrew install
   command, notices (requirements: Docker + AWS CLI, unsigned-build warnings until code
   signing exists, telemetry note for the emulator) and release notes.
