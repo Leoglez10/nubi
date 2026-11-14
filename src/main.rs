@@ -6,14 +6,12 @@
 //!
 //! Start the emulator first: `scripts/emulator.sh start`.
 
-use std::path::PathBuf;
 use std::process::Command;
 use std::sync::mpsc::{self, Receiver, Sender};
 
+use labcloud::emulator::point_at_emulator;
 use rune::tok::{self, space, type_};
 use rune::{App, AppHandle, AppSpec, Cx, El, ScrollSpec, TextEdit, Tx, col, el, row, text, text_input};
-
-const PORT: u16 = 9297;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum Kind {
@@ -146,34 +144,6 @@ fn view(s: &State, _: &mut Cx<State>) -> El {
     col().w_full().h_full().padding(space::S6).gap(space::S3).fill(t.bg)
         .child(header)
         .child(terminal)
-}
-
-fn emulator_dir() -> PathBuf {
-    let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
-    home.join(".aws/emulator").join(PORT.to_string())
-}
-
-/// Points this process — and every `aws` child it spawns — at the emulator.
-/// Same variables as `scripts/emulator.sh env`.
-fn point_at_emulator() {
-    let dir = emulator_dir();
-    let ca = dir.join("ca.pem");
-    // SAFETY: called first thing in `main`, before any other thread exists.
-    unsafe {
-        for var in ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "AWS_PROFILE"] {
-            std::env::remove_var(var);
-        }
-        std::env::set_var("AWS_ENDPOINT_URL", format!("https://127.0.0.1:{PORT}"));
-        std::env::set_var("AWS_SHARED_CREDENTIALS_FILE", dir.join("emulator_credentials"));
-        std::env::set_var("AWS_CONFIG_FILE", dir.join("config"));
-        std::env::set_var("AWS_CA_BUNDLE", &ca);
-        std::env::set_var("SSL_CERT_FILE", &ca);
-        std::env::set_var("AWS_EC2_METADATA_DISABLED", "true");
-        std::env::set_var("AWS_DISABLE_HOST_PREFIX_INJECTION", "true");
-        std::env::set_var("AWS_REGION", "us-east-1");
-        std::env::set_var("AWS_DEFAULT_REGION", "us-east-1");
-        std::env::set_var("AWS_PAGER", "");
-    }
 }
 
 /// Lists buckets through the SDK. A fresh client each time picks up the new credentials the

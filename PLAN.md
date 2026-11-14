@@ -109,7 +109,11 @@ Scope:
 - Terminal spike: input line → spawn `aws s3 ls` → show output in the app.
 - Validates: endpoint, self-signed cert trust, child process + background thread → UI update.
 
-### Phase 2 — Game engine and lesson format
+### Phase 2 — Game engine and lesson format (done 2026-11-14, branch `feat/fase-2`)
+Engine in `src/{course,grading,progress,checker,emulator}.rs`; tracking in
+`odd/tasks/fase-2-motor.md`. Lab checks cover S3 so far; more check types come with their labs.
+
+Scope:
 - Lessons as data files (TOML), in Spanish: exercises (multiple choice, fill the command,
   order the steps, match concepts), lab missions with checker rules.
 - Local profiles and progress saved on disk (see "Local persistence"): best stars and
