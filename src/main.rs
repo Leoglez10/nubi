@@ -1,41 +1,110 @@
 //! Lab Cloud: learn AWS in Spanish against a local AWS Emulator.
 //!
 //! The Rune UI holds the state. One worker thread does everything slow — probing tools,
-//! starting the emulator, running `aws`, checking objectives, saving progress — and hands
-//! results back with `AppHandle::update`.
+//! starting the emulator, running `aws`, checking objectives, loading and saving profiles —
+//! and hands results back with `AppHandle::update`.
 
 mod view;
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::Arc;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::{Duration, Instant};
 
-use labcloud::course::{self, Content, Node, NodeKind};
-use labcloud::grading::{self, Level};
+use labcloud::course::{self, Content, Course, Node, NodeKind};
 use labcloud::lab::{self, Session};
-use labcloud::progress::{NodeResult, Progress, Store};
+use labcloud::lesson::LessonSession;
+use labcloud::progress::{Profile, Progress, Store};
 use labcloud::setup::{self, Action, Need, Os, Report};
 use labcloud::{checker, emulator};
-use rune::{App, AppHandle, AppSpec, TextEdit};
+use rune::{App, AppHandle, AppSpec, Image, ImageCache, TextEdit, Tx, Waker};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Screen {
+    Splash,
     Setup,
+    Profiles,
+    Map,
+    Lesson,
     Lab,
 }
 
 pub enum Job {
     Probe,
     Fix(Need),
-    StartLab,
+    LoadProfiles,
+    CreateProfile { name: String, color: String },
+    SelectProfile(String),
+    StartLab(String),
     Run(Vec<String>),
-    /// The lab was completed with this many errors: record and save it.
-    Finish(u32),
+    /// A stop was completed with this many errors: record and save it.
+    Finish { id: String, errors: u32 },
+}
+
+/// The vector art, rasterized once at startup.
+pub struct Art {
+    _cache: ImageCache,
+    pub nubi: Image,
+    pub cloud: Image,
+    pub cloud_current: Image,
+    pub cloud_locked: Image,
+    pub cloud_soft: Image,
+}
+
+const NUBI: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 96"><path d="M30 80h62a22 22 0 0 0 2-44 30 30 0 0 0-57-6A24 24 0 0 0 30 80z" fill="#FFFFFF" stroke="#1F6FD1" stroke-width="4" stroke-linejoin="round"/><circle cx="50" cy="54" r="5" fill="#0F2A44"/><circle cx="74" cy="54" r="5" fill="#0F2A44"/><circle cx="52" cy="52" r="1.6" fill="#FFFFFF"/><circle cx="76" cy="52" r="1.6" fill="#FFFFFF"/><path d="M54 64q8 7 16 0" fill="none" stroke="#0F2A44" stroke-width="3" stroke-linecap="round"/><circle cx="42" cy="64" r="4" fill="#FFB8A8"/><circle cx="82" cy="64" r="4" fill="#FFB8A8"/></svg>"##;
+
+fn cloud_svg(fill: &str, stroke: &str) -> String {
+    format!(r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 96"><path d="M30 80h62a22 22 0 0 0 2-44 30 30 0 0 0-57-6A24 24 0 0 0 30 80z" fill="{fill}" stroke="{stroke}" stroke-width="4" stroke-linejoin="round"/></svg>"##)
+}
+
+fn load_art(s: &mut State, waker: Waker) {
+    let cache = ImageCache::new(waker);
+    let svg = |text: String, size: f32| cache.svg(text.into_bytes(), size, 2.0);
+    s.art = Some(Art {
+        nubi: svg(NUBI.to_string(), 200.0),
+        cloud: svg(cloud_svg("#FFFFFF", "#1F6FD1"), 120.0),
+        cloud_current: svg(cloud_svg("#FFFFFF", "#FF9900"), 120.0),
+        cloud_locked: svg(cloud_svg("#EEF3F8", "#C3D0DE"), 120.0),
+        cloud_soft: svg(cloud_svg("#FFFFFF", "#FFFFFF"), 300.0),
+        _cache: cache,
+    });
+}
+
+/// The exercise being answered and the student's in-progress answer.
+#[derive(Default)]
+pub struct LessonView {
+    pub id: String,
+    pub session: LessonSession,
+    pub choice: Option<usize>,
+    pub command: TextEdit,
+    /// Display positions picked so far, in order (Order exercises).
+    pub picked: Vec<usize>,
+    /// Selected left item waiting for its right partner (Match exercises).
+    pub left: Option<usize>,
+    /// `(left, right)` pairs in content indices (Match exercises).
+    pub pairs: Vec<(usize, usize)>,
+    pub saved: bool,
+}
+
+impl LessonView {
+    pub fn new(node: &Node) -> LessonView {
+        LessonView { id: node.id.clone(), session: LessonSession::new(node.exercises.len()), ..LessonView::default() }
+    }
+
+    /// Clears the answer for the next exercise or a retry.
+    pub fn clear_answer(&mut self) {
+        self.choice = None;
+        self.command = TextEdit::new("");
+        self.picked.clear();
+        self.left = None;
+        self.pairs.clear();
+    }
 }
 
 pub struct LabState {
+    pub id: String,
     pub title: String,
     /// (objective text, hint) in order.
     pub objectives: Vec<(String, String)>,
@@ -43,59 +112,87 @@ pub struct LabState {
     pub input: TextEdit,
     /// A command (or the lab's setup) is in flight; typing waits for it.
     pub running: bool,
-    pub best: Option<NodeResult>,
+    pub saved: bool,
 }
 
 impl LabState {
-    fn new(node: &Node, best: Option<NodeResult>) -> LabState {
+    pub fn new(node: &Node) -> LabState {
         LabState {
+            id: node.id.clone(),
             title: node.title.clone(),
             objectives: node.objectives.iter().map(|o| (o.text.clone(), o.hint.clone())).collect(),
             session: Session::new(node.objectives.len()),
             input: TextEdit::new(""),
             running: true,
-            best,
+            saved: false,
         }
     }
 }
 
+pub struct ProfileCard {
+    pub profile: Profile,
+    pub stars: u32,
+}
+
 pub struct State {
     jobs: Option<Sender<Job>>,
+    pub content: Arc<Content>,
+    pub art: Option<Art>,
     pub screen: Screen,
+    /// Set on the first poll, so the intro's pieces enter with motion (nothing animates on
+    /// the first frame).
+    pub intro_started: bool,
     /// `None` while probing.
     pub setup: Option<Report>,
     pub has_brew: bool,
     pub busy: Option<String>,
     pub setup_note: Option<String>,
+    /// `None` while loading.
+    pub profiles: Option<Vec<ProfileCard>>,
+    pub creating: bool,
+    pub new_name: TextEdit,
+    pub new_color: usize,
+    pub profile: Option<Profile>,
+    pub progress: Progress,
+    /// Selected stop on the map, by position in the course order.
+    pub selected: usize,
+    pub lesson: LessonView,
     pub lab: LabState,
-    pub profile_name: String,
-    pub level: Level,
-    pub total_stars: u32,
 }
 
 impl Default for State {
     fn default() -> Self {
+        let empty = Content { course: Course { units: Vec::new() }, nodes: BTreeMap::new() };
         State {
             jobs: None,
-            screen: Screen::Setup,
+            content: Arc::new(empty),
+            art: None,
+            screen: Screen::Splash,
+            intro_started: false,
             setup: None,
             has_brew: false,
             busy: None,
             setup_note: None,
-            lab: LabState {
-                title: String::new(),
-                objectives: Vec::new(),
-                session: Session::new(0),
-                input: TextEdit::new(""),
-                running: false,
-                best: None,
-            },
-            profile_name: String::new(),
-            level: grading::level(0),
-            total_stars: 0,
+            profiles: None,
+            creating: false,
+            new_name: TextEdit::new(""),
+            new_color: 0,
+            profile: None,
+            progress: Progress::default(),
+            selected: 0,
+            lesson: LessonView::default(),
+            lab: LabState { id: String::new(), title: String::new(), objectives: Vec::new(), session: Session::new(0), input: TextEdit::new(""), running: false, saved: false },
         }
     }
 }
+
+pub const AVATAR_COLORS: [(&str, &str); 5] = [
+    ("#BFE0FB", "Azul cielo"),
+    ("#FFE2B8", "Atardecer"),
+    ("#CFF2DF", "Menta"),
+    ("#E7DBFF", "Lavanda"),
+    ("#FFFFFF", "Blanco"),
+];
 
 impl State {
     pub fn send(&self, job: Job) {
@@ -104,13 +201,58 @@ impl State {
         }
     }
 
+    pub fn order(&self) -> Vec<&str> {
+        self.content.order()
+    }
+
+    /// The first stop that is not done yet (or the last stop).
+    pub fn current_index(&self) -> usize {
+        let order = self.order();
+        order.iter().position(|id| !self.progress.completed(id)).unwrap_or(order.len().saturating_sub(1))
+    }
+
+    /// Opens a stop from the map: a lesson screen or a lab (with fresh resources).
+    pub fn open_stop(&mut self, id: &str) {
+        let Some(node) = self.content.nodes.get(id) else { return };
+        match node.kind {
+            NodeKind::Lab => {
+                self.lab = LabState::new(node);
+                self.screen = Screen::Lab;
+                self.send(Job::StartLab(node.id.clone()));
+            }
+            NodeKind::Lesson | NodeKind::Challenge => {
+                self.lesson = LessonView::new(node);
+                self.screen = Screen::Lesson;
+            }
+        }
+    }
+
+    pub fn to_map(&mut self) {
+        self.selected = self.current_index();
+        self.screen = Screen::Map;
+    }
+
     /// Replays the lab from scratch: a fresh session, fresh resources, fresh sandbox.
     pub fn restart_lab(&mut self) {
-        self.lab.session = Session::new(self.lab.objectives.len());
-        self.lab.input = TextEdit::new("");
-        self.lab.running = true;
-        self.send(Job::StartLab);
+        let id = self.lab.id.clone();
+        self.open_stop(&id);
     }
+
+    /// Leaves the intro: to setup when something is missing, else to the profiles.
+    pub fn enter(&mut self) {
+        self.screen = match &self.setup {
+            Some(r) if r.ready() => Screen::Profiles,
+            _ => Screen::Setup,
+        };
+    }
+}
+
+fn poll(s: &mut State, _: f64, _: &mut Tx) -> bool {
+    if s.intro_started {
+        return false;
+    }
+    s.intro_started = true;
+    true
 }
 
 struct Worker {
@@ -119,18 +261,15 @@ struct Worker {
     content: Arc<Content>,
     store: Store,
     root: PathBuf,
-    profile: String,
+    profile: Option<String>,
     /// `None` when the saved progress could not be read: then nothing is saved over it.
     progress: Option<Progress>,
+    /// The lab being played and its terminal folder.
     lab_id: String,
     dir: PathBuf,
 }
 
 impl Worker {
-    fn node(&self) -> &Node {
-        &self.content.nodes[&self.lab_id]
-    }
-
     fn busy(&self, msg: &str) {
         let msg = msg.to_string();
         self.ui.update(move |s, _| {
@@ -150,51 +289,99 @@ impl Worker {
         match job {
             Job::Probe => self.probe(),
             Job::Fix(need) => self.fix(need),
-            Job::StartLab => {
-                let node = self.node();
-                match lab::sandbox(&self.root, &node.id, &node.files) {
-                    Ok(dir) => self.dir = dir,
-                    Err(e) => self.ui.update(move |s, _| s.lab.session.finish_run(false, "", &format!("No se pudo preparar la carpeta del lab: {e}"))),
-                }
-                let objectives = &self.content.nodes[&self.lab_id].objectives;
-                let done = self.rt.block_on(async {
-                    let s3 = checker::client().await;
-                    checker::reset(&s3, objectives).await;
-                    checker::evaluate(&s3, objectives).await
-                });
-                self.ui.update(move |s, _| {
-                    s.lab.session.update(&done);
-                    s.lab.running = false;
-                });
-            }
+            Job::LoadProfiles => self.load_profiles(),
+            Job::CreateProfile { name, color } => match self.store.create_profile(&name, &color) {
+                Ok(p) => self.select(p.id),
+                Err(e) => self.ui.update(move |s, _| s.setup_note = Some(format!("No se pudo crear el perfil: {e}"))),
+            },
+            Job::SelectProfile(id) => self.select(id),
+            Job::StartLab(id) => self.start_lab(id),
             Job::Run(args) => {
                 let (ok, out, err) = lab::run_aws(&args, &self.dir);
-                let objectives = &self.content.nodes[&self.lab_id].objectives;
-                let done = self.rt.block_on(async { checker::evaluate(&checker::client().await, objectives).await });
+                let done = self.check();
                 self.ui.update(move |s, _| {
-                    let was_complete = s.lab.session.complete();
                     s.lab.session.finish_run(ok, &out, &err);
                     s.lab.session.update(&done);
                     s.lab.running = false;
-                    if !was_complete && s.lab.session.complete() {
-                        s.send(Job::Finish(s.lab.session.errors));
+                    if s.lab.session.complete() && !s.lab.saved {
+                        s.lab.saved = true;
+                        s.send(Job::Finish { id: s.lab.id.clone(), errors: s.lab.session.errors });
                     }
                 });
             }
-            Job::Finish(errors) => {
-                let Some(progress) = self.progress.as_mut() else { return };
-                let best = progress.record(&self.lab_id, errors).clone();
-                let total = progress.total_stars();
-                if let Err(e) = self.store.save_progress(&self.profile, progress) {
+            Job::Finish { id, errors } => {
+                let (Some(profile), Some(progress)) = (self.profile.as_ref(), self.progress.as_mut()) else { return };
+                progress.record(&id, errors);
+                if let Err(e) = self.store.save_progress(profile, progress) {
                     eprintln!("labcloud: could not save progress: {e}");
                 }
-                self.ui.update(move |s, _| {
-                    s.lab.best = Some(best);
-                    s.total_stars = total;
-                    s.level = grading::level(total);
-                });
+                let progress = progress.clone();
+                self.ui.update(move |s, _| s.progress = progress);
             }
         }
+    }
+
+    fn check(&self) -> Vec<bool> {
+        let Some(node) = self.content.nodes.get(&self.lab_id) else { return Vec::new() };
+        self.rt.block_on(async { checker::evaluate(&checker::client().await, &node.objectives).await })
+    }
+
+    fn start_lab(&mut self, id: String) {
+        let Some(node) = self.content.nodes.get(&id) else { return };
+        match lab::sandbox(&self.root, &node.id, &node.files) {
+            Ok(dir) => self.dir = dir,
+            Err(e) => self.ui.update(move |s, _| s.lab.session.finish_run(false, "", &format!("No se pudo preparar la carpeta del lab: {e}"))),
+        }
+        let done = self.rt.block_on(async {
+            let s3 = checker::client().await;
+            checker::reset(&s3, &node.objectives).await;
+            checker::evaluate(&s3, &node.objectives).await
+        });
+        self.lab_id = id;
+        self.ui.update(move |s, _| {
+            s.lab.session.update(&done);
+            s.lab.running = false;
+        });
+    }
+
+    fn load_profiles(&self) {
+        let cards: Vec<ProfileCard> = self
+            .store
+            .profiles()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|p| {
+                let stars = self.store.load_progress(&p.id).map_or(0, |pr| pr.total_stars());
+                ProfileCard { profile: p, stars }
+            })
+            .collect();
+        self.ui.update(move |s, _| {
+            s.creating = cards.is_empty();
+            s.profiles = Some(cards);
+        });
+    }
+
+    fn select(&mut self, id: String) {
+        let profile = self.store.profiles().unwrap_or_default().into_iter().find(|p| p.id == id);
+        let Some(profile) = profile else { return };
+        let progress = match self.store.load_progress(&id) {
+            Ok(p) => Some(p),
+            Err(e) => {
+                eprintln!("labcloud: could not read saved progress, it will not be overwritten: {e}");
+                None
+            }
+        };
+        let shown = progress.clone().unwrap_or_default();
+        self.profile = Some(id);
+        self.progress = progress;
+        self.ui.update(move |s, _| {
+            s.profile = Some(profile);
+            s.progress = shown;
+            s.creating = false;
+            s.new_name = TextEdit::new("");
+            s.to_map();
+        });
+        self.load_profiles();
     }
 
     fn probe(&self) {
@@ -207,8 +394,7 @@ impl Worker {
             s.has_brew = brew;
             s.busy = None;
             if report.ready() && s.screen == Screen::Setup {
-                s.screen = Screen::Lab;
-                s.send(Job::StartLab);
+                s.screen = Screen::Profiles;
             }
         });
     }
@@ -274,84 +460,103 @@ fn open_url(url: &str) {
     };
 }
 
-/// The first lab on the map. Until the map screen exists, the app opens it directly.
-fn first_lab(content: &Content) -> &Node {
-    content.order().into_iter().map(|id| &content.nodes[id]).find(|n| n.kind == NodeKind::Lab).expect("the course has a lab")
-}
-
-fn main() {
-    emulator::point_at_emulator();
-
+fn load_content() -> Content {
     // ponytail: content is read from the source tree; bundle it with the app in the installers phase.
-    let content = match course::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")) {
-        Ok(c) => Arc::new(c),
+    match course::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")) {
+        Ok(c) => c,
         Err(e) => {
             eprintln!("labcloud: invalid course content: {e}");
             std::process::exit(1);
         }
-    };
-    let root = Store::default_root();
-    let store = Store::new(&root);
-    // Until the profile screen exists: the first local profile, or a new "Estudiante".
-    let profile = match store.profiles().ok().and_then(|p| p.into_iter().next()) {
-        Some(p) => p,
-        None => store.create_profile("Estudiante", "#BFE0FB").expect("create the local profile"),
-    };
-    let progress = match store.load_progress(&profile.id) {
-        Ok(p) => Some(p),
-        Err(e) => {
-            eprintln!("labcloud: could not read saved progress, it will not be overwritten: {e}");
-            None
-        }
-    };
-    let node = first_lab(&content);
-    let total = progress.as_ref().map_or(0, Progress::total_stars);
-
-    let (tx, rx) = mpsc::channel();
-    tx.send(Job::Probe).expect("queue the first probe");
-    let state = State {
-        jobs: Some(tx),
-        lab: LabState::new(node, progress.as_ref().and_then(|p| p.nodes.get(&node.id).cloned())),
-        profile_name: profile.name.clone(),
-        level: grading::level(total),
-        total_stars: total,
-        ..State::default()
-    };
-    let lab_id = node.id.clone();
-
-    let spec = AppSpec { scenes: SCENES, ..AppSpec::new("Lab Cloud", (1120.0, 740.0), State::default, view::view) };
-    let app = App::new(spec).init(move || state);
-    let ui = app.handle();
-    std::thread::spawn(move || {
-        let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().expect("tokio runtime");
-        let mut worker = Worker { ui, rt, content, store, root, profile: profile.id, progress, lab_id, dir: PathBuf::new() };
-        run(&mut worker, rx);
-    });
-    app.run();
+    }
 }
 
-/// Headless snapshots: `cargo run -- --snap out.png --scene lab`.
-const SCENES: &[(&str, fn(&mut State))] = &[
+type Scene = (&'static str, fn(&mut State));
+
+/// Headless snapshots: `cargo run -- --snap out.png --scene <name>`.
+const SCENES: &[Scene] = &[
+    ("intro", |s| {
+        s.intro_started = true;
+        s.setup = Some(Report { docker: true, docker_running: true, aws_cli: true, emulator: true });
+        s.profiles = Some(Vec::new());
+    }),
     ("setup", |s| {
+        s.screen = Screen::Setup;
         s.setup = Some(Report { docker: true, docker_running: true, aws_cli: true, emulator: false });
     }),
+    ("profiles", |s| {
+        s.screen = Screen::Profiles;
+        s.profiles = Some(vec![
+            ProfileCard { profile: Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() }, stars: 10 },
+            ProfileCard { profile: Profile { id: "sam".into(), name: "Sam".into(), color: "#FFE2B8".into() }, stars: 3 },
+        ]);
+    }),
+    ("map", |s| {
+        s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() });
+        s.progress.record("s3-buckets", 1);
+        s.to_map();
+    }),
+    ("lesson", |s| {
+        s.open_stop("s3-buckets");
+        s.lesson.choice = Some(1);
+    }),
+    ("lesson-wrong", |s| {
+        s.open_stop("s3-buckets");
+        let content = s.content.clone();
+        s.lesson.choice = Some(0);
+        s.lesson.session.check(&content.nodes["s3-buckets"].exercises[0], &labcloud::grading::Answer::Choice(0));
+    }),
+    ("lesson-order", |s| {
+        s.open_stop("s3-buckets");
+        s.lesson.session.index = 3;
+        s.lesson.picked = vec![2];
+    }),
+    ("lesson-match", |s| {
+        s.open_stop("s3-buckets");
+        s.lesson.session.index = 4;
+        s.lesson.pairs = vec![(0, 0)];
+        s.lesson.left = Some(1);
+    }),
+    ("lesson-done", |s| {
+        s.open_stop("s3-buckets");
+        s.lesson.session = LessonSession { index: 5, total: 5, errors: 1, mistakes: vec!["¿Qué identifica a un objeto dentro de un bucket?".into()], feedback: None };
+    }),
     ("lab", |s| {
-        s.screen = Screen::Lab;
+        s.open_stop("lab-primer-bucket");
         s.lab.running = false;
         let hints: Vec<String> = s.lab.objectives.iter().map(|(_, h)| h.clone()).collect();
-        s.lab.session.submit("pista", &hints);
         s.lab.session.submit("aws s3api create-bucket --bucket mi-primer-bucket", &hints);
         s.lab.session.finish_run(true, "{\n    \"Location\": \"/mi-primer-bucket\"\n}", "");
         s.lab.session.update(&[true, false, false]);
     }),
-    ("result", |s| {
-        s.screen = Screen::Lab;
-        s.lab.running = false;
-        s.lab.session.submit("aws s3api put-bucket-versioning --bucket mi-primer-bucket --versioning-configuration Status=Enabled", &[]);
-        s.lab.session.finish_run(false, "", "aws: [ERROR]: An error occurred (NoSuchBucket) when calling the PutBucketVersioning operation: The specified bucket does not exist");
-        s.lab.session.update(&[true, true, true]);
-    }),
 ];
+
+fn main() {
+    emulator::point_at_emulator();
+    let content = Arc::new(load_content());
+    let root = Store::default_root();
+    let store = Store::new(&root);
+
+    let (tx, rx) = mpsc::channel();
+    tx.send(Job::Probe).expect("queue the first probe");
+    tx.send(Job::LoadProfiles).expect("queue profile loading");
+    let state_content = content.clone();
+    let spec = AppSpec {
+        scenes: SCENES,
+        setup: Some(load_art),
+        poll: Some(poll),
+        min_size: Some((960.0, 680.0)),
+        ..AppSpec::new("Lab Cloud", (1180.0, 760.0), State::default, view::view)
+    };
+    let app = App::new(spec).init(move || State { jobs: Some(tx), content: state_content, ..State::default() });
+    let ui = app.handle();
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().expect("tokio runtime");
+        let mut worker = Worker { ui, rt, content, store, root, profile: None, progress: None, lab_id: String::new(), dir: PathBuf::new() };
+        run(&mut worker, rx);
+    });
+    app.run();
+}
 
 fn run(worker: &mut Worker, jobs: Receiver<Job>) {
     for job in jobs {
@@ -362,22 +567,34 @@ fn run(worker: &mut Worker, jobs: Receiver<Job>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use labcloud::grading::Answer;
     use rune::{Env, Runtime};
 
-    fn content() -> Content {
-        course::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap()
+    fn state(scene: &str) -> State {
+        let mut s = State { content: Arc::new(load_content()), ..State::default() };
+        let (_, apply) = SCENES.iter().find(|(name, _)| *name == scene).expect("scene exists");
+        apply(&mut s);
+        s
     }
 
-    fn render(state: State) -> Runtime<State> {
-        let mut rt = Runtime::new(state, view::view, (1120.0, 740.0), Env { system_dark: false, scale: 1.0 });
+    fn render(s: State) -> Runtime<State> {
+        let mut rt = Runtime::new(s, view::view, (1180.0, 760.0), Env { system_dark: false, scale: 1.0 });
         rt.frame(0.0);
+        rt.frame(1.0 / 60.0);
         rt
+    }
+
+    #[test]
+    fn the_intro_offers_to_enter_once_checked() {
+        let rt = render(state("intro"));
+        assert!(rt.find("enter").is_some());
+        assert!(rt.find("check-emulator").is_some());
     }
 
     #[test]
     fn the_setup_screen_offers_a_fix_for_each_missing_tool() {
         let report = Report { docker: false, docker_running: false, aws_cli: false, emulator: false };
-        let rt = render(State { setup: Some(report), has_brew: true, ..State::default() });
+        let rt = render(State { screen: Screen::Setup, setup: Some(report), has_brew: true, ..State::default() });
         assert!(rt.find("fix-Docker").is_some());
         assert!(rt.find("fix-AWS CLI").is_some());
         assert!(rt.find("fix-AWS Emulator").is_none(), "the emulator waits for Docker");
@@ -385,38 +602,84 @@ mod tests {
     }
 
     #[test]
-    fn the_setup_screen_says_it_is_checking_first() {
-        let rt = render(State::default());
-        assert!(rt.find("probing").is_some());
+    fn profiles_can_be_picked_or_created() {
+        let mut rt = render(state("profiles"));
+        assert!(rt.find("profile-alex").is_some());
+        assert!(rt.find("new-profile").is_some());
+        assert!(rt.find("profile-form").is_none());
+        rt.update(|s, _| s.creating = true);
+        rt.frame(2.0 / 60.0);
+        assert!(rt.find("profile-form").is_some());
+        assert!(rt.find("color-0").is_some());
     }
 
     #[test]
-    fn the_lab_screen_shows_objectives_terminal_and_result() {
-        let c = content();
-        let node = first_lab(&c);
-        let mut lab = LabState::new(node, None);
-        lab.running = false;
-        let mut rt = render(State { screen: Screen::Lab, lab, ..State::default() });
+    fn the_map_shows_every_stop_and_the_selected_detail() {
+        let rt = render(state("map"));
+        assert!(rt.find("stop-s3-buckets").is_some());
+        assert!(rt.find("stop-lab-primer-bucket").is_some());
+        assert!(rt.find("detail").is_some());
+        assert_eq!(rt.state.selected, 1, "the next stop is selected");
+        assert!(rt.find("cta").is_some());
+    }
+
+    #[test]
+    fn opening_stops_goes_to_the_right_screen() {
+        let mut s = state("map");
+        s.open_stop("s3-buckets");
+        assert_eq!(s.screen, Screen::Lesson);
+        assert_eq!(s.lesson.session.total, 5);
+        s.open_stop("lab-primer-bucket");
+        assert_eq!(s.screen, Screen::Lab);
+        assert_eq!(s.lab.objectives.len(), 3);
+    }
+
+    #[test]
+    fn every_exercise_kind_renders_its_answer_area() {
+        for (scene, key) in [("lesson", "option-1"), ("lesson-order", "step-0"), ("lesson-match", "right-0")] {
+            let rt = render(state(scene));
+            assert!(rt.find(key).is_some(), "{scene}: {key}");
+            assert!(rt.find("check").is_some(), "{scene}: check button");
+        }
+        let mut s = state("lesson");
+        s.lesson.session.index = 2;
+        let rt = render(s);
+        assert!(rt.find("command").is_some());
+    }
+
+    #[test]
+    fn a_wrong_answer_shows_the_hint_and_a_retry() {
+        let rt = render(state("lesson-wrong"));
+        assert!(rt.find("feedback-wrong").is_some());
+        assert!(rt.find("retry").is_some());
+    }
+
+    #[test]
+    fn the_answer_is_read_back_in_content_indices() {
+        let c = load_content();
+        let exs = &c.nodes["s3-buckets"].exercises;
+        let mut l = LessonView::new(&c.nodes["s3-buckets"]);
+        let display = labcloud::lesson::shuffled(3);
+        // Pick the display positions that hold content steps 0, 1, 2.
+        l.picked = (0..3).map(|step| display.iter().position(|&d| d == step).unwrap()).collect();
+        assert_eq!(view::answer(&exs[3], &l), Some(Answer::Order(vec![0, 1, 2])));
+        l.picked.pop();
+        assert_eq!(view::answer(&exs[3], &l), None, "incomplete answers cannot be checked");
+    }
+
+    #[test]
+    fn a_finished_lesson_shows_stars_and_a_way_to_perfect_it() {
+        let rt = render(state("lesson-done"));
+        assert!(rt.find("lesson-result").is_some());
+        assert!(rt.find("perfect").is_some());
+        assert!(rt.find("back-to-map").is_some());
+    }
+
+    #[test]
+    fn the_lab_screen_shows_objectives_terminal_and_a_way_back() {
+        let rt = render(state("lab"));
         assert!(rt.find("input").is_some());
         assert!(rt.find("goal-2").is_some());
-        assert!(rt.find("chip-siguiente paso").is_some());
-        assert!(rt.find("result").is_none());
-
-        rt.update(|s, _| s.lab.session.update(&[true, true, true]));
-        rt.frame(1.0 / 60.0);
-        assert!(rt.find("result").is_some());
-        assert!(rt.find("again").is_some(), "a perfect run offers a replay");
-    }
-
-    #[test]
-    fn a_lab_with_errors_offers_to_perfect_it() {
-        let c = content();
-        let mut lab = LabState::new(first_lab(&c), None);
-        lab.running = false;
-        lab.session.submit("aws s3 ls", &[]);
-        lab.session.finish_run(false, "", "An error occurred");
-        lab.session.update(&[true, true, true]);
-        let rt = render(State { screen: Screen::Lab, lab, ..State::default() });
-        assert!(rt.find("perfect").is_some());
+        assert!(rt.find("close").is_some());
     }
 }
