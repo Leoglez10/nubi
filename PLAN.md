@@ -13,6 +13,14 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 - **Game-first, not docs-first.** Bite-sized exercises (one question per screen),
   a mascot (Nubi), celebration screens. Theory is shown through animations and
   interactive diagrams, not long text.
+- **Guided classes before practice.** Each class follows: a short visual explanation,
+  a worked example, games/exercises, a hands-on lab, then review. Use numbered classes
+  (e.g. "Clase 1: buckets y objetos"); students can revisit the explanation while
+  practicing instead of starting with an unexplained question.
+- **Tactile animated buttons.** Buttons smoothly depress on hover and press, with
+  depth/shadow feedback, visible keyboard focus and equivalent keyboard activation.
+- **Cloud transitions.** Smooth screen changes: moving clouds cover the old screen
+  and reveal the next, inspired by flying through clouds. Offer reduced motion.
 - **No lives, no streaks, no XP.** Unlimited attempts, never a penalty for mistakes.
 - **Mastery instead of points.** Every lesson, lab and challenge records its best result
   as stars: 1 = completed, 2 = completed with few errors, 3 = perfect (zero errors).
@@ -128,6 +136,14 @@ first lab with the first local profile.
 Scope:
 - Command runner widget, allow-list, history, colored output, hints.
 - Live objective ticking from checker results.
+
+### UI and guided classes — current priority, before more Phase 4 services
+- Add tactile hover/press animations to buttons and smooth cloud screen transitions.
+- Offer reduced motion without removing navigation or feedback.
+- Reorganize the current content as numbered classes: visual explanation → worked
+  example → games/practice → lab → review. Keep explanations available for reference.
+- Validate motion and navigation visually, plus deterministic tests for class flow.
+- Status: authorized, implementation in progress. Service expansion is paused.
 
 ### Phase 4 — Module 1: foundations (highest-fidelity services)
 - IAM/STS, S3, DynamoDB, SQS, SNS.
