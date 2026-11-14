@@ -60,13 +60,15 @@ const LEVELS: [(u32, &str); 6] = [
 pub struct Level {
     pub number: u32,
     pub name: &'static str,
+    /// Stars where this level starts.
+    pub from: u32,
     /// Stars needed for the next level, or `None` at the top level.
     pub next_at: Option<u32>,
 }
 
 pub fn level(total_stars: u32) -> Level {
     let i = LEVELS.iter().rposition(|&(min, _)| total_stars >= min).unwrap_or(0);
-    Level { number: i as u32 + 1, name: LEVELS[i].1, next_at: LEVELS.get(i + 1).map(|&(min, _)| min) }
+    Level { number: i as u32 + 1, name: LEVELS[i].1, from: LEVELS[i].0, next_at: LEVELS.get(i + 1).map(|&(min, _)| min) }
 }
 
 /// A stop is open when it is the first one or the stop before it is completed.
@@ -166,8 +168,8 @@ mod tests {
 
     #[test]
     fn the_level_comes_from_total_stars() {
-        assert_eq!(level(0), Level { number: 1, name: "Despegando", next_at: Some(5) });
-        assert_eq!(level(10), Level { number: 2, name: "Explorador", next_at: Some(15) });
+        assert_eq!(level(0), Level { number: 1, name: "Despegando", from: 0, next_at: Some(5) });
+        assert_eq!(level(10), Level { number: 2, name: "Explorador", from: 5, next_at: Some(15) });
         assert_eq!(level(15).number, 3);
         assert_eq!(level(1000).next_at, None);
     }
