@@ -1,6 +1,5 @@
 //! Clock-driven screen transitions; navigation remains owned by `State::screen`.
-use std::cell::{Cell, RefCell};
-use std::collections::BTreeMap;
+use std::cell::Cell;
 
 use crate::{Screen, State};
 
@@ -21,14 +20,9 @@ pub struct Motion {
     switched: bool,
     pub system_reduced: Cell<bool>,
     pub cover: f32,
-    hover: RefCell<BTreeMap<String, rune::Live<f32>>>,
 }
 
 impl Motion {
-    pub fn hover_scale(&self, key: &str) -> rune::Live<f32> {
-        self.hover.borrow_mut().entry(key.to_string()).or_insert_with(|| rune::Live::new(1.0)).clone()
-    }
-
     pub fn displayed(&self, fallback: Screen) -> Screen {
         self.displayed.unwrap_or(fallback)
     }

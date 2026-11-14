@@ -44,35 +44,35 @@ pub struct Pal {
 pub fn pal() -> Pal {
     let c = |h: &str| hex(h).unwrap_or(Color::BLACK);
     Pal {
-        bg: c("#EEF5FC"),
-        sky: c("#BFE0FB"),
+        bg: c("#F7F8FA"),
+        sky: c("#EFF4FF"),
         surface: c("#FFFFFF"),
-        border: c("#D6E4F2"),
-        text: c("#0F2A44"),
-        muted: c("#51657A"),
-        blue: c("#1F6FD1"),
-        blue_dark: c("#154F99"),
-        blue_light: c("#DCEBFB"),
-        orange: c("#FF9900"),
-        orange_dark: c("#C27400"),
-        orange_light: c("#FFF1DB"),
-        ink_on_orange: c("#232F3E"),
-        green: c("#22A06B"),
-        green_dark: c("#17784F"),
-        green_light: c("#E3F6EC"),
-        red: c("#D93A3F"),
-        red_dark: c("#A3262B"),
-        red_light: c("#FDE7E8"),
-        locked: c("#E1E9F2"),
+        border: c("#E4E7EC"),
+        text: c("#101828"),
+        muted: c("#475467"),
+        blue: c("#1D4ED8"),
+        blue_dark: c("#1E3A8A"),
+        blue_light: c("#EFF4FF"),
+        orange: c("#F79009"),
+        orange_dark: c("#B54708"),
+        orange_light: c("#FEF6EE"),
+        ink_on_orange: c("#FFFFFF"),
+        green: c("#17B26A"),
+        green_dark: c("#067647"),
+        green_light: c("#ECFDF3"),
+        red: c("#D92D20"),
+        red_dark: c("#B42318"),
+        red_light: c("#FEF3F2"),
+        locked: c("#F2F4F7"),
     }
 }
 
-pub const HERO: TextStyle = TextStyle::new(56.0, 900.0);
-pub const TITLE: TextStyle = TextStyle::new(28.0, 800.0);
-pub const H2: TextStyle = TextStyle::new(19.0, 800.0);
-pub const BODY: TextStyle = TextStyle::new(16.0, 500.0);
-pub const STRONG: TextStyle = TextStyle::new(15.0, 700.0);
-pub const SMALL: TextStyle = TextStyle::new(13.0, 700.0);
+pub const HERO: TextStyle = TextStyle::new(40.0, 700.0);
+pub const TITLE: TextStyle = TextStyle::new(24.0, 700.0);
+pub const H2: TextStyle = TextStyle::new(18.0, 600.0);
+pub const BODY: TextStyle = TextStyle::new(15.0, 400.0);
+pub const STRONG: TextStyle = TextStyle::new(14.0, 600.0);
+pub const SMALL: TextStyle = TextStyle::new(13.0, 500.0);
 pub const MONO: TextStyle = TextStyle::new(14.0, 400.0).mono();
 
 pub fn view(s: &State, cx: &mut Cx<State>) -> El {
@@ -90,63 +90,55 @@ pub fn view(s: &State, cx: &mut Cx<State>) -> El {
     motion::wrap(s, screen)
 }
 
-/// Hover lift and press sink shared by every pressable control.
-fn tactile(s: &State, key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
-    let scale = s.motion.hover_scale(key);
-    if s.reduced_motion || s.motion.system_reduced.get() { scale.set(1.0); }
-    let on_hover = scale.clone();
+/// What every pressable control shares: a hover tint, a small press and a focus ring.
+fn pressable(key: &str, label: &str, tint: Color, on: impl Fn(&mut State) + 'static) -> El {
     el().key(key.to_string()).role("button").label(label.to_string()).focusable(true)
-        .live_scale(scale.smooth(rune::Spring::new(0.16, 0.55)))
-        .on_hover_change(move |s: &mut State, hovered, tx| {
-            let reduced = s.reduced_motion || s.motion.system_reduced.get();
-            on_hover.set(if hovered && !reduced { 1.03 } else { 1.0 });
-            tx.live_only();
-        })
-        .press_scale(0.96)
+        .hover(tint).press_scale(0.98).focus_ring(2.0, 2.0, pal().blue)
         .on_press(on)
 }
 
-/// A chunky game button: solid fill with a darker bottom edge.
-pub fn button(s: &State, key: &str, label: &str, fill: Color, edge: Color, ink: Color, on: impl Fn(&mut State) + 'static) -> El {
-    tactile(s, key, label, on)
-        .h(50.0).px(24.0).radius(16.0).fill(fill).shadow(4.0, 0.0, edge).center().origin(0.5, 1.0)
+/// A flat button: solid fill, 1px edge, 8px corners.
+pub fn button(key: &str, label: &str, fill: Color, edge: Color, ink: Color, on: impl Fn(&mut State) + 'static) -> El {
+    pressable(key, label, Color::BLACK.alpha(0.08), on)
+        .h(44.0).px(18.0).radius(8.0).fill(fill).border(1.0, edge).center()
         .child(text(label.to_string()).font(STRONG).color(ink))
 }
 
-pub fn primary(s: &State, key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
+pub fn primary(key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
     let p = pal();
-    button(s, key, label, p.blue, p.blue_dark, Color::WHITE, on)
+    button(key, label, p.blue, p.blue, Color::WHITE, on)
 }
 
-pub fn reward(s: &State, key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
+pub fn reward(key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
     let p = pal();
-    button(s, key, label, p.orange, p.orange_dark, p.ink_on_orange, on)
+    button(key, label, p.orange_dark, p.orange_dark, p.ink_on_orange, on)
 }
 
-pub fn good(s: &State, key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
+pub fn good(key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
     let p = pal();
-    button(s, key, label, p.green, p.green_dark, Color::WHITE, on)
+    button(key, label, p.green_dark, p.green_dark, Color::WHITE, on)
 }
 
-pub fn plain(s: &State, key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
+pub fn plain(key: &str, label: &str, on: impl Fn(&mut State) + 'static) -> El {
     let p = pal();
-    button(s, key, label, p.surface, p.border, p.muted, on).border(2.0, p.border)
+    pressable(key, label, p.text.alpha(0.04), on)
+        .h(44.0).px(18.0).radius(8.0).fill(p.surface).border(1.0, hex("#D0D5DD").unwrap_or(p.border)).center()
+        .child(text(label.to_string()).font(STRONG).color(hex("#344054").unwrap_or(p.text)))
 }
 
 /// A button that cannot be pressed yet.
 pub fn disabled(key: &str, label: &str) -> El {
     let p = pal();
     el().key(key.to_string()).role("button").label(label.to_string())
-        .h(50.0).px(24.0).radius(16.0).fill(p.locked).center()
-        .child(text(label.to_string()).font(STRONG).color(p.muted))
+        .h(44.0).px(18.0).radius(8.0).fill(p.locked).border(1.0, p.border).center()
+        .child(text(label.to_string()).font(STRONG).color(hex("#667085").unwrap_or(p.muted)))
 }
 
-/// "✕" back to the map.
-pub fn close(s: &State, on: impl Fn(&mut State) + 'static) -> El {
+/// "✕" back to the start: a flat round control.
+pub fn close(on: impl Fn(&mut State) + 'static) -> El {
     let p = pal();
-    // ponytail: flat on purpose; the raised edge clipped into a crescent at this size.
-    tactile(s, "close", "Volver al mapa", on)
-        .size(44.0, 44.0).radius(22.0).fill(p.surface).border(2.0, p.border).center().origin(0.5, 0.5)
+    pressable("close", "Volver al inicio", p.text.alpha(0.06), on)
+        .size(40.0, 40.0).radius(20.0).fill(p.surface).border(1.0, hex("#D0D5DD").unwrap_or(p.border)).center()
         .child(text("✕").font(H2).color(p.muted))
 }
 
@@ -191,24 +183,20 @@ mod motion_tests {
 
     fn button_view(s: &State, cx: &mut Cx<State>) -> El {
         cx.reduced_motion(s.reduced_motion || s.motion.system_reduced.get());
-        el().w_full().h_full().center().child(primary(s, "test-button", "Continuar", |s| s.intro_started = true))
+        el().w_full().h_full().center().child(primary("test-button", "Continuar", |s| s.intro_started = true))
     }
 
     #[test]
-    fn hover_and_press_physically_depress_the_button() {
+    fn hover_tints_without_moving_and_press_sinks() {
         let mut rt = Runtime::new(State::default(), button_view, (960.0, 680.0), Env { system_dark: false, scale: 1.0 });
         rt.frame(0.0);
         let (x, y) = rt.find("test-button").unwrap();
-        let rest = rt.presented_pose("test-button").unwrap().scale();
         rt.pointer_move(x, y);
-        rt.frame(0.04);
-        let intermediate = rt.presented_pose("test-button").unwrap().scale();
-        for _ in 0..40 { rt.frame(1.0 / 60.0); }
-        let hover = rt.presented_pose("test-button").unwrap().scale();
-        assert!(hover > intermediate && intermediate > rest, "hover must lift gradually: {rest} {intermediate} {hover}");
+        for _ in 0..20 { rt.frame(1.0 / 60.0); }
+        assert_eq!(rt.presented_pose("test-button").unwrap().scale(), 1.0, "a dashboard button tints on hover, it does not grow");
         rt.pointer_down(x, y);
         for _ in 0..20 { rt.frame(1.0 / 60.0); }
-        assert!(rt.presented_pose("test-button").unwrap().scale() < rest, "press sinks below the resting state");
+        assert!(rt.presented_pose("test-button").unwrap().scale() < 1.0, "press sinks below the resting state");
         rt.pointer_up(x, y);
         rt.frame(1.0 / 60.0);
         assert!(rt.state.intro_started);
@@ -216,10 +204,10 @@ mod motion_tests {
 
     #[test]
     fn keyboard_skips_disabled_and_activates_the_button() {
-        fn controls(s: &State, _: &mut Cx<State>) -> El {
+        fn controls(_: &State, _: &mut Cx<State>) -> El {
             rune::col().w_full().h_full()
                 .child(disabled("disabled-test", "No disponible"))
-                .child(primary(s, "enabled-test", "Continuar", |s| s.intro_started = true))
+                .child(primary("enabled-test", "Continuar", |s| s.intro_started = true))
         }
         let mut rt = Runtime::new(State::default(), controls, (960.0, 680.0), Env { system_dark: false, scale: 1.0 });
         rt.set_tab_visits_controls(true);
@@ -234,18 +222,6 @@ mod motion_tests {
         rt.key(rune::Key::Text(" ".into()).into());
         rt.frame(1.0 / 60.0);
         assert!(rt.state.intro_started);
-    }
-
-    #[test]
-    fn hover_survives_an_unrelated_view_rebuild() {
-        let mut rt = Runtime::new(State::default(), button_view, (960.0, 680.0), Env { system_dark: false, scale: 1.0 });
-        rt.frame(0.0);
-        let (x, y) = rt.find("test-button").unwrap();
-        rt.pointer_move(x, y);
-        for _ in 0..30 { rt.frame(1.0 / 60.0); }
-        rt.update(|s, _| s.busy = Some("Comprobando".into()));
-        for _ in 0..30 { rt.frame(1.0 / 60.0); }
-        assert!(rt.presented_pose("test-button").unwrap().scale() > 1.001);
     }
 
     #[test]

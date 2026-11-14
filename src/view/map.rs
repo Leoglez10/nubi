@@ -51,8 +51,8 @@ pub fn view(s: &State) -> El {
         let id = node.id.clone();
         let action = move |s: &mut State| { s.selected = index; s.open_class(&id); };
         let cta = if status == Stop::Locked { disabled(&format!("class-cta-{}", teaching.number), "Bloqueada") }
-            else if lesson_stars > 0 { primary(s, &format!("class-cta-{}", teaching.number), "Abrir clase", action) }
-            else { good(s, &format!("class-cta-{}", teaching.number), "Empezar clase", action) };
+            else if lesson_stars > 0 { primary(&format!("class-cta-{}", teaching.number), "Abrir clase", action) }
+            else { good(&format!("class-cta-{}", teaching.number), "Empezar clase", action) };
         let x = 90.0 + position as f32 * 300.0;
         let y = if position % 2 == 0 { 170.0 } else { 100.0 };
         let cloud = s.art.as_ref().map(|art| if status == Stop::Locked { &art.cloud_locked } else { &art.cloud });

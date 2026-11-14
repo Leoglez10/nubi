@@ -47,7 +47,7 @@ pub fn view(s: &State) -> El {
         if let Some(report) = s.setup {
             let label = if report.ready() { "Entrar" } else { "Preparar mi computadora" };
             center = center.child(el().h(8.0)).child(
-                reward(s, "enter", label, |s: &mut State| s.enter()).transition(Transition::scale(0.8)).enter_delay(1.9),
+                reward("enter", label, |s: &mut State| s.enter()).transition(Transition::scale(0.8)).enter_delay(1.9),
             );
         }
         root = root.child(center.absolute(0.0, 0.0));

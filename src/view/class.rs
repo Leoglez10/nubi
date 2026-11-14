@@ -8,9 +8,9 @@ pub fn view(s: &State) -> El {
     let p = pal();
     let Some(teaching) = s.class_id.as_ref().and_then(|id| s.content.nodes.get(id)).and_then(|n| n.teaching.as_ref()) else { return el() };
     let back = if s.class_return.is_some() {
-        plain(s, "class-back", "Volver a mi práctica", |s: &mut State| s.return_to_attempt())
+        plain("class-back", "Volver a mi práctica", |s: &mut State| s.return_to_attempt())
     } else {
-        plain(s, "class-back", "Volver al mapa", |s: &mut State| s.to_map())
+        plain("class-back", "Volver al mapa", |s: &mut State| s.to_map())
     };
     let heading = if s.class_review { "Repaso de la clase" } else { "Primero, aprendamos" };
     let mut content = col().key("class-content").w_full().max_w(900.0).gap(14.0).padding(24.0)
@@ -33,10 +33,10 @@ pub fn view(s: &State) -> El {
         .child(text("Para recordar").font(H2).color(p.text))
         .child(review_card(&teaching.review));
     if s.class_return.is_none() {
-        let lab = if s.class_lab_ready() { primary(s, "class-lab", "Ir al laboratorio", |s: &mut State| s.start_class_lab()) }
+        let lab = if s.class_lab_ready() { primary("class-lab", "Ir al laboratorio", |s: &mut State| s.start_class_lab()) }
             else { disabled("class-lab", "Completa los juegos primero") };
         content = content.child(row().w_full().gap(12.0).flex_wrap()
-            .child(primary(s, "class-games", "Empezar juegos", |s: &mut State| s.start_class_lesson())).child(lab))
+            .child(primary("class-games", "Empezar juegos", |s: &mut State| s.start_class_lesson())).child(lab))
             .child(text("Completa los juegos para desbloquear el laboratorio.").font(SMALL).color(p.muted));
     }
     col().key("class").w_full().h_full().fill(p.bg)

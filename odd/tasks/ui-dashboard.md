@@ -13,7 +13,7 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 ## Tasks
 
 - [x] T0 · S4 · inline · settle the open feat/ui-pulido work: flat close, class example/review visuals, keyboard test — RED class-2 scene locked → GREEN; 65 non-emulator tests + Clippy clean
-- [ ] T1 · S1 · inline · theme: palette, flat buttons with hover fill, focus ring, fonts
+- [x] T1 · S1 · inline · theme: palette, flat buttons with hover fill, focus ring, fonts — Rune .hover(tint) replaces per-key hover state; Inter + Plex Mono are already Rune defaults (no bundling); button tests rewritten for tint-not-grow; 64 tests + Clippy clean
 - [ ] T2 · S3 · inline · app shell: sidebar + top bar around Inicio/Clase/Práctica/Laboratorio
 - [ ] T3 · S2, S3 · inline · Inicio dashboard: greeting + Nubi, progress cards, continue card, module table
 - [ ] T4 · S2, S3, S4 · inline · Clase: article + steps aside + Nubi tip

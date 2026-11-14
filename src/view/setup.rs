@@ -66,7 +66,7 @@ pub fn view(s: &State) -> El {
                     );
                 if !ok && !blocked && s.busy.is_none() {
                     if let Some(l) = label(need, &fix) {
-                        item = item.child(primary(s, &format!("fix-{name}"), l, move |s: &mut State| s.send(Job::Fix(need))));
+                        item = item.child(primary(&format!("fix-{name}"), l, move |s: &mut State| s.send(Job::Fix(need))));
                     } else if let Action::Manual(how) = fix {
                         item = item.child(text(how).font(SMALL).color(p.text).wrap().w(220.0));
                     }
@@ -82,7 +82,7 @@ pub fn view(s: &State) -> El {
         card = card.child(text(note.clone()).key("note").font(SMALL).color(p.muted).wrap());
     }
     if s.busy.is_none() && s.setup.is_some() {
-        card = card.child(row().child(spacer()).child(plain(s, "recheck", "Comprobar de nuevo", |s: &mut State| {
+        card = card.child(row().child(spacer()).child(plain("recheck", "Comprobar de nuevo", |s: &mut State| {
             s.setup = None;
             s.send(Job::Probe);
         })));

@@ -81,7 +81,7 @@ fn form(s: &State) -> El {
     let create_button = if name.is_empty() {
         disabled("create-profile", "Crear y empezar")
     } else {
-        primary(s, "create-profile", "Crear y empezar", create)
+        primary("create-profile", "Crear y empezar", create)
     };
     col().key("profile-form").w_full().max_w(560.0).padding(24.0).gap(14.0).radius(24.0).fill(p.surface).border(2.0, p.border)
         .child(text("¿Cómo te llamas?").font(STRONG).color(p.text))

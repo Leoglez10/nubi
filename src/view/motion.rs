@@ -45,6 +45,6 @@ fn toggle(s: &State) -> El {
     row().w_full().absolute(0.0, 0.0).justify_end()
         .child(
             el().px(INSET).pt(INSET)
-                .child(plain(s, "motion-toggle", label, |s| s.reduced_motion = !s.reduced_motion).h(34.0).px(14.0)),
+                .child(plain("motion-toggle", label, |s| s.reduced_motion = !s.reduced_motion).h(34.0).px(14.0)),
         )
 }
