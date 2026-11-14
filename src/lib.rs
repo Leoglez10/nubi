@@ -3,3 +3,4 @@
 
 pub mod course;
 pub mod grading;
+pub mod progress;
