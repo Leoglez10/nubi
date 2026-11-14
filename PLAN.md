@@ -1,7 +1,7 @@
 # Lab Cloud AWS — Plan
 
-Game-like desktop app to learn AWS, in the spirit of Duolingo: short lessons, a visual
-learning path, XP, streaks, lives and rewards. Every hands-on lab runs 100% locally
+Game-like desktop app to learn AWS: short lessons, a horizontal learning map in the
+clouds, levels and mastery ("perfection") instead of punishment. Every hands-on lab runs 100% locally
 against [aws-emulator](https://github.com/aws/aws-emulator), inside a terminal built into
 the app. The UI is a native app built with [Rune](https://github.com/anomalyco/rune).
 
@@ -11,8 +11,20 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
   A language switcher (e.g. English) is a later decision, not part of v1. Keep copy in
   data files rather than hard-coded strings so a second language can be added later.
 - **Game-first, not docs-first.** Bite-sized exercises (one question per screen),
-  a winding learning path, a mascot, XP, streak, lives, chests and celebration screens.
-  Theory is shown through animations and interactive diagrams, not long text.
+  a mascot (Nubi), celebration screens. Theory is shown through animations and
+  interactive diagrams, not long text.
+- **No lives, no streaks, no XP.** Unlimited attempts, never a penalty for mistakes.
+- **Mastery instead of points.** Every lesson, lab and challenge records its best result
+  as stars: 1 = completed, 2 = completed with few errors, 3 = perfect (zero errors).
+  Mistakes are listed back to the student as learning, and any node can be replayed to
+  perfect it. The student's **level** comes from total stars.
+- **Horizontal map in the clouds.** The home screen is a horizontally scrolling sky map:
+  units are cloud islands, nodes are cloud platforms joined by a flight path. It must not
+  look like Duolingo's vertical path.
+- **Animated intro.** A short launch animation (Nubi rises, logo, "turning on your local
+  cloud" checks for Docker and the emulator), then the profile screen.
+- **Local profiles, no accounts.** "Who is learning today?" picker with name + avatar,
+  no password. Everything is saved on the student's machine.
 - **Integrated terminal.** The student practices in a terminal that lives inside the app,
   next to the mission objectives, which tick off live as commands succeed.
 - **Look: cloud palette.** Light theme, white and blue with an orange accent for rewards.
@@ -45,6 +57,17 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
    labs need a real shell (files, pipes, `jq`). Rune has no terminal widget, so this is
    custom rendering work; only do it if v1 falls short.
 
+### Local persistence: approach
+
+- One folder per profile in the OS app-data directory
+  (macOS: `~/Library/Application Support/LabCloud/profiles/<id>/`).
+- `profile.json` (name, avatar) and `progress.json` (best stars, errors per node,
+  unlocked nodes), written with `serde_json`. Writes go to a temp file and are then
+  renamed over the old one, so a crash never corrupts progress.
+- Export / import a profile as one backup file to move it to another machine.
+- Optional local PIN per profile later; not needed for v1 (it is the student's own machine).
+- Emulator resources are not progress: each lab resets the resources it needs on start.
+
 ## Key constraints (verified 2026-11-14)
 
 - aws-emulator serves HTTPS on `127.0.0.1:9297` with a self-signed certificate, no GUI.
@@ -59,8 +82,9 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 ## Phases
 
 ### Phase 0 — Design (current)
-- Visual mockup in Spanish, cloud palette, game-like:
-  learning path, exercise screen, lab with integrated terminal, mini-game, reward screen.
+- Visual mockup in Spanish, cloud palette, game-like: intro animation, local profile
+  picker, horizontal sky map, exercise screen, lab with integrated terminal, mini-game,
+  result screen with mastery stars.
 
 ### Phase 1 — Proof of concept
 - Start aws-emulator in Docker.
@@ -72,7 +96,8 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 ### Phase 2 — Game engine and lesson format
 - Lessons as data files (TOML), in Spanish: exercises (multiple choice, fill the command,
   order the steps, match concepts), lab missions with checker rules.
-- Progress saved locally: XP, streak, lives, completed nodes.
+- Local profiles and progress saved on disk (see "Local persistence"): best stars and
+  errors per node, unlocked nodes, level.
 - Content can be added without touching UI code.
 
 ### Phase 3 — Integrated terminal v1
@@ -87,7 +112,7 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 - First verify how faithfully the emulator executes Lambda code.
 
 ### Phase 6 — More game
-- Mini-games (architecture builder, command speed-run), chests, leagues/achievements,
+- Mini-games (architecture builder, command puzzles), achievements for perfect units,
   "what happens inside" animations.
 
 ### Later
