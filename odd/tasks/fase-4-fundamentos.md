@@ -12,8 +12,8 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 
 ## Tasks
 
-- [x] T1 · S1, S2 · inline · S3 object keys/prefixes lesson and map continuation, original stops preserved — RED missing stops → GREEN, 46 tests passing; commit pending
-- [x] T2 · S2, S3 · inline · two-object lab, executable hints and isolated emulator checks including replay/reset — GREEN, two full lab attempts; commit pending
+- [x] T1 · S1, S2 · inline · S3 object keys/prefixes lesson and map continuation, original stops preserved — RED missing stops → GREEN, 46 tests passing; a4978a9
+- [x] T2 · S2, S3 · inline · two-object lab, executable hints and isolated emulator checks including replay/reset — GREEN, two full lab attempts; a4978a9
 
 ## Log
 
@@ -23,4 +23,5 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - T1: observed RED (expected four map stops, found two; exit 101), then GREEN. All four exercise formats covered; original lesson/lab preserved. Teaching source: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html and official AWS CLI cp examples through Context7.
 - T2: integration test exercises shipped hints via lab::Session and lab::run_aws, isolated process-specific bucket and project target sandbox, verifies objective-by-objective state, stored file contents, zero errors, cleanup and two complete attempts. Existing checks implement the rule already; no separate failing engine test was meaningful.
 - Closure checks: scripts/emulator.sh start && cargo test -- --include-ignored --test-threads=1 && cargo clippy --all-targets -- -D warnings: exit 0, 51 tests passed (35 logic, 10 UI, 3 existing checker, 1 emulator, 2 foundations), none ignored; git diff --check clean. Live window flow remains unverified; no UI code changed.
-- Next slice: DynamoDB lesson/lab and service-specific checks, then other Phase 4 services. This opening slice is complete; Phase 4 is not.
+- Work unit a4978a9: 188 authored changed lines. Native assess against main: medium, reviewDue false (under_budget), no independent verifier required. Initial assessment had a mistyped base ref and created no authority; corrected read-only assessment used main successfully.
+- Next slice: DynamoDB lesson/lab and service-specific checks, then other Phase 4 services. This opening slice is complete; Phase 4 is not. Phase 4 stays local; origin/main ends at 3c40623.
