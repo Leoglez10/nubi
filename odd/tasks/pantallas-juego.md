@@ -16,9 +16,9 @@ Branch: `feat/pantallas` · Delivery: ask-on-risk · Runner: `cargo test` (+ `--
 ## Tasks
 
 - [x] T1 · S4 · inline · lesson session logic + stop status for the map — a51c4c4 (RED 5 failing → GREEN 35 lib passing)
-- [ ] T2 · S4 · inline · exercise screen (choice, command, order, match) + lesson result, progress saved — pending
-- [ ] T3 · S3, S5 · inline · horizontal sky map with cloud islands, Nubi, stop detail, navigation to lessons/labs — pending
-- [ ] T4 · S1, S2 · inline · animated intro + profile picker/creation; setup screen only when something is missing — pending
+- [x] T2 · S4 · inline · exercise screen (choice, command, order, match) + lesson result, progress saved — f35e110 (UI tests written with the views, no separate RED)
+- [x] T3 · S3, S5 · inline · horizontal sky map with cloud islands, Nubi, stop detail, navigation to lessons/labs — f35e110 (UI tests written with the views, no separate RED)
+- [x] T4 · S1, S2 · inline · animated intro + profile picker/creation; setup screen only when something is missing — f35e110 (UI tests written with the views, no separate RED)
 
 Route evidence: one app sharing State, Job channel and view module; no disjoint parallel units → inline.
 
@@ -26,3 +26,4 @@ Route evidence: one app sharing State, Job channel and view module; no disjoint 
 
 - L1 (2026-11-14, user): "contrinua con lo siguiente" (after: "Lo siguiente sería el inicio animado, los perfiles, el mapa horizontal en las nubes y la pantalla de ejercicios.")
 - T1 done: src/lesson.rs (LessonSession check/retry/next, mistakes once per exercise, shuffled rotation), grading::stop_status.
+- T2–T4 done together in f35e110: they share State, navigation and the Job channel in main.rs. src/view/{mod,intro,profiles,map,lesson,lab,setup}.rs; SVG art (Nubi, clouds) via ImageCache; 10 headless UI tests + 10 snapshot scenes reviewed (intro, profiles, map, lesson, wrong, order, match, done, lab). Fixes after review: flight path under stops; match pair tints distinct from selection. Not verified: live window flow (worker) — needs cargo run.
