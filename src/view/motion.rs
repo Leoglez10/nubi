@@ -1,29 +1,50 @@
-//! A procedural cloud curtain and an always-available motion preference.
+//! The app chrome: an inset frame, a procedural cloud curtain and a motion preference.
 use rune::{Color, El, col, el, row};
 
 use super::{pal, plain};
 use crate::State;
 
+/// Space kept clear for the window's own controls and the screen edges.
+const INSET: f32 = 9.0;
+const SAFE_TOP: f32 = 26.0;
+
 pub fn wrap(s: &State, screen: El) -> El {
-    let mut root = col().w_full().h_full().child(el().w_full().grow(1.0).child(screen));
+    let p = pal();
+    let mut root = col().key("app").w_full().h_full().fill(p.bg)
+        .padding(INSET)
+        .pt(INSET + SAFE_TOP)
+        .child(el().key("app-frame").w_full().grow(1.0).radius(16.0).clip_rounded(16.0).child(screen));
     if s.motion.cover > 0.0 {
-        let mut edge = col().pin(None, Some(0.0), Some(-60.0), Some(0.0)).w(140.0);
-        for _ in 0..8 {
-            edge = edge.child(el().w_full().grow(1.0).radius(70.0).fill(Color::WHITE));
+        // Three soft layers are enough to read as a cloud and cheap to redraw every frame.
+        let mut curtain = el().key("cloud-curtain").pin(Some(0.0), Some(0.0), Some(0.0), Some(0.0));
+        for (i, radius) in [120.0, 170.0, 230.0].into_iter().enumerate() {
+            let size = radius * 2.0;
+            curtain = curtain.child(
+                el().absolute(-radius + 40.0 + i as f32 * 90.0, -radius * 0.55)
+                    .size(size, size).radius(radius).fill(Color::WHITE)
+                    .opacity(0.55 + 0.15 * i as f32),
+            );
         }
-        let curtain = el().key("cloud-curtain").pin(Some(0.0), Some(0.0), Some(0.0), Some(0.0))
-            .instant_changes().transition(rune::Transition::none())
-            .child(el().key("cloud-cover").w_frac(s.motion.cover).h_full().fill(Color::WHITE).child(edge));
-        root = root.child(curtain);
+        root = root.child(
+            curtain.child(
+                el().key("cloud-cover").w_frac(s.motion.cover).h_full().fill(Color::WHITE).instant_changes(),
+            ),
+        );
     }
+    root.child(toggle(s))
+}
+
+fn toggle(s: &State) -> El {
     let label = if s.motion.system_reduced.get() {
-        if s.reduced_motion { "Movimiento reducido: activado (sistema)" } else { "Movimiento reducido: sistema" }
+        if s.reduced_motion { "Movimiento reducido: activado (sistema)" } else { "El sistema pide movimiento reducido" }
     } else if s.reduced_motion {
         "Movimiento reducido: activado"
     } else {
-        "Movimiento reducido: desactivado"
+        "Movimiento: normal"
     };
-    let p = pal();
-    root.child(row().w_full().h(64.0).px(12.0).center_y().justify_end().fill(p.surface)
-        .child(plain(s, "motion-toggle", label, |s| s.reduced_motion = !s.reduced_motion)))
+    row().w_full().absolute(0.0, 0.0).justify_end()
+        .child(
+            el().px(INSET).pt(INSET)
+                .child(plain(s, "motion-toggle", label, |s| s.reduced_motion = !s.reduced_motion).h(34.0).px(14.0)),
+        )
 }

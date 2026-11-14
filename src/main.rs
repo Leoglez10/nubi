@@ -724,7 +724,8 @@ mod tests {
     fn class_teaching_and_revisit_controls_render() {
         let rt = render(state("class"));
         assert!(rt.find("class-title").is_some());
-        assert!(rt.find("class-visual").is_some());
+        assert!(rt.find("class-diagram").is_some());
+        assert!(rt.find("diagram-bucket").is_some());
         assert!(rt.find("class-games").is_some());
         assert!(rt.find("class-lab").is_some());
         assert!(render(state("lesson")).find("lesson-explanation").is_some());

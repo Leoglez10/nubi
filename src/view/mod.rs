@@ -97,10 +97,10 @@ pub fn button(s: &State, key: &str, label: &str, fill: Color, edge: Color, ink: 
     let on_hover = scale.clone();
     el().key(key.to_string()).role("button").label(label.to_string()).focusable(true)
         .h(50.0).px(24.0).radius(16.0).fill(fill).shadow(4.0, 0.0, edge).center()
-        .origin(0.5, 1.0).live_scale(scale.smooth(rune::Spring::new(0.22, 0.0)))
+        .origin(0.5, 1.0).live_scale(scale.smooth(rune::Spring::new(0.16, 0.55)))
         .on_hover_change(move |s: &mut State, hovered, tx| {
             let reduced = s.reduced_motion || s.motion.system_reduced.get();
-            on_hover.set(if hovered && !reduced { 0.97 } else { 1.0 });
+            on_hover.set(if hovered && !reduced { 1.03 } else { 1.0 });
             tx.live_only();
         })
         .press_scale(0.96)
@@ -196,12 +196,12 @@ mod motion_tests {
         rt.pointer_move(x, y);
         rt.frame(0.04);
         let intermediate = rt.presented_pose("test-button").unwrap().scale();
-        for _ in 0..30 { rt.frame(1.0 / 60.0); }
+        for _ in 0..40 { rt.frame(1.0 / 60.0); }
         let hover = rt.presented_pose("test-button").unwrap().scale();
-        assert!(hover < intermediate && intermediate < rest, "hover must animate displacement: {rest} {intermediate} {hover}");
+        assert!(hover > intermediate && intermediate > rest, "hover must lift gradually: {rest} {intermediate} {hover}");
         rt.pointer_down(x, y);
         for _ in 0..20 { rt.frame(1.0 / 60.0); }
-        assert!(rt.presented_pose("test-button").unwrap().scale() < hover, "press adds feedback");
+        assert!(rt.presented_pose("test-button").unwrap().scale() < rest, "press sinks below the resting state");
         rt.pointer_up(x, y);
         rt.frame(1.0 / 60.0);
         assert!(rt.state.intro_started);
@@ -238,7 +238,7 @@ mod motion_tests {
         for _ in 0..30 { rt.frame(1.0 / 60.0); }
         rt.update(|s, _| s.busy = Some("Comprobando".into()));
         for _ in 0..30 { rt.frame(1.0 / 60.0); }
-        assert!(rt.presented_pose("test-button").unwrap().scale() < 0.99);
+        assert!(rt.presented_pose("test-button").unwrap().scale() > 1.001);
     }
 
     #[test]
@@ -283,12 +283,13 @@ mod motion_tests {
             rt.frame(0.0);
             assert!(rt.find("motion-toggle").is_some());
             assert!(rt.find("cloud-curtain").is_some());
-            rt.update(|s, _| { crate::motion::tick(s, 1.31); });
+            rt.update(|s, _| { crate::motion::tick(s, 1.23); });
             rt.frame(1.0 / 60.0);
             let (rect, opacity) = rt.presented("cloud-cover").expect("opaque full cover");
             assert_eq!(opacity, 1.0);
             assert!(rt.find("setup-card").is_some());
-            assert!(rect[0] <= 0.0 && rect[1] <= 0.0 && rect[2] >= size.0 && rect[3] >= size.1, "{rect:?} {size:?}");
+            // The inset frame keeps the cover inside the 9pt app padding.
+            assert!(rect[0] <= 1.0 && rect[1] <= 1.0 && rect[2] >= size.0 - 20.0 && rect[3] >= size.1 - 20.0, "{rect:?} {size:?}");
         }
     }
 }

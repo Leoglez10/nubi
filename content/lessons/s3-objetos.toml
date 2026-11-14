@@ -7,6 +7,7 @@ number = 2
 title = "Claves y prefijos"
 lab = "lab-archivo-s3"
 explanation = "La clave es el nombre completo de un objeto en su bucket. Un prefijo agrupa claves por su comienzo; parece una carpeta, pero forma parte de la clave."
+diagram = "key_prefixes"
 visual = "Bucket: archivo-nubi  →  Prefijo: informes/  →  Objeto: enero.txt"
 example = "En s3://archivo-nubi/informes/enero.txt, el bucket es archivo-nubi y la clave completa es informes/enero.txt. Para subirlo: aws s3 cp enero.txt s3://archivo-nubi/informes/enero.txt."
 review = "El prefijo forma parte de la clave completa; dos objetos con nombres iguales pueden tener claves distintas."

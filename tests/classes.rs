@@ -1,4 +1,4 @@
-use labcloud::course::{load, validate_classes, NodeKind};
+use labcloud::course::{load, validate_classes, Diagram, NodeKind};
 use std::path::Path;
 
 #[test]
@@ -17,6 +17,13 @@ fn guided_classes_pair_existing_nodes_with_teaching() {
         assert!(!teaching.example.is_empty());
         assert!(!teaching.review.is_empty());
     }
+}
+
+#[test]
+fn each_class_teaches_with_its_own_diagram() {
+    let content = load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
+    let diagrams: Vec<Option<Diagram>> = content.classes().iter().map(|(_, t)| t.diagram).collect();
+    assert_eq!(diagrams, vec![Some(Diagram::BucketObjects), Some(Diagram::KeyPrefixes)]);
 }
 
 #[test]

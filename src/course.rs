@@ -55,6 +55,19 @@ pub struct Teaching {
     pub visual: String,
     pub example: String,
     pub review: String,
+    /// The drawn diagram shown with the explanation.
+    #[serde(default)]
+    pub diagram: Option<Diagram>,
+}
+
+/// A small picture that teaches one idea better than a sentence.
+#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Diagram {
+    /// A bucket holding objects, each with its key.
+    BucketObjects,
+    /// A flat key split into prefixes, which look like folders but are not.
+    KeyPrefixes,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq)]

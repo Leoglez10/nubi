@@ -4,8 +4,15 @@ use std::collections::BTreeMap;
 
 use crate::{Screen, State};
 
-const COVER: f64 = 0.3;
-const REVEAL: f64 = 0.3;
+/// Cover and reveal durations in seconds. Short enough to feel immediate.
+const COVER: f64 = 0.22;
+const REVEAL: f64 = 0.26;
+
+/// Smoothstep: no visible stop at the ends of the transition.
+fn smooth(t: f64) -> f32 {
+    let t = t.clamp(0.0, 1.0);
+    (t * t * (3.0 - 2.0 * t)) as f32
+}
 
 #[derive(Default)]
 pub struct Motion {
@@ -48,7 +55,7 @@ pub fn tick(s: &mut State, now: f64) -> bool {
     let Some(started) = m.started else { return false };
     let elapsed = (now - started).max(0.0);
     if elapsed < COVER {
-        m.cover = (elapsed / COVER) as f32;
+        m.cover = smooth(elapsed / COVER);
     } else if !m.switched {
         // Present at least one fully covered frame, even if the clock skipped ahead.
         m.displayed = Some(s.screen);
@@ -56,7 +63,7 @@ pub fn tick(s: &mut State, now: f64) -> bool {
         m.cover = 1.0;
         m.started = Some(now - COVER);
     } else if elapsed < COVER + REVEAL {
-        m.cover = (1.0 - (elapsed - COVER) / REVEAL) as f32;
+        m.cover = smooth(1.0 - (elapsed - COVER) / REVEAL);
     } else {
         m.cover = 0.0;
         m.started = None;

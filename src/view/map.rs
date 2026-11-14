@@ -25,11 +25,11 @@ pub fn view(s: &State) -> El {
             .on_press(|s: &mut State| { s.creating = false; s.screen = Screen::Profiles; })
             .child(avatar(&profile.name, &profile.color, 48.0)));
     }
-    let mut canvas = el().key("map-canvas").w(1100.0).h(340.0)
-        .child(el().key("island-fundamentos").absolute(36.0, 270.0).size(620.0, 56.0).radius(28.0).fill(p.surface))
+    let mut canvas = el().key("map-canvas").w(1100.0).h(372.0)
+        .child(el().key("island-fundamentos").absolute(36.0, 296.0).size(620.0, 56.0).radius(28.0).fill(p.surface))
         .child(el().absolute(50.0, 12.0).padding(12.0).radius(14.0).fill(p.blue)
             .child(text("Isla 1 · Fundamentos").font(STRONG).color(rune::Color::WHITE)))
-        .child(el().absolute(760.0, 270.0).size(280.0, 56.0).radius(28.0).fill(p.surface).opacity(0.6))
+        .child(el().absolute(760.0, 296.0).size(280.0, 56.0).radius(28.0).fill(p.surface).opacity(0.6))
         .child(text("Próximamente: más islas").absolute(770.0, 32.0).font(STRONG).color(p.muted));
     // The dotted route is behind the cloud stops, never drawn over them.
     let mut route = el().key("flight-path").w_full().h_full();
@@ -60,7 +60,7 @@ pub fn view(s: &State) -> El {
             .absolute(x, y).size(120.0, 96.0).press_scale(0.96)
             .on_press(move |s: &mut State| s.selected = index)
             .child(picture(cloud, 120.0, 96.0))
-            .child(el().absolute(38.0, 36.0).size(44.0, 44.0).radius(22.0)
+            .child(el().absolute(40.0, 31.0).size(44.0, 44.0).radius(22.0)
                 .fill(if status == Stop::Locked { p.locked } else { p.blue }).center()
                 .child(text(teaching.number.to_string()).font(H2).color(if status == Stop::Locked { p.muted } else { p.surface })));
         canvas = canvas.child(stop).child(text(format!("Clase {}", teaching.number)).absolute(x + 22.0, y + 100.0).font(STRONG).color(p.text));
