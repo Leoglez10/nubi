@@ -38,6 +38,17 @@ pub struct Node {
     pub exercises: Vec<Exercise>,
     #[serde(default)]
     pub objectives: Vec<Objective>,
+    /// Starter files a lab puts in its terminal folder.
+    #[serde(default)]
+    pub files: Vec<LabFile>,
+}
+
+#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LabFile {
+    /// A plain file name: no folders.
+    pub name: String,
+    pub content: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -129,6 +140,12 @@ fn validate(node: &Node) -> Result<(), String> {
         }
         _ => {}
     }
+    for f in &node.files {
+        let plain = !f.name.is_empty() && f.name != "." && f.name != ".." && !f.name.contains(['/', '\\']);
+        if !plain {
+            return Err(format!("file \"{}\" must be a plain file name", f.name));
+        }
+    }
     for (i, ex) in node.exercises.iter().enumerate() {
         let n = i + 1;
         match ex {
@@ -210,6 +227,13 @@ mod tests {
         let empty_lab = "id = \"a\"\ntitle = \"A\"\nkind = \"lab\"\n";
         let s = Scratch::new("empty", ONE_UNIT, &[("a.toml", empty_lab)]);
         assert!(load(&s.0).unwrap_err().contains("a.toml"));
+    }
+
+    #[test]
+    fn starter_files_cannot_escape_the_lab_folder() {
+        let lab = "id = \"a\"\ntitle = \"A\"\nkind = \"lab\"\n[[objectives]]\ntext = \"t\"\nhint = \"h\"\ncheck = { type = \"bucket_exists\", bucket = \"x\" }\n[[files]]\nname = \"../evil.txt\"\ncontent = \"x\"\n";
+        let s = Scratch::new("files", ONE_UNIT, &[("a.toml", lab)]);
+        assert!(load(&s.0).unwrap_err().contains("plain file name"));
     }
 
     #[test]

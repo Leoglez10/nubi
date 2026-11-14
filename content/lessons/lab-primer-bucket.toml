@@ -16,3 +16,7 @@ check = { type = "bucket_versioning", bucket = "mi-primer-bucket", status = "Ena
 text = "Sube el archivo hola.txt"
 hint = "aws s3 cp hola.txt s3://mi-primer-bucket/"
 check = { type = "object_exists", bucket = "mi-primer-bucket", key = "hola.txt" }
+
+[[files]]
+name = "hola.txt"
+content = "¡Hola desde Lab Cloud!\n"

@@ -45,3 +45,27 @@ fn the_first_lab_is_checked_objective_by_objective() {
     let results = rt.block_on(async { evaluate(&client().await, &lab.objectives).await });
     assert_eq!(results.len(), 3, "one result per objective");
 }
+
+#[test]
+#[ignore]
+fn reset_removes_a_versioned_bucket_with_its_objects() {
+    point_at_emulator();
+    let content = labcloud::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
+    let lab = &content.nodes["lab-primer-bucket"];
+    let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+    rt.block_on(async {
+        let s3 = client().await;
+        let bucket = "mi-primer-bucket";
+        let _ = s3.create_bucket().bucket(bucket).send().await;
+        let on = VersioningConfiguration::builder().status(BucketVersioningStatus::Enabled).build();
+        s3.put_bucket_versioning().bucket(bucket).versioning_configuration(on).send().await.unwrap();
+        for body in [&b"uno"[..], &b"dos"[..]] {
+            s3.put_object().bucket(bucket).key("hola.txt").body(ByteStream::from_static(body)).send().await.unwrap();
+        }
+        assert!(passes(&s3, &Check::BucketExists { bucket: bucket.into() }).await);
+
+        labcloud::checker::reset(&s3, &lab.objectives).await;
+        assert_eq!(evaluate(&s3, &lab.objectives).await, vec![false, false, false], "every objective starts undone");
+        labcloud::checker::reset(&s3, &lab.objectives).await; // nothing left: still fine
+    });
+}

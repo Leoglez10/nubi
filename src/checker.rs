@@ -33,3 +33,28 @@ pub async fn evaluate(client: &Client, objectives: &[Objective]) -> Vec<bool> {
     }
     done
 }
+
+/// Deletes what a lab's checks refer to (its buckets, every object version included), so a
+/// replay starts from scratch. Errors are ignored: whatever is missing is already clean.
+// ponytail: one page of versions per bucket (up to 1000); paginate when a lab creates more.
+pub async fn reset(client: &Client, objectives: &[Objective]) {
+    let mut buckets: Vec<&str> = objectives
+        .iter()
+        .map(|o| match &o.check {
+            Check::BucketExists { bucket } | Check::BucketVersioning { bucket, .. } | Check::ObjectExists { bucket, .. } => bucket.as_str(),
+        })
+        .collect();
+    buckets.sort_unstable();
+    buckets.dedup();
+    for bucket in buckets {
+        if let Ok(list) = client.list_object_versions().bucket(bucket).send().await {
+            let versions = list.versions().iter().map(|v| (v.key(), v.version_id()));
+            let markers = list.delete_markers().iter().map(|m| (m.key(), m.version_id()));
+            for (key, version) in versions.chain(markers) {
+                let Some(key) = key else { continue };
+                let _ = client.delete_object().bucket(bucket).key(key).set_version_id(version.map(String::from)).send().await;
+            }
+        }
+        let _ = client.delete_bucket().bucket(bucket).send().await;
+    }
+}
