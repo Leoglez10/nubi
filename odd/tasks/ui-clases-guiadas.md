@@ -14,9 +14,9 @@ Branch: `feat/ui-clases-guiadas` · Delivery: feature-branch-chain, local work-u
 
 ## Tasks
 
-- [ ] T1 · S1, S2, S5 · motion unit · tactile buttons, cloud transitions, reduced motion, focused tests — partial, parent continuation limit reached; map-entry regression test fails
-- [ ] T2 · S3, S4 · class-flow unit · numbered class entry, explanation/example before games, associated lab and review, revisit teaching content — implemented; focused checks pass, full suite pending
-- [ ] T3 · S1–S6 · parent · integration, docs, visual proof, functional checks and applicable independent verification — pending
+- [x] T1 · S1, S2, S5 · motion unit · tactile buttons, cloud transitions, reduced motion, focused tests — done; 67 tests incl. emulator pass, Clippy clean; e62bb7f
+- [x] T2 · S3, S4 · class-flow unit · numbered class entry, explanation/example before games, associated lab and review, revisit teaching content — done; e62bb7f
+- [x] T3 · S1–S6 · parent · integration, docs, visual proof, functional checks — e62bb7f; live-window proof pending
 
 ## Log
 
@@ -35,11 +35,10 @@ Branch: `feat/ui-clases-guiadas` · Delivery: feature-branch-chain, local work-u
   - Correction 1: map-entry test fixed (frame after pointer release); invalid second assertion replaced with "a class opens teaching, not a practice".
   - Correction 2: Clippy rejected my test's Default field reassignment; switched to struct-update initialization.
   - Suite job-6 reached the end with every test binary passing; Clippy was the only failure. Fresh suite + Clippy job-7 and snapshots job-8 are running.
+- Final checks: job-7 full suite incl. emulator: 35 lib + 24 UI + 3 checker + 2 foundations + 1 emulator + 2 classes = 67 passing, 0 ignored; Clippy --all-targets -D warnings clean; job-8 regenerated map/class/lesson/lab captures, all inspected. UI integration committed e62bb7f (688 authored lines). Native assess f515753..e62bb7f: medium, reviewDue false (under_budget), no independent verifier required. Slice overage accepted: motion and class flow share main.rs/view/mod.rs, so splitting would ship an unbuildable intermediate.
 - Pending / handoff for a later session:
-  - Verify job-7 (full suite incl. emulator + Clippy) and job-8 captures; inspect map, class, lesson and lab images before any claim.
-  - Commit the UI integration as work-unit commits only for behavior whose checks passed; keep README and task log with it.
-  - Run native assess over the committed UI slice (base = f515753) and follow its reviewDue verdict; do not infer it.
-  - Unverified: live `cargo run` flow, real cloud transition on screen, cross-screen keyboard focus, live OS reduced-motion changes, and hover through a real pointer session. Headless tests cannot prove these.
+  - Cosmetic: the 44px ✕ close button inherits the raised shadow and reads as a clipped crescent in the lesson and lab headers; give it a flat style.
+  - Unverified: live `cargo run` flow and real-cloud transition feel; cross-screen keyboard focus; live OS reduced-motion changes; hover over a long real pointer session.
   - No push, PR or merge is authorized for this UI work; origin/main remains 3c40623 and Phase 4 content stays local.
 - Checkpoint 45151a9: PLAN.md and this feature specification committed; structural diff check clean, native assessment passive / reviewDue false. Exploration is complete; implementation now runs as the two bounded units below. Keep local work-unit commits and refresh the full Engram mirror at task transitions.
 - Continuation results: class worker mwgyb4kv-6-r86l settled partial only because full cargo test fixture cleanup is prohibited in the child; 20 UI, 3 class/foundations, 4 lesson, 8 grading tests passed plus Clippy and target/ui-class.png inspected by parent. No behavioral RED observed (new State API tests first failed to compile). Parent full suite still required after motion settles.
