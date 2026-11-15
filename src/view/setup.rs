@@ -1,6 +1,6 @@
 //! Guided setup: what is missing on this machine and the one-click fix for each.
 
-use labcloud::setup::{Action, Need, Os, action};
+use nubi::setup::{Action, Need, Os, action};
 use rune::{Color, El, col, el, row, spacer, text};
 
 use super::{BODY, SMALL, STRONG, TITLE, pal, plain, primary};
@@ -33,7 +33,7 @@ pub fn view(s: &State) -> El {
     let mut card = col().key("setup-card").w_full().max_w(660.0).padding(28.0).gap(16.0)
         .radius(24.0).fill(p.surface).border(2.0, p.border)
         .child(text("Preparemos tu nube local").key("setup-title").font(TITLE).color(p.text))
-        .child(text("Lab Cloud necesita estas herramientas en tu computadora. Te ayudamos a instalarlas.").font(BODY).color(p.muted).wrap());
+        .child(text("Nubi necesita estas herramientas en tu computadora. Te ayudamos a instalarlas.").font(BODY).color(p.muted).wrap());
 
     match &s.setup {
         None => card = card.child(text("Revisando tu computadora…").key("probing").font(STRONG).color(p.blue)),

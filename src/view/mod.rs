@@ -280,7 +280,7 @@ mod motion_tests {
     fn settings_is_in_the_sidebar_once_you_have_a_profile() {
         let s = State {
             screen: Screen::Map,
-            profile: Some(labcloud::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }),
+            profile: Some(nubi::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }),
             ..State::default()
         };
         let mut rt = Runtime::new(s, view, (1280.0, 800.0), Env { system_dark: false, scale: 1.0 });
@@ -300,7 +300,7 @@ mod motion_tests {
         let s = State {
             screen,
             jobs: Some(tx),
-            profile: Some(labcloud::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }),
+            profile: Some(nubi::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }),
             ..State::default()
         };
         let mut rt = Runtime::new(s, view, (1280.0, 1200.0), Env { system_dark: false, scale: 1.0 });

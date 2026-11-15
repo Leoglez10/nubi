@@ -1,5 +1,5 @@
 [package]
-name = "labcloud"
+name = "nubi"
 version = "0.1.1"
 edition = "2024"
 license = "MIT"
@@ -11,7 +11,7 @@ publish = false
 [package.metadata.deb]
 maintainer = "Leoglez10"
 section = "education"
-assets = [["target/release/labcloud", "usr/bin/", "755"]]
+assets = [["target/release/nubi", "usr/bin/", "755"]]
 
 [dependencies]
 # Rune is pre-release: always pin a rev of its `dev` branch.

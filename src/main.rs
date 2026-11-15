@@ -1,4 +1,4 @@
-//! Lab Cloud: learn AWS in Spanish against a local AWS Emulator.
+//! Nubi (Lab Cloud): learn AWS in Spanish against a local AWS Emulator.
 //!
 //! The Rune UI holds the state. One worker thread does everything slow — probing tools,
 //! starting the emulator, running `aws`, checking objectives, loading and saving profiles —
@@ -14,12 +14,12 @@ use std::sync::Arc;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::{Duration, Instant};
 
-use labcloud::course::{self, Content, Course, Node, NodeKind};
-use labcloud::lab::{self, Session};
-use labcloud::lesson::LessonSession;
-use labcloud::progress::{Profile, Progress, Store};
-use labcloud::setup::{self, Action, Need, Os, Report};
-use labcloud::{checker, emulator};
+use nubi::course::{self, Content, Course, Node, NodeKind};
+use nubi::lab::{self, Session};
+use nubi::lesson::LessonSession;
+use nubi::progress::{Profile, Progress, Store};
+use nubi::setup::{self, Action, Need, Os, Report};
+use nubi::{checker, emulator};
 use rune::{App, AppHandle, AppSpec, Image, ImageCache, TextEdit, Tx, Waker};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -293,7 +293,7 @@ impl State {
         let found = self.content.classes().into_iter().find(|(node, t)| node.id == id || t.lab == id)
             .map(|(node, _)| node.id.clone());
         let Some(id) = found else { return };
-        if !labcloud::grading::is_unlocked(&self.order(), &id, |prev| self.progress.completed(prev)) { return; }
+        if !nubi::grading::is_unlocked(&self.order(), &id, |prev| self.progress.completed(prev)) { return; }
         self.class_id = Some(id);
         self.class_return = None;
         self.class_review = false;
@@ -520,7 +520,7 @@ impl Worker {
                 let (Some(profile), Some(progress)) = (self.profile.as_ref(), self.progress.as_mut()) else { return };
                 progress.record(&id, errors);
                 if let Err(e) = self.store.save_progress(profile, progress) {
-                    eprintln!("labcloud: could not save progress: {e}");
+                    eprintln!("nubi: could not save progress: {e}");
                 }
                 let progress = progress.clone();
                 self.ui.update(move |s, _| s.progress = progress);
@@ -599,7 +599,7 @@ impl Worker {
         let progress = match self.store.load_progress(&id) {
             Ok(p) => Some(p),
             Err(e) => {
-                eprintln!("labcloud: could not read saved progress, it will not be overwritten: {e}");
+                eprintln!("nubi: could not read saved progress, it will not be overwritten: {e}");
                 None
             }
         };
@@ -702,7 +702,7 @@ fn load_content() -> Content {
     match course::embedded() {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("labcloud: invalid course content: {e}");
+            eprintln!("nubi: invalid course content: {e}");
             std::process::exit(1);
         }
     }
@@ -761,7 +761,7 @@ const SCENES: &[Scene] = &[
         s.open_stop("s3-buckets");
         let content = s.content.clone();
         s.lesson.choice = Some(0);
-        s.lesson.session.check(&content.nodes["s3-buckets"].exercises[0], &labcloud::grading::Answer::Choice(0));
+        s.lesson.session.check(&content.nodes["s3-buckets"].exercises[0], &nubi::grading::Answer::Choice(0));
     }),
     ("lesson-order", |s| {
         s.open_stop("s3-buckets");
@@ -795,7 +795,7 @@ const APP_ICON: &[u8] = include_bytes!("../assets/icon.png");
 fn main() {
     emulator::point_at_emulator();
     if let Err(e) = rune::set_app_icon(APP_ICON) {
-        eprintln!("labcloud: could not set the app icon: {e}");
+        eprintln!("nubi: could not set the app icon: {e}");
     }
     let content = Arc::new(load_content());
     let root = Store::default_root();
@@ -810,7 +810,7 @@ fn main() {
         setup: Some(load_art),
         poll: Some(poll),
         min_size: Some((960.0, 680.0)),
-        ..AppSpec::new("Lab Cloud", (1180.0, 760.0), State::default, view::view)
+        ..AppSpec::new("Nubi", (1180.0, 760.0), State::default, view::view)
     };
     let app = App::new(spec).init(move || State { jobs: Some(tx), content: state_content, ..State::default() });
     let ui = app.handle();
@@ -831,7 +831,7 @@ fn run(worker: &mut Worker, jobs: Receiver<Job>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use labcloud::grading::Answer;
+    use nubi::grading::Answer;
     use rune::{Env, Runtime};
 
     fn state(scene: &str) -> State {
@@ -1059,7 +1059,7 @@ mod tests {
         let c = load_content();
         let exs = &c.nodes["s3-buckets"].exercises;
         let mut l = LessonView::new(&c.nodes["s3-buckets"]);
-        let display = labcloud::lesson::shuffled(3);
+        let display = nubi::lesson::shuffled(3);
         // Pick the display positions that hold content steps 0, 1, 2.
         l.picked = (0..3).map(|step| display.iter().position(|&d| d == step).unwrap()).collect();
         assert_eq!(view::answer(&exs[3], &l), Some(Answer::Order(vec![0, 1, 2])));

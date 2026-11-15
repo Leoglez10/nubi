@@ -78,7 +78,7 @@ impl Session {
     pub fn new(objectives: usize) -> Session {
         Session {
             lines: vec![
-                info("Lab Cloud · terminal conectada a tu AWS Emulator local"),
+                info("Nubi · terminal conectada a tu AWS Emulator local"),
                 info("Escribe \"ayuda\" para ver qué puedes hacer, o \"pista\" si te atoras."),
             ],
             done: vec![false; objectives],

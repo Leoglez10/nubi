@@ -1,6 +1,6 @@
 //! A class: the explanation as an article with drawings, and beside it the class's parts and
 //! a tip from Nubi.
-use labcloud::course::{Diagram, Teaching};
+use nubi::course::{Diagram, Teaching};
 use rune::color::hex;
 use rune::{Color, El, col, el, row, text};
 use super::{BODY, H2, MONO, SMALL, STRONG, TITLE, disabled, nubi, pal, plain, primary, stars};

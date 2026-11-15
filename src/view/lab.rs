@@ -1,8 +1,8 @@
 //! A lab: objectives on the left, the integrated terminal on the right, and the result with
 //! stars, what went wrong and "Perfeccionar".
 
-use labcloud::grading::stars as stars_for;
-use labcloud::lab::Kind;
+use nubi::grading::stars as stars_for;
+use nubi::lab::Kind;
 use rune::color::hex;
 use rune::{Color, El, Key, KeyEvent, ScrollSpec, TextEdit, Tx, col, el, row, spacer, text, text_input};
 

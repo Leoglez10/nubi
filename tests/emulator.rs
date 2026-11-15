@@ -1,6 +1,6 @@
 //! Needs Docker running: `cargo test -- --include-ignored`.
 
-use labcloud::emulator::{CONTAINER, healthy, point_at_emulator, start};
+use nubi::emulator::{CONTAINER, healthy, point_at_emulator, start};
 
 #[test]
 #[ignore]

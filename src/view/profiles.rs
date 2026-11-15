@@ -1,6 +1,6 @@
 //! "¿Quién va a aprender hoy?": local profiles, no passwords.
 
-use labcloud::grading;
+use nubi::grading;
 use rune::color::hex;
 use rune::{El, TextEdit, col, el, row, spacer, text, text_input};
 
@@ -22,7 +22,9 @@ pub fn view(s: &State) -> El {
     let p = pal();
     let header = row().key("profiles-header").w_full().gap(10.0).center_y()
         .child(nubi_face(s, Mood::Neutral, 34.0))
-        .child(text("Lab Cloud").font(rune::tok::TextStyle::new(16.0, 700.0)).color(p.text))
+        .child(col().gap(0.0)
+            .child(text("Nubi").font(rune::tok::TextStyle::new(16.0, 700.0)).color(p.text))
+            .child(text("Lab Cloud").font(rune::tok::TextStyle::new(12.0, 500.0)).color(p.muted)))
         .child(spacer())
         .child(plain("open-settings", "Ajustes", |s: &mut State| s.open_settings()).h(36.0).px(14.0));
     let welcome = row().w_full().gap(16.0).center_y()

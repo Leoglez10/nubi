@@ -1,6 +1,6 @@
 //! Inicio: where the student stands, the class to continue and the module at a glance.
 //! Every number comes from saved progress.
-use labcloud::grading::{self, Stop, stop_status};
+use nubi::grading::{self, Stop, stop_status};
 use rune::color::hex;
 use rune::{El, col, el, row, spacer, text};
 
@@ -116,7 +116,7 @@ mod tests {
 
     fn home(record: &[&str]) -> rune::Runtime<State> {
         let mut s = State {
-            content: std::sync::Arc::new(labcloud::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap()),
+            content: std::sync::Arc::new(nubi::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap()),
             screen: Screen::Map,
             ..State::default()
         };

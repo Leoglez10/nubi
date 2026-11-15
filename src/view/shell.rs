@@ -1,6 +1,6 @@
 //! The dashboard frame around the learning screens: a sidebar to move between the current
 //! class's parts and a top bar that says where you are.
-use labcloud::grading;
+use nubi::grading;
 use rune::color::hex;
 use rune::{El, Image, col, el, row, spacer, text};
 
@@ -25,7 +25,9 @@ fn sidebar(s: &State, screen: Screen) -> El {
     let mut bar = col().w_full().gap(4.0)
         .child(row().key("brand").gap(10.0).center_y().px(10.0).pb(14.0)
             .child(super::nubi_face(s, super::Mood::Neutral, 34.0))
-            .child(text("Lab Cloud").font(rune::tok::TextStyle::new(16.0, 700.0)).color(p.text)))
+            .child(col().gap(0.0)
+                .child(text("Nubi").font(rune::tok::TextStyle::new(16.0, 700.0)).color(p.text))
+                .child(text("Lab Cloud").font(rune::tok::TextStyle::new(12.0, 500.0)).color(p.muted))))
         .child(text("APRENDER").font(rune::tok::TextStyle::new(11.0, 600.0)).color(hex("#667085").unwrap_or(p.muted)).px(10.0).py(6.0));
 
     let current = s.current_class();
@@ -153,7 +155,7 @@ mod tests {
 
     fn app(screen: Screen) -> Runtime<State> {
         let s = State {
-            content: std::sync::Arc::new(labcloud::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap()),
+            content: std::sync::Arc::new(nubi::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap()),
             screen,
             ..State::default()
         };

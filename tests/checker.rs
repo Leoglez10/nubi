@@ -2,9 +2,9 @@
 
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::{BucketVersioningStatus, VersioningConfiguration};
-use labcloud::checker::{client, evaluate, passes};
-use labcloud::course::Check;
-use labcloud::emulator::point_at_emulator;
+use nubi::checker::{client, evaluate, passes};
+use nubi::course::Check;
+use nubi::emulator::point_at_emulator;
 
 #[test]
 #[ignore]
@@ -39,7 +39,7 @@ fn each_check_follows_the_emulator_state() {
 #[ignore]
 fn the_first_lab_is_checked_objective_by_objective() {
     point_at_emulator();
-    let content = labcloud::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
+    let content = nubi::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
     let lab = &content.nodes["lab-primer-bucket"];
     let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
     let results = rt.block_on(async { evaluate(&client().await, &lab.objectives).await });
@@ -50,7 +50,7 @@ fn the_first_lab_is_checked_objective_by_objective() {
 #[ignore]
 fn reset_removes_a_versioned_bucket_with_its_objects() {
     point_at_emulator();
-    let content = labcloud::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
+    let content = nubi::course::load(&std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
     let lab = &content.nodes["lab-primer-bucket"];
     let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
     rt.block_on(async {
@@ -64,8 +64,8 @@ fn reset_removes_a_versioned_bucket_with_its_objects() {
         }
         assert!(passes(&s3, &Check::BucketExists { bucket: bucket.into() }).await);
 
-        labcloud::checker::reset(&s3, &lab.objectives).await;
+        nubi::checker::reset(&s3, &lab.objectives).await;
         assert_eq!(evaluate(&s3, &lab.objectives).await, vec![false, false, false], "every objective starts undone");
-        labcloud::checker::reset(&s3, &lab.objectives).await; // nothing left: still fine
+        nubi::checker::reset(&s3, &lab.objectives).await; // nothing left: still fine
     });
 }

@@ -1,5 +1,5 @@
-use labcloud::course::{load, Check, Exercise, NodeKind};
-use labcloud::{checker, emulator, lab};
+use nubi::course::{load, Check, Exercise, NodeKind};
+use nubi::{checker, emulator, lab};
 use std::path::Path;
 
 #[test]

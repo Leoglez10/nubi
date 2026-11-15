@@ -20,8 +20,8 @@ pub fn view(s: &State) -> El {
     if s.intro_started {
         let mut center = col().key("intro-center").w_full().h_full().center().gap(14.0)
             .child(nubi(s, 200.0).transition(Transition::offset(0.0, 140.0)))
-            .child(text("Lab Cloud").key("logo").font(HERO).color(p.text).transition(Transition::opacity()).enter_delay(0.5))
-            .child(text("Aprende AWS en tu propia nube").font(BODY).color(p.blue_dark).transition(Transition::opacity()).enter_delay(0.8));
+            .child(text("Nubi").key("logo").font(HERO).color(p.text).transition(Transition::opacity()).enter_delay(0.5))
+            .child(text("Lab Cloud · Aprende AWS en tu propia nube").font(BODY).color(p.blue_dark).transition(Transition::opacity()).enter_delay(0.8));
 
         let checks = [
             ("check-docker", "Docker encontrado", s.setup.map(|r| r.docker_running)),

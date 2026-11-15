@@ -1,9 +1,9 @@
 //! A lesson: one exercise per screen, a check bar that says right or "try again" with a
 //! hint, unlimited retries, and a result with stars and what to review.
 
-use labcloud::course::Exercise;
-use labcloud::grading::{Answer, stars as stars_for};
-use labcloud::lesson::{Feedback, prompt, shuffled};
+use nubi::course::Exercise;
+use nubi::grading::{Answer, stars as stars_for};
+use nubi::lesson::{Feedback, prompt, shuffled};
 use rune::{Color, El, col, el, row, spacer, text, text_input};
 
 use super::{BODY, H2, MONO, Mood, SMALL, STRONG, TITLE, disabled, good, nubi_face, pal, plain, plural, primary, progress_bar, reward, stars};

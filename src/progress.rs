@@ -63,7 +63,7 @@ impl Store {
         Store { root: root.into() }
     }
 
-    /// The OS app-data folder for Lab Cloud.
+    /// The OS app-data folder. It keeps the old "LabCloud" name so existing profiles survive the rename to Nubi.
     pub fn default_root() -> PathBuf {
         let env = |k: &str| std::env::var_os(k).map(PathBuf::from);
         let home = env("HOME").or_else(|| env("USERPROFILE")).unwrap_or_default();

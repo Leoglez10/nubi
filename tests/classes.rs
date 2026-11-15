@@ -1,4 +1,4 @@
-use labcloud::course::{load, validate_classes, Diagram, NodeKind};
+use nubi::course::{load, validate_classes, Diagram, NodeKind};
 use std::path::Path;
 
 #[test]
