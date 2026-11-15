@@ -3,7 +3,15 @@ name = "labcloud"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
+description = "Learn AWS in Spanish with local labs against AWS Emulator"
+repository = "https://github.com/Leoglez10/lab-cloud-aws"
 publish = false
+
+# `cargo deb` (release workflow, Linux).
+[package.metadata.deb]
+maintainer = "Leoglez10"
+section = "education"
+assets = [["target/release/labcloud", "usr/bin/", "755"]]
 
 [dependencies]
 # Rune is pre-release: always pin a rev of its `dev` branch.

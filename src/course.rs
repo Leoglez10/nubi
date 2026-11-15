@@ -130,20 +130,37 @@ impl Content {
 
 /// Loads `<dir>/course.toml` and every `<dir>/lessons/*.toml`, and validates them together.
 pub fn load(dir: &Path) -> Result<Content, String> {
-    let read = |path: &Path| fs_read(path);
-    let course: Course = toml::from_str(&read(&dir.join("course.toml"))?)
-        .map_err(|e| format!("course.toml: {e}"))?;
-
-    let mut nodes = BTreeMap::new();
+    let course = fs_read(&dir.join("course.toml"))?;
     let lessons = dir.join("lessons");
     let entries = std::fs::read_dir(&lessons).map_err(|e| format!("{}: {e}", lessons.display()))?;
-    let mut paths: Vec<_> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
-    paths.sort();
-    for path in paths.into_iter().filter(|p| p.extension().is_some_and(|x| x == "toml")) {
-        let file = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
-        let node: Node = toml::from_str(&read(&path)?).map_err(|e| format!("{file}: {e}"))?;
+    let mut files = Vec::new();
+    for path in entries.filter_map(|e| e.ok().map(|e| e.path())) {
+        if path.extension().is_some_and(|x| x == "toml") {
+            let file = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
+            files.push((file, fs_read(&path)?));
+        }
+    }
+    parse(&course, files)
+}
+
+/// The course shipped inside the binary: `content/` is embedded at build time (see build.rs).
+pub fn embedded() -> Result<Content, String> {
+    let files = EMBEDDED_LESSONS.iter().map(|(f, t)| (f.to_string(), t.to_string())).collect();
+    parse(EMBEDDED_COURSE, files)
+}
+
+include!(concat!(env!("OUT_DIR"), "/content.rs"));
+
+/// Parses `course.toml` and the `lessons/*.toml` files (`(file name, text)`) and validates them together.
+fn parse(course: &str, mut lessons: Vec<(String, String)>) -> Result<Content, String> {
+    let course: Course = toml::from_str(course).map_err(|e| format!("course.toml: {e}"))?;
+
+    let mut nodes = BTreeMap::new();
+    lessons.sort();
+    for (file, text) in lessons {
+        let node: Node = toml::from_str(&text).map_err(|e| format!("{file}: {e}"))?;
         validate(&node).map_err(|e| format!("{file}: {e}"))?;
-        if path.file_stem().is_none_or(|stem| stem != node.id.as_str()) {
+        if file.strip_suffix(".toml") != Some(node.id.as_str()) {
             return Err(format!("{file}: id \"{}\" must match the file name", node.id));
         }
         nodes.insert(node.id.clone(), node);
@@ -256,6 +273,14 @@ mod tests {
             content.nodes["lab-primer-bucket"].objectives[1].check,
             Check::BucketVersioning { bucket: "mi-primer-bucket".into(), status: "Enabled".into() }
         );
+    }
+
+    #[test]
+    fn the_embedded_course_is_the_shipped_folder() {
+        let embedded = embedded().unwrap();
+        let shipped = load(&shipped()).unwrap();
+        assert_eq!(embedded.order(), shipped.order());
+        assert_eq!(format!("{:?}", embedded.nodes), format!("{:?}", shipped.nodes));
     }
 
     #[test]
