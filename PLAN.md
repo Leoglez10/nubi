@@ -148,10 +148,17 @@ Scope:
 - Reorganize the current content as numbered classes: visual explanation → worked
   example → games/practice → lab → review. Keep explanations available for reference.
 - Validate motion and navigation visually, plus deterministic tests for class flow.
-- Status: authorized, implementation in progress. Service expansion is paused.
+- Status: done 2026-11-14 as the professional dashboard (`odd/tasks/ui-dashboard.md`),
+  except responsiveness, which moves to the start of Phase 4 below.
 
 ### Phase 4 — Module 1: foundations (highest-fidelity services)
-- IAM/STS, S3, DynamoDB, SQS, SNS.
+- **Before new services, close what the UI work left open:**
+  - Responsiveness: scroll bars follow the macOS preference (the app cannot force them);
+    the top-bar breadcrumb is not truncated when long; layouts were only checked at
+    960×680 and 1180×760; no check by resizing a live window.
+  - An independent review of the profile delete path (it removes stored data).
+  - A live `cargo run` pass over hover, the tab slide-in, keyboard focus and reduced motion.
+- IAM/STS, S3, DynamoDB, SQS, SNS. Suggested next service: DynamoDB.
 - Started on `feat/fase-4-fundamentos`: S3 object keys/prefixes lesson and a
   two-file archive lab. Tracking: `odd/tasks/fase-4-fundamentos.md`.
 - Remaining services need their own checker types and emulator validation; this
