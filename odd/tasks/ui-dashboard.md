@@ -37,7 +37,7 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 
 - [x] T13 · S11 · inline · slide-in content only — content rises 8 pt while fading in over 120 ms; sidebar/top bar never move; non-shell screens slide whole; reduced motion: none
 
-- [x] T14 · S12 · inline · responsiveness: shared page_scroll with edge fade, sidebar nav scrolls with pinned footer, narrower lab column, Nubi as logo — RED terminal 334 pt at 960×680 → GREEN; system scroll-bar preference honored (Rune follows macOS, no app override)
+- [ ] T14 · S12 · inline · responsiveness (PENDING — user: "lo de la responsividad dejala como que aun falta"); partial work in 2030917: shared page_scroll with edge fade, sidebar nav scrolls with pinned footer, narrower lab column, Nubi as logo — RED terminal 334 pt at 960×680 → GREEN; system scroll-bar preference honored (Rune follows macOS, no app override)
 
 ## Log
 
@@ -46,3 +46,4 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - 2026-11-14 close: T4 6fe519c, T5 143f6cd, T6 93ecb85, T7 52e0562. Full suite incl. emulator 74 passing (35 lib + 30 UI + 3 + 3 + 1 + 2), Clippy -D warnings clean. Branch feat/ui-pulido is ~7 commits ahead of main (well over 400 authored lines); not pushed. Pending: live window run (cargo run) not done; reduced-motion fade only covered by existing timing tests.
 - L-next (user): "rediseñame esto. y el boton de movimiento ponlo en unapartado en ajustes" — T8 added.
 - T9–T12 checks: 76 tests + Clippy clean (emulator suite not rerun: no lab/emulator code changed). Independent verifier for the delete path (Risk item 1) not run in this session.
+- 2026-11-14 (user): "mit. has los comandos, y lo de la responsividad dejala como que aun falta" — MIT LICENSE added; About/topics and release v0.1.0 applied; T14 reopened as pending. Open responsiveness gaps to revisit: no forced scroll bars (Rune follows macOS), long top-bar breadcrumb not truncated, layouts only checked at 960×680 and 1180×760, no live-window resize check.

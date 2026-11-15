@@ -215,4 +215,4 @@ so far. Rune is pre-release, so the UI dependency is pinned to an exact revision
 
 ## License
 
-No license file has been added yet, so all rights are reserved by default.
+[MIT](LICENSE).
