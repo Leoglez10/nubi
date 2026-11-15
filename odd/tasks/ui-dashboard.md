@@ -10,6 +10,10 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - S4 (carried from ui-clases-guiadas): flat ✕/back control, more class visuals (example + review), keyboard reaches every control, reduced motion respected.
 - S5 (user): "rediseñame esto" (profiles screen screenshot).
 - S6 (user): "y el boton de movimiento ponlo en unapartado en ajustes".
+- S7 (user): "que cuando le piques a cuenta despliegue varias opciones sobre el. como cerrar sesion, cambiar perfil."
+- S8 (user): "en ajustes que exista lo de eliminar y editar." — edit name/color; delete asks for confirmation and removes the profile folder.
+- S9 (user): "si" to saving the motion preference with the profile — optional `reduced_motion` in profile.json (old files read as false).
+- S10 (user): "la transicion entre pestañas quisiera que fuera lo mas rapido posible. mejora eso"
 - Assumptions: Splash, Setup and Profiles keep their flow and only take the new palette. Inicio replaces the cloud map; its numbers come from real progress (no invented stats). Existing lesson/lab logic, grading, progress format and mastery rules are unchanged. The search box is left out until there is something to search (YAGNI).
 
 ## Tasks
@@ -24,6 +28,10 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - [x] T7 · S1 · inline · short fade transition, Splash/Setup/Profiles palette, docs, snapshots — fade through the background keeps the tested cover/reveal timing; unused cloud art removed; 'Lab Cloud' wordmark; README updated; intro/setup/profiles snapshots inspected
 
 - [x] T8 · S5, S6 · inline · profiles redesign + Ajustes screen holding the reduced-motion switch — floating toggle removed; tests: settings reachable from profiles and sidebar, switch toggles, Volver returns; snapshots inspected
+- [x] T9 · S8, S9 · inline · Store: update_profile, delete_profile, reduced_motion field (Risk item 1: deletes stored data) — RED compile → GREEN; scratch-dir tests: rename keeps id+progress, empty/missing rejected, delete removes only that folder, `../` id rejected, legacy profile.json loads
+- [x] T10 · S7 · inline · CUENTA menu: Ajustes, Cambiar de perfil, Cerrar sesión — header and profile row both open it; sign-out clears memory and tells the worker (Job::SignOut)
+- [x] T11 · S8, S9 · inline · Ajustes: edit profile, delete with confirmation, motion switch saved to profile — cancel sends nothing, confirm sends DeleteProfile; motion loads on select
+- [x] T12 · S10 · inline · fastest screen change — COVER 0 / REVEAL 0.08: swap on next frame + 80 ms fade-in; const-asserted ≤ 0.1 s
 
 ## Log
 
@@ -31,3 +39,4 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - 2026-11-14: T0 e9e932c, T1 af75952. T2+T3 one commit: the old map test pinned the cloud map that Inicio replaces, so the shell and Inicio ship together to keep every commit green. Mono font stays IBM Plex Mono (Rune default) instead of JetBrains Mono.
 - 2026-11-14 close: T4 6fe519c, T5 143f6cd, T6 93ecb85, T7 52e0562. Full suite incl. emulator 74 passing (35 lib + 30 UI + 3 + 3 + 1 + 2), Clippy -D warnings clean. Branch feat/ui-pulido is ~7 commits ahead of main (well over 400 authored lines); not pushed. Pending: live window run (cargo run) not done; reduced-motion fade only covered by existing timing tests.
 - L-next (user): "rediseñame esto. y el boton de movimiento ponlo en unapartado en ajustes" — T8 added.
+- T9–T12 checks: 76 tests + Clippy clean (emulator suite not rerun: no lab/emulator code changed). Independent verifier for the delete path (Risk item 1) not run in this session.

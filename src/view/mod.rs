@@ -272,17 +272,81 @@ mod motion_tests {
     fn settings_is_in_the_sidebar_once_you_have_a_profile() {
         let s = State {
             screen: Screen::Map,
-            profile: Some(labcloud::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() }),
+            profile: Some(labcloud::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }),
             ..State::default()
         };
         let mut rt = Runtime::new(s, view, (1280.0, 800.0), Env { system_dark: false, scale: 1.0 });
         rt.frame(0.0);
         assert!(rt.find("motion-toggle").is_none());
+        assert!(rt.find("nav-settings").is_none(), "account options stay folded until asked");
+        click(&mut rt, "account-menu");
         click(&mut rt, "nav-settings");
         assert_eq!(rt.state.screen, Screen::Settings);
         assert!(rt.find("sidebar").is_some() && rt.find("motion-toggle").is_some());
         click(&mut rt, "settings-back");
         assert_eq!(rt.state.screen, Screen::Map);
+    }
+
+    fn signed_in(screen: Screen) -> (Runtime<State>, std::sync::mpsc::Receiver<crate::Job>) {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let s = State {
+            screen,
+            jobs: Some(tx),
+            profile: Some(labcloud::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }),
+            ..State::default()
+        };
+        let mut rt = Runtime::new(s, view, (1280.0, 1200.0), Env { system_dark: false, scale: 1.0 });
+        rt.frame(0.0);
+        (rt, rx)
+    }
+
+    #[test]
+    fn the_account_menu_switches_profile_or_signs_out() {
+        let (mut rt, _rx) = signed_in(Screen::Map);
+        click(&mut rt, "account");
+        assert!(rt.state.account_open, "the profile row opens the account menu");
+        click(&mut rt, "account-switch");
+        assert_eq!(rt.state.screen, Screen::Profiles);
+        assert!(rt.state.profile.is_some(), "switching keeps you signed in until you pick another");
+
+        let (mut rt, rx) = signed_in(Screen::Map);
+        rt.update(|s, _| { s.progress.record("s3-buckets", 0); });
+        click(&mut rt, "account-menu");
+        click(&mut rt, "account-signout");
+        assert_eq!(rt.state.screen, Screen::Profiles);
+        assert!(rt.state.profile.is_none() && rt.state.progress.total_stars() == 0, "nothing of the profile stays in memory");
+        assert!(rx.try_iter().any(|j| matches!(j, crate::Job::SignOut)), "the worker stops saving to it");
+    }
+
+    #[test]
+    fn settings_edits_the_profile_and_saves_motion_with_it() {
+        let (mut rt, rx) = signed_in(Screen::Map);
+        rt.update(|s, _| s.open_settings());
+        rt.frame(1.0 / 60.0);
+        assert_eq!(rt.state.edit_name.text, "Alex");
+        rt.update(|s, _| { s.edit_name = rune::TextEdit::new("Alexa"); s.edit_color = 1; });
+        rt.frame(1.0 / 60.0);
+        click(&mut rt, "save-profile");
+        click(&mut rt, "motion-toggle");
+        let jobs: Vec<_> = rx.try_iter().collect();
+        assert!(jobs.iter().any(|j| matches!(j, crate::Job::UpdateProfile(p) if p.name == "Alexa" && p.color != "#BFE0FB")));
+        assert!(jobs.iter().any(|j| matches!(j, crate::Job::UpdateProfile(p) if p.reduced_motion)), "motion is saved with the profile");
+        assert!(rt.state.reduced_motion);
+    }
+
+    #[test]
+    fn deleting_a_profile_asks_first() {
+        let (mut rt, rx) = signed_in(Screen::Map);
+        rt.update(|s, _| s.open_settings());
+        rt.frame(1.0 / 60.0);
+        click(&mut rt, "delete-profile");
+        assert!(rt.state.confirm_delete);
+        click(&mut rt, "cancel-delete");
+        assert!(!rt.state.confirm_delete);
+        assert!(!rx.try_iter().any(|j| matches!(j, crate::Job::DeleteProfile(_))), "cancel deletes nothing");
+        click(&mut rt, "delete-profile");
+        click(&mut rt, "confirm-delete");
+        assert!(rx.try_iter().any(|j| matches!(j, crate::Job::DeleteProfile(id) if id == "alex")));
     }
 
     #[test]
@@ -292,12 +356,10 @@ mod motion_tests {
             crate::motion::tick(&mut s, 0.0);
             s.screen = Screen::Setup;
             crate::motion::tick(&mut s, 1.0);
-            crate::motion::tick(&mut s, 1.15);
+            crate::motion::tick(&mut s, 1.0 + 1.0 / 60.0);
             let mut rt = Runtime::new(s, view, size, Env { system_dark: false, scale: 1.0 });
             rt.frame(0.0);
             assert!(rt.find("screen-fade").is_some());
-            rt.update(|s, _| { crate::motion::tick(s, 1.23); });
-            rt.frame(1.0 / 60.0);
             let (rect, opacity) = rt.presented("screen-fade-cover").expect("opaque full cover");
             assert_eq!(opacity, 1.0);
             assert!(rt.find("setup-card").is_some());

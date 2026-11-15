@@ -40,19 +40,40 @@ fn sidebar(s: &State, screen: Screen) -> El {
     for (key, label, target, icon, enabled) in items {
         bar = bar.child(nav_item(key, label, icon, target == screen, enabled, target));
     }
-    bar = bar.child(text("CUENTA").font(rune::tok::TextStyle::new(11.0, 600.0)).color(hex("#667085").unwrap_or(p.muted)).px(10.0).pt(14.0).pb(6.0))
-        .child(nav_item("nav-settings", "Ajustes", icons.map(|a| &a.icon_gear), screen == Screen::Settings, true, Screen::Settings))
-        .child(spacer()).child(environment(s));
+    let open = s.account_open;
+    let muted = hex("#667085").unwrap_or(p.muted);
+    bar = bar.child(
+        row().key("account-menu").role("button").label("Cuenta").checked(open).focusable(true)
+            .w_full().h(30.0).px(10.0).mt(10.0).radius(6.0).center_y().hover(p.text.alpha(0.04)).focus_ring(2.0, 2.0, p.blue)
+            .on_press(|s: &mut State| s.account_open = !s.account_open)
+            .child(text("CUENTA").font(rune::tok::TextStyle::new(11.0, 600.0)).color(muted).grow(1.0))
+            .child(text(if open { "▾" } else { "▸" }).font(SMALL).color(muted)),
+    );
+    if open {
+        bar = bar.child(nav_item("nav-settings", "Ajustes", icons.map(|a| &a.icon_gear), screen == Screen::Settings, true, Screen::Settings));
+        if s.profile.is_some() {
+            bar = bar
+                .child(action_item("account-switch", "Cambiar de perfil", icons.map(|a| &a.icon_users), hex("#344054").unwrap_or(p.text), |s: &mut State| {
+                    s.account_open = false;
+                    s.creating = false;
+                    s.screen = Screen::Profiles;
+                    s.send(crate::Job::LoadProfiles);
+                }))
+                .child(action_item("account-signout", "Cerrar sesión", icons.map(|a| &a.icon_logout), p.red_dark, |s: &mut State| s.sign_out()));
+        }
+    }
+    bar = bar.child(spacer()).child(environment(s));
     if let Some(profile) = &s.profile {
         bar = bar.child(
-            el().key("switch-profile").role("button").label(format!("Cambiar de perfil ({})", profile.name)).focusable(true)
+            el().key("account").role("button").label(format!("Cuenta de {}", profile.name)).checked(open).focusable(true)
                 .hover(p.text.alpha(0.04)).radius(8.0).focus_ring(2.0, 2.0, p.blue)
-                .on_press(|s: &mut State| { s.creating = false; s.screen = Screen::Profiles; })
+                .on_press(|s: &mut State| s.account_open = !s.account_open)
                 .child(row().gap(10.0).center_y().padding(10.0)
                     .child(avatar(&profile.name, &profile.color, 32.0))
-                    .child(col().gap(1.0)
+                    .child(col().grow(1.0).gap(1.0)
                         .child(text(profile.name.clone()).font(STRONG).color(p.text))
-                        .child(text("Cambiar de perfil").font(SMALL).color(hex("#667085").unwrap_or(p.muted))))),
+                        .child(text("Opciones de cuenta").font(SMALL).color(muted)))
+                    .child(text(if open { "▴" } else { "▾" }).font(SMALL).color(muted))),
         );
     }
     bar
@@ -74,6 +95,16 @@ fn nav_item(key: &str, label: &str, icon: Option<&Image>, active: bool, enabled:
             .on_press(move |s: &mut State| s.go_to(target));
     }
     item
+}
+
+/// A sidebar row that runs an action instead of opening a screen.
+fn action_item(key: &str, label: &str, icon: Option<&Image>, ink: rune::Color, on: impl Fn(&mut State) + 'static) -> El {
+    let p = pal();
+    el().key(key.to_string()).role("button").label(label.to_string()).focusable(true).w_full().h(38.0).px(10.0).radius(8.0)
+        .hover(p.text.alpha(0.05)).focus_ring(2.0, 2.0, p.blue).on_press(on)
+        .child(row().h_full().gap(10.0).center_y()
+            .child(picture(icon, 18.0, 18.0))
+            .child(text(label.to_string()).font(rune::tok::TextStyle::new(14.0, 500.0)).color(ink)))
 }
 
 /// What the machine has ready, from the last setup probe.

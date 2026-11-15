@@ -44,6 +44,12 @@ pub enum Job {
     Run(Vec<String>),
     /// A stop was completed with this many errors: record and save it.
     Finish { id: String, errors: u32 },
+    /// Save a changed name, color or motion preference of the signed-in profile.
+    UpdateProfile(Profile),
+    /// Remove a profile and its progress (already confirmed by the student).
+    DeleteProfile(String),
+    /// Stop saving to the current profile.
+    SignOut,
 }
 
 /// The vector art, rasterized once at startup.
@@ -59,6 +65,8 @@ pub struct Art {
     pub icon_check: Image,
     pub icon_term: Image,
     pub icon_gear: Image,
+    pub icon_users: Image,
+    pub icon_logout: Image,
 }
 
 /// A 24px stroke icon in the sidebar's ink.
@@ -89,6 +97,8 @@ fn load_art(s: &mut State, waker: Waker) {
         icon_check: svg(icon_svg("M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"), 18.0),
         icon_term: svg(icon_svg("M4 17l6-5-6-5M12 19h8"), 18.0),
         icon_gear: svg(icon_svg("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"), 18.0),
+        icon_users: svg(icon_svg("M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"), 18.0),
+        icon_logout: svg(icon_svg("M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"), 18.0),
         _cache: cache,
     });
 }
@@ -134,6 +144,12 @@ pub struct LabState {
     /// A command (or the lab's setup) is in flight; typing waits for it.
     pub running: bool,
     pub saved: bool,
+}
+
+impl Default for LabState {
+    fn default() -> LabState {
+        LabState { id: String::new(), title: String::new(), objectives: Vec::new(), session: Session::new(0), input: TextEdit::new(""), running: false, saved: false }
+    }
 }
 
 impl LabState {
@@ -184,6 +200,13 @@ pub struct State {
     pub class_review: bool,
     /// Where Ajustes returns to.
     pub settings_return: Option<Screen>,
+    /// The sidebar's account menu is open.
+    pub account_open: bool,
+    /// Ajustes is asking to confirm deleting the profile.
+    pub confirm_delete: bool,
+    /// The profile being edited in Ajustes.
+    pub edit_name: TextEdit,
+    pub edit_color: usize,
     pub lesson: LessonView,
     pub lab: LabState,
 }
@@ -214,8 +237,12 @@ impl Default for State {
             class_return: None,
             class_review: false,
             settings_return: None,
+            account_open: false,
+            confirm_delete: false,
+            edit_name: TextEdit::new(""),
+            edit_color: 0,
             lesson: LessonView::default(),
-            lab: LabState { id: String::new(), title: String::new(), objectives: Vec::new(), session: Session::new(0), input: TextEdit::new(""), running: false, saved: false },
+            lab: LabState::default(),
         }
     }
 }
@@ -359,10 +386,44 @@ impl State {
         }
     }
 
+    /// Leaves the current profile: back to the list with nothing of it left in memory.
+    pub fn sign_out(&mut self) {
+        self.profile = None;
+        self.progress = Progress::default();
+        self.lesson = LessonView::default();
+        self.lab = LabState::default();
+        self.class_id = None;
+        self.class_return = None;
+        self.class_review = false;
+        self.settings_return = None;
+        self.account_open = false;
+        self.confirm_delete = false;
+        self.reduced_motion = false;
+        self.screen = Screen::Profiles;
+        self.send(Job::SignOut);
+        self.send(Job::LoadProfiles);
+    }
+
+    /// The motion preference changes now and is saved with the profile.
+    pub fn set_reduced_motion(&mut self, on: bool) {
+        self.reduced_motion = on;
+        if let Some(mut profile) = self.profile.clone() {
+            profile.reduced_motion = on;
+            self.profile = Some(profile.clone());
+            self.send(Job::UpdateProfile(profile));
+        }
+    }
+
     pub fn open_settings(&mut self) {
         if self.screen == Screen::Settings { return; }
         self.settings_return = Some(self.screen);
         self.screen = Screen::Settings;
+        self.account_open = false;
+        self.confirm_delete = false;
+        if let Some(p) = &self.profile {
+            self.edit_name = TextEdit::new(p.name.clone());
+            self.edit_color = AVATAR_COLORS.iter().position(|(c, _)| *c == p.color).unwrap_or(0);
+        }
     }
 
     pub fn close_settings(&mut self) {
@@ -461,6 +522,31 @@ impl Worker {
                 let progress = progress.clone();
                 self.ui.update(move |s, _| s.progress = progress);
             }
+            Job::UpdateProfile(profile) => match self.store.update_profile(&profile) {
+                Ok(()) => {
+                    self.ui.update(move |s, _| {
+                        if s.profile.as_ref().is_some_and(|p| p.id == profile.id) { s.profile = Some(profile); }
+                        s.setup_note = None;
+                    });
+                    self.load_profiles();
+                }
+                Err(e) => self.ui.update(move |s, _| s.setup_note = Some(format!("No se pudieron guardar los cambios: {e}"))),
+            },
+            Job::DeleteProfile(id) => match self.store.delete_profile(&id) {
+                Ok(()) => {
+                    if self.profile.as_deref() == Some(id.as_str()) {
+                        self.profile = None;
+                        self.progress = None;
+                    }
+                    self.ui.update(|s, _| s.sign_out());
+                    self.load_profiles();
+                }
+                Err(e) => self.ui.update(move |s, _| s.setup_note = Some(format!("No se pudo eliminar el perfil: {e}"))),
+            },
+            Job::SignOut => {
+                self.profile = None;
+                self.progress = None;
+            }
         }
     }
 
@@ -527,6 +613,7 @@ impl Worker {
             s.class_review = false;
             s.creating = false;
             s.new_name = TextEdit::new("");
+            s.reduced_motion = s.profile.as_ref().is_some_and(|p| p.reduced_motion);
             s.to_map();
         });
         self.load_profiles();
@@ -635,24 +722,24 @@ const SCENES: &[Scene] = &[
     ("profiles", |s| {
         s.screen = Screen::Profiles;
         s.profiles = Some(vec![
-            ProfileCard { profile: Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() }, stars: 10 },
-            ProfileCard { profile: Profile { id: "sam".into(), name: "Sam".into(), color: "#FFE2B8".into() }, stars: 3 },
+            ProfileCard { profile: Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }, stars: 10 },
+            ProfileCard { profile: Profile { id: "sam".into(), name: "Sam".into(), color: "#FFE2B8".into(), ..Default::default() }, stars: 3 },
         ]);
     }),
     ("profiles-new", |s| {
         s.screen = Screen::Profiles;
-        s.profiles = Some(vec![ProfileCard { profile: Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() }, stars: 10 }]);
+        s.profiles = Some(vec![ProfileCard { profile: Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() }, stars: 10 }]);
         s.creating = true;
         s.new_name = TextEdit::new("Sam");
         s.new_color = 1;
     }),
     ("settings", |s| {
-        s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() });
+        s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() });
         s.to_map();
         s.open_settings();
     }),
     ("map", |s| {
-        s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() });
+        s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() });
         s.progress.record("s3-buckets", 1);
         s.to_map();
     }),

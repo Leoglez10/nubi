@@ -3,9 +3,10 @@ use std::cell::Cell;
 
 use crate::{Screen, State};
 
-/// Cover and reveal durations in seconds. Short enough to feel immediate.
-const COVER: f64 = 0.22;
-const REVEAL: f64 = 0.26;
+/// Cover and reveal durations in seconds. The new screen is swapped in on the next frame and
+/// fades in briefly, so a change of tab feels instant without a hard flash.
+pub const COVER: f64 = 0.0;
+pub const REVEAL: f64 = 0.08;
 
 /// Smoothstep: no visible stop at the ends of the transition.
 fn smooth(t: f64) -> f32 {
@@ -73,6 +74,22 @@ mod tests {
     use rune::{Env, Runtime};
 
     #[test]
+    fn a_screen_change_is_done_within_a_tenth_of_a_second() {
+        const { assert!(COVER + REVEAL <= 0.1, "tab changes must feel instant") };
+        let mut s = State::default();
+        tick(&mut s, 0.0);
+        s.screen = Screen::Setup;
+        tick(&mut s, 1.0);
+        tick(&mut s, 1.0 + 1.0 / 60.0);
+        assert_eq!(s.motion.displayed(s.screen), Screen::Setup, "swapped on the next frame");
+        tick(&mut s, 1.0 + 1.0 / 60.0 + REVEAL / 2.0);
+        assert!(s.motion.cover > 0.0 && s.motion.cover < 1.0, "fading in");
+        tick(&mut s, 1.0 + 1.0 / 60.0 + REVEAL + 0.01);
+        assert_eq!(s.motion.cover, 0.0);
+        assert!(!tick(&mut s, 1.2));
+    }
+
+    #[test]
     fn skipped_clock_still_presents_full_cover_before_reveal() {
         let mut s = State::default();
         tick(&mut s, 0.0);
@@ -81,11 +98,11 @@ mod tests {
         tick(&mut s, 5.0);
         assert_eq!(s.motion.displayed(s.screen), Screen::Setup);
         assert_eq!(s.motion.cover, 1.0);
-        tick(&mut s, 5.15);
+        tick(&mut s, 5.0 + REVEAL / 2.0);
         assert!(s.motion.cover > 0.0 && s.motion.cover < 1.0);
-        tick(&mut s, 5.31);
+        tick(&mut s, 5.0 + REVEAL + 0.01);
         assert_eq!(s.motion.cover, 0.0);
-        assert!(!tick(&mut s, 5.32));
+        assert!(!tick(&mut s, 5.5));
     }
 
     #[test]
@@ -108,36 +125,30 @@ mod tests {
     }
 
     #[test]
-    fn rapid_navigation_during_reveal_waits_for_another_cover() {
+    fn rapid_navigation_during_reveal_still_lands_on_the_last_screen() {
         let mut s = State { screen: Screen::Profiles, ..State::default() };
         tick(&mut s, 0.0);
         s.screen = Screen::Setup;
         tick(&mut s, 1.0);
-        tick(&mut s, 1.31);
+        tick(&mut s, 1.01);
         assert_eq!(s.motion.displayed(s.screen), Screen::Setup);
         s.screen = Screen::Map;
-        tick(&mut s, 1.4);
-        assert_eq!(s.motion.displayed(s.screen), Screen::Setup);
-        tick(&mut s, 1.61);
-        tick(&mut s, 1.62);
-        tick(&mut s, 1.93);
+        tick(&mut s, 1.02);
+        for i in 1..20 { tick(&mut s, 1.02 + i as f64 * 0.02); }
         assert_eq!(s.motion.displayed(s.screen), Screen::Map);
+        assert_eq!(s.motion.cover, 0.0);
     }
 
     #[test]
-    fn navigation_covers_before_switching_screens() {
+    fn the_old_screen_stays_for_one_frame_at_most() {
         let mut s = State { screen: Screen::Profiles, ..State::default() };
         tick(&mut s, 0.0);
         s.screen = Screen::Setup;
         assert!(tick(&mut s, 1.0), "navigation starts a transition");
         let mut rt = Runtime::new(s, view::view, (1180.0, 760.0), Env { system_dark: false, scale: 1.0 });
         rt.frame(1.0);
-        assert!(rt.find("profiles").is_some(), "old screen remains while covering");
-        rt.update(|s, _| { tick(s, 1.15); });
-        rt.frame(1.15);
-        assert!(rt.find("profiles").is_some());
-        rt.update(|s, _| { tick(s, 1.4); });
-        rt.frame(1.4);
-        assert!(rt.find("setup-card").is_some(), "new screen appears once covered");
+        rt.update(|s, _| { tick(s, 1.0 + 1.0 / 60.0); });
+        rt.frame(1.0 + 1.0 / 60.0);
+        assert!(rt.find("setup-card").is_some(), "the new screen is up on the next frame");
     }
 }
