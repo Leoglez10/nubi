@@ -1,8 +1,8 @@
 # Nubi
 
 <p align="center">
-  <a href="https://github.com/Leoglez10/lab-cloud-aws/actions/workflows/release.yml"><img alt="Release" src="https://github.com/Leoglez10/lab-cloud-aws/actions/workflows/release.yml/badge.svg"></a>
-  <a href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest"><img alt="versión" src="https://img.shields.io/github/v/release/Leoglez10/lab-cloud-aws?label=versi%C3%B3n&color=2f6fb3"></a>
+  <a href="https://github.com/Leoglez10/nubi/actions/workflows/release.yml"><img alt="Release" src="https://github.com/Leoglez10/nubi/actions/workflows/release.yml/badge.svg"></a>
+  <a href="https://github.com/Leoglez10/nubi/releases/latest"><img alt="versión" src="https://img.shields.io/github/v/release/Leoglez10/nubi?label=versi%C3%B3n&color=2f6fb3"></a>
   <img alt="plataforma" src="https://img.shields.io/badge/plataforma-macOS%20%7C%20Windows%20%7C%20Linux-2f6fb3">
   <img alt="uso" src="https://img.shields.io/badge/uso-Educativo-e07b39">
   <a href="https://github.com/Leoglez10"><img alt="autor" src="https://img.shields.io/badge/autor-Leoglez10-7b1fa2"></a>
@@ -13,7 +13,7 @@
   <img alt="Rune" src="https://img.shields.io/badge/UI-Rune-5c6bc0">
   <img alt="AWS Emulator" src="https://img.shields.io/badge/AWS-Emulator%20local-ff9900?logo=amazonwebservices&logoColor=white">
   <img alt="idioma" src="https://img.shields.io/badge/idioma-espa%C3%B1ol-2e7d32">
-  <img alt="licencia" src="https://img.shields.io/github/license/Leoglez10/lab-cloud-aws?label=licencia">
+  <img alt="licencia" src="https://img.shields.io/github/license/Leoglez10/nubi?label=licencia">
   <img alt="100% offline" src="https://img.shields.io/badge/100%25-offline-4caf50">
 </p>
 
