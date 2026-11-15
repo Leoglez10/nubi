@@ -1,5 +1,22 @@
 # Nubi
 
+<p align="center">
+  <a href="https://github.com/Leoglez10/lab-cloud-aws/actions/workflows/release.yml"><img alt="Release" src="https://github.com/Leoglez10/lab-cloud-aws/actions/workflows/release.yml/badge.svg"></a>
+  <a href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest"><img alt="versión" src="https://img.shields.io/github/v/release/Leoglez10/lab-cloud-aws?label=versi%C3%B3n&color=2f6fb3"></a>
+  <img alt="plataforma" src="https://img.shields.io/badge/plataforma-macOS%20%7C%20Windows%20%7C%20Linux-2f6fb3">
+  <img alt="uso" src="https://img.shields.io/badge/uso-Educativo-e07b39">
+  <img alt="autor" src="https://img.shields.io/badge/autor-Leonardo%20Gonzalez-7b1fa2">
+</p>
+
+<p align="center">
+  <img alt="Rust" src="https://img.shields.io/badge/Rust-2024-b7410e?logo=rust&logoColor=white">
+  <img alt="Rune" src="https://img.shields.io/badge/UI-Rune-5c6bc0">
+  <img alt="AWS Emulator" src="https://img.shields.io/badge/AWS-Emulator%20local-ff9900?logo=amazonwebservices&logoColor=white">
+  <img alt="idioma" src="https://img.shields.io/badge/idioma-espa%C3%B1ol-2e7d32">
+  <img alt="licencia" src="https://img.shields.io/github/license/Leoglez10/lab-cloud-aws?label=licencia">
+  <img alt="100% offline" src="https://img.shields.io/badge/100%25-offline-4caf50">
+</p>
+
 Nubi (Lab Cloud) is a desktop app to learn AWS in Spanish, one guided class at a time, with every hands-on lab
 running on your own machine against the local [AWS Emulator](https://github.com/aws/aws-emulator).
 No AWS account, no cloud bill, no passwords.
