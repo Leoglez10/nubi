@@ -456,6 +456,9 @@ fn poll(s: &mut State, now: f64, _: &mut Tx) -> bool {
         return changed;
     }
     s.intro_started = true;
+    // macOS finishes launching an unbundled binary after Rune's first icon request and puts the
+    // generic icon back; setting it again on the first frame makes Nubi stick.
+    let _ = rune::set_app_icon(APP_ICON);
     true
 }
 
