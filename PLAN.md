@@ -1,4 +1,4 @@
-# Lab Cloud AWS — Plan
+# Nubi (Lab Cloud) — Plan
 
 Game-like desktop app to learn AWS: short lessons, a horizontal learning map in the
 clouds, levels and mastery ("perfection") instead of punishment. Every hands-on lab runs 100% locally
@@ -173,6 +173,12 @@ Scope:
 ### Phase 6 — More game
 - Mini-games (architecture builder, command puzzles), achievements for perfect units,
   "what happens inside" animations.
+
+### Rename to Nubi (done 2026-11-14)
+- [x] App, crate and binary are `nubi`; "Lab Cloud" stays as the subtitle. Repo renamed to
+  `Leoglez10/nubi`, website at https://leoglez10.github.io/nubi/, release assets `nubi-*`.
+- [x] Kept on purpose: the data folder (`LabCloud` / `labcloud`), the emulator image and
+  container (`labcloud/aws-emulator`, `labcloud-emulator`) and the `nubi@labcloud $` prompt.
 
 ### Phase 7 — Website (GitHub Pages) (mostly done 2026-11-14, `docs/index.html`)
 - [x] Landing page for the project, served by GitHub Pages from `main` / `docs/`.

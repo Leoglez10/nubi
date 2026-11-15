@@ -1,6 +1,6 @@
-# Lab Cloud AWS
+# Nubi
 
-A desktop app to learn AWS in Spanish, one guided class at a time, with every hands-on lab
+Nubi (Lab Cloud) is a desktop app to learn AWS in Spanish, one guided class at a time, with every hands-on lab
 running on your own machine against the local [AWS Emulator](https://github.com/aws/aws-emulator).
 No AWS account, no cloud bill, no passwords.
 
@@ -8,7 +8,7 @@ No AWS account, no cloud bill, no passwords.
 
 ## What it is
 
-Lab Cloud teaches AWS fundamentals the way a short course would: each **class** explains one
+Nubi teaches AWS fundamentals the way a short course would: each **class** explains one
 idea with drawings and a worked example, then you **practice** with quick questions, then you
 run real `aws` commands in a **lab** terminal built into the app. Your progress is saved
 locally as stars, and you can replay anything to perfect it.
@@ -58,8 +58,8 @@ IAM/STS, DynamoDB, SQS and SNS are planned next; see [PLAN.md](PLAN.md).
 ## Download
 
 Get the app for macOS (`.dmg`), Windows (`.exe`) or Linux (`.deb`, `.tar.gz`) from the
-[latest release](https://github.com/Leoglez10/lab-cloud-aws/releases/latest) or the
-[website](https://leoglez10.github.io/lab-cloud-aws/). You still need Docker and AWS CLI v2.
+[latest release](https://github.com/Leoglez10/nubi/releases/latest) or the
+[website](https://leoglez10.github.io/nubi/). You still need Docker and AWS CLI v2.
 Builds are not signed yet: on macOS, try to open the app once and then choose
 **Open Anyway** in System Settings → Privacy & Security; on Windows, choose
 **More info → Run anyway** in SmartScreen.
@@ -73,8 +73,8 @@ Requirements:
 - [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ```sh
-git clone https://github.com/Leoglez10/lab-cloud-aws.git
-cd lab-cloud-aws
+git clone https://github.com/Leoglez10/nubi.git
+cd nubi
 cargo run
 ```
 
@@ -102,7 +102,8 @@ delete the profile after a confirmation.
 
 ## Your data
 
-Everything stays on your computer, in the OS app-data folder:
+Everything stays on your computer, in the OS app-data folder. The folder keeps the
+app's former name, `LabCloud`, so profiles created before the rename to Nubi are kept:
 
 | OS | Folder |
 |---|---|
@@ -163,8 +164,10 @@ UI tests drive the real views headlessly with Rune's `Runtime` (clicks, keyboard
 Headless snapshots of any screen:
 
 ```sh
-cargo run -- --snap out.png --scene <name>
+cargo run -- --snap out.png --scene <name> --at 1.5
 ```
+
+`--at 1.5` captures the screen after its entry motion has settled and its images are drawn.
 
 Releases: push a `v*` tag (for example `git tag v0.1.0 && git push origin v0.1.0`) and
 `.github/workflows/release.yml` builds the macOS `.dmg` (`scripts/package-macos.sh`), the
