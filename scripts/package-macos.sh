@@ -1,14 +1,14 @@
 #!/bin/sh
-# Wraps a built binary in "Lab Cloud.app" and a drag-to-Applications LabCloud-macos.dmg.
+# Wraps a built binary in "Nubi.app" and a drag-to-Applications nubi-macos.dmg.
 # Usage: scripts/package-macos.sh <binary> <version>
 set -eu
 bin=$1
 version=$2
 out=$(mktemp -d)
-app="$out/Lab Cloud.app"
+app="$out/Nubi.app"
 
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
-cp "$bin" "$app/Contents/MacOS/labcloud"
+cp "$bin" "$app/Contents/MacOS/nubi"
 
 # assets/icon.png (1024 px) -> AppIcon.icns
 icons="$out/AppIcon.iconset"
@@ -23,10 +23,10 @@ cat > "$app/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Lab Cloud</string>
-  <key>CFBundleDisplayName</key><string>Lab Cloud</string>
-  <key>CFBundleIdentifier</key><string>io.github.leoglez10.labcloud</string>
-  <key>CFBundleExecutable</key><string>labcloud</string>
+  <key>CFBundleName</key><string>Nubi</string>
+  <key>CFBundleDisplayName</key><string>Nubi</string>
+  <key>CFBundleIdentifier</key><string>io.github.leoglez10.nubi</string>
+  <key>CFBundleExecutable</key><string>nubi</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleShortVersionString</key><string>$version</string>
@@ -39,5 +39,5 @@ EOF
 codesign --force --deep --sign - "$app"
 
 ln -s /Applications "$out/Applications"
-hdiutil create -volname "Lab Cloud" -srcfolder "$out" -ov -format UDZO LabCloud-macos.dmg
+hdiutil create -volname "Nubi" -srcfolder "$out" -ov -format UDZO nubi-macos.dmg
 rm -rf "$out"
