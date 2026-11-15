@@ -1,8 +1,8 @@
-//! The app chrome: an inset frame, a fade between screens and a motion preference.
-use rune::{El, col, el, row};
+//! The app chrome: an inset frame and a fade between screens.
+use rune::{El, col, el};
 
-use super::{pal, plain};
-use crate::{Screen, State};
+use super::pal;
+use crate::State;
 
 /// Space kept clear for the window's own controls and the screen edges.
 const INSET: f32 = 9.0;
@@ -21,20 +21,5 @@ pub fn wrap(s: &State, screen: El) -> El {
                 .child(el().key("screen-fade-cover").w_full().h_full().fill(p.bg).opacity(s.motion.cover).instant_changes()),
         );
     }
-    // Learning screens carry the control in their sidebar instead of floating it.
-    if matches!(s.motion.displayed(s.screen), Screen::Splash | Screen::Setup | Screen::Profiles) {
-        root = root.child(row().w_full().absolute(0.0, 0.0).justify_end().child(el().px(INSET).pt(INSET).child(toggle(s).h(34.0).px(14.0))));
-    }
     root
-}
-
-pub fn toggle(s: &State) -> El {
-    let label = if s.motion.system_reduced.get() {
-        if s.reduced_motion { "Movimiento reducido: activado (sistema)" } else { "El sistema pide movimiento reducido" }
-    } else if s.reduced_motion {
-        "Movimiento reducido: activado"
-    } else {
-        "Movimiento: normal"
-    };
-    plain("motion-toggle", label, |s| s.reduced_motion = !s.reduced_motion)
 }

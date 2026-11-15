@@ -8,6 +8,8 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - S2 (user): "me gusta mas, pero deja la mascota de la nube" — Nubi stays: greeting callout on Inicio, tip card in the class, reacting face in the practice footer.
 - S3 (user): "si, pásalo a rune" — the Rune app gets the prototype's shell (sidebar: Inicio, Clase actual, Práctica, Laboratorio, environment status, profile; top bar: breadcrumb, stars) and its four screens: Inicio, Clase, Práctica, Laboratorio.
 - S4 (carried from ui-clases-guiadas): flat ✕/back control, more class visuals (example + review), keyboard reaches every control, reduced motion respected.
+- S5 (user): "rediseñame esto" (profiles screen screenshot).
+- S6 (user): "y el boton de movimiento ponlo en unapartado en ajustes".
 - Assumptions: Splash, Setup and Profiles keep their flow and only take the new palette. Inicio replaces the cloud map; its numbers come from real progress (no invented stats). Existing lesson/lab logic, grading, progress format and mastery rules are unchanged. The search box is left out until there is something to search (YAGNI).
 
 ## Tasks
@@ -21,8 +23,11 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - [x] T6 · S3 · inline · Laboratorio inside the shell — header in content, flat objectives, darker terminal; ✕ control removed (sidebar is the way back, test updated); snapshot inspected
 - [x] T7 · S1 · inline · short fade transition, Splash/Setup/Profiles palette, docs, snapshots — fade through the background keeps the tested cover/reveal timing; unused cloud art removed; 'Lab Cloud' wordmark; README updated; intro/setup/profiles snapshots inspected
 
+- [x] T8 · S5, S6 · inline · profiles redesign + Ajustes screen holding the reduced-motion switch — floating toggle removed; tests: settings reachable from profiles and sidebar, switch toggles, Volver returns; snapshots inspected
+
 ## Log
 
 - L1 (user): "si, pásalo a rune" (after approving the dashboard prototype with Nubi: "me gusta mas, pero deja la mascota de la nube").
 - 2026-11-14: T0 e9e932c, T1 af75952. T2+T3 one commit: the old map test pinned the cloud map that Inicio replaces, so the shell and Inicio ship together to keep every commit green. Mono font stays IBM Plex Mono (Rune default) instead of JetBrains Mono.
 - 2026-11-14 close: T4 6fe519c, T5 143f6cd, T6 93ecb85, T7 52e0562. Full suite incl. emulator 74 passing (35 lib + 30 UI + 3 + 3 + 1 + 2), Clippy -D warnings clean. Branch feat/ui-pulido is ~7 commits ahead of main (well over 400 authored lines); not pushed. Pending: live window run (cargo run) not done; reduced-motion fade only covered by existing timing tests.
+- L-next (user): "rediseñame esto. y el boton de movimiento ponlo en unapartado en ajustes" — T8 added.

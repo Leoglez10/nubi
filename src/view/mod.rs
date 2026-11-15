@@ -7,6 +7,7 @@ mod lab;
 mod lesson;
 mod map;
 mod profiles;
+mod settings;
 mod setup;
 mod shell;
 
@@ -88,6 +89,8 @@ pub fn view(s: &State, cx: &mut Cx<State>) -> El {
         Screen::Class => shell::wrap(s, shown, class::view(s)),
         Screen::Lesson => shell::wrap(s, shown, lesson::view(s)),
         Screen::Lab => shell::wrap(s, shown, lab::view(s)),
+        Screen::Settings if s.profile.is_some() => shell::wrap(s, shown, settings::view(s)),
+        Screen::Settings => settings::view(s),
     };
     motion::wrap(s, screen)
 }
@@ -240,20 +243,50 @@ mod motion_tests {
         }
     }
 
-    #[test]
-    fn toggle_changes_the_user_preference() {
-        let mut rt = Runtime::new(State::default(), view, (960.0, 680.0), Env { system_dark: false, scale: 1.0 });
-        rt.frame(0.0);
-        let (x, y) = rt.find("motion-toggle").unwrap();
+    fn click(rt: &mut Runtime<State>, key: &str) {
+        let (x, y) = rt.find(key).unwrap_or_else(|| panic!("missing {key}"));
         rt.pointer_move(x, y);
+        rt.frame(1.0 / 60.0);
         rt.pointer_down(x, y);
         rt.pointer_up(x, y);
         rt.frame(1.0 / 60.0);
-        assert!(rt.state.reduced_motion);
     }
 
     #[test]
-    fn curtain_and_reduced_motion_control_are_global() {
+    fn reduced_motion_lives_in_settings_and_returns_where_you_were() {
+        let s = State { screen: Screen::Profiles, profiles: Some(Vec::new()), ..State::default() };
+        let mut rt = Runtime::new(s, view, (1180.0, 760.0), Env { system_dark: false, scale: 1.0 });
+        rt.frame(0.0);
+        assert!(rt.find("motion-toggle").is_none(), "no floating motion button");
+        click(&mut rt, "open-settings");
+        assert_eq!(rt.state.screen, Screen::Settings);
+        click(&mut rt, "motion-toggle");
+        assert!(rt.state.reduced_motion);
+        click(&mut rt, "motion-toggle");
+        assert!(!rt.state.reduced_motion);
+        click(&mut rt, "settings-back");
+        assert_eq!(rt.state.screen, Screen::Profiles);
+    }
+
+    #[test]
+    fn settings_is_in_the_sidebar_once_you_have_a_profile() {
+        let s = State {
+            screen: Screen::Map,
+            profile: Some(labcloud::progress::Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() }),
+            ..State::default()
+        };
+        let mut rt = Runtime::new(s, view, (1280.0, 800.0), Env { system_dark: false, scale: 1.0 });
+        rt.frame(0.0);
+        assert!(rt.find("motion-toggle").is_none());
+        click(&mut rt, "nav-settings");
+        assert_eq!(rt.state.screen, Screen::Settings);
+        assert!(rt.find("sidebar").is_some() && rt.find("motion-toggle").is_some());
+        click(&mut rt, "settings-back");
+        assert_eq!(rt.state.screen, Screen::Map);
+    }
+
+    #[test]
+    fn the_fade_covers_the_whole_frame() {
         for size in [(960.0, 680.0), (1180.0, 760.0)] {
             let mut s = State { screen: Screen::Profiles, ..State::default() };
             crate::motion::tick(&mut s, 0.0);
@@ -262,7 +295,6 @@ mod motion_tests {
             crate::motion::tick(&mut s, 1.15);
             let mut rt = Runtime::new(s, view, size, Env { system_dark: false, scale: 1.0 });
             rt.frame(0.0);
-            assert!(rt.find("motion-toggle").is_some());
             assert!(rt.find("screen-fade").is_some());
             rt.update(|s, _| { crate::motion::tick(s, 1.23); });
             rt.frame(1.0 / 60.0);

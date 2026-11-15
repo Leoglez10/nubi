@@ -34,6 +34,8 @@ the class to continue and the module table; Nubi, the cloud mascot, greets you t
 a tip in each class and reacts to your answers. Open a class before practicing. Sidebar
 navigation resumes an attempt in progress instead of restarting it. During a game or lab,
 **Ver explicación** lets you consult the teaching material and return without restarting.
+**Ajustes** (sidebar, or the button on the profiles screen) holds the reduced-motion switch;
+the operating system's reduced-motion setting is always honored.
 Complete a class's games to unlock its lab. Existing node progress and mastery stars
 are preserved. The archive lab checks complete object keys and resets its bucket on replay.
 IAM/STS, DynamoDB, SQS and SNS are planned next; Phase 4 is not complete.
@@ -55,7 +57,7 @@ Course content is Spanish TOML under `content/`, no code changes needed:
 
 `cargo test` validates every file (ids, answers in range, labs with objectives, …).
 
-Headless snapshots of the screens: `cargo run -- --snap out.png --scene <name>` with `intro`, `setup`, `profiles`, `map` (Inicio), `class`, `class-2`, `lesson`, `lesson-wrong`, `lesson-order`, `lesson-match`, `lesson-done` or `lab`.
+Headless snapshots of the screens: `cargo run -- --snap out.png --scene <name>` with `intro`, `setup`, `profiles`, `profiles-new`, `settings`, `map` (Inicio), `class`, `class-2`, `lesson`, `lesson-wrong`, `lesson-order`, `lesson-match`, `lesson-done` or `lab`.
 
 Progress lives in the OS app-data folder (macOS: `~/Library/Application Support/LabCloud/`).
 The lab terminal runs only `aws` commands, without a shell, inside `labs/<id>/` there.

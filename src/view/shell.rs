@@ -40,8 +40,9 @@ fn sidebar(s: &State, screen: Screen) -> El {
     for (key, label, target, icon, enabled) in items {
         bar = bar.child(nav_item(key, label, icon, target == screen, enabled, target));
     }
-    bar = bar.child(spacer()).child(environment(s))
-        .child(super::motion::toggle(s).w_full().h(34.0).px(10.0));
+    bar = bar.child(text("CUENTA").font(rune::tok::TextStyle::new(11.0, 600.0)).color(hex("#667085").unwrap_or(p.muted)).px(10.0).pt(14.0).pb(6.0))
+        .child(nav_item("nav-settings", "Ajustes", icons.map(|a| &a.icon_gear), screen == Screen::Settings, true, Screen::Settings))
+        .child(spacer()).child(environment(s));
     if let Some(profile) = &s.profile {
         bar = bar.child(
             el().key("switch-profile").role("button").label(format!("Cambiar de perfil ({})", profile.name)).focusable(true)
@@ -97,6 +98,7 @@ fn top_bar(s: &State, screen: Screen) -> El {
         (Screen::Class, Some(c)) => c,
         (Screen::Lesson, Some(c)) => format!("{c} · Práctica"),
         (Screen::Lab, Some(c)) => format!("{c} · Laboratorio"),
+        (Screen::Settings, _) => "Ajustes".to_string(),
         _ => "Inicio".to_string(),
     };
     let total = s.progress.total_stars();

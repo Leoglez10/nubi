@@ -31,6 +31,7 @@ pub enum Screen {
     Class,
     Lesson,
     Lab,
+    Settings,
 }
 
 pub enum Job {
@@ -57,6 +58,7 @@ pub struct Art {
     pub icon_book: Image,
     pub icon_check: Image,
     pub icon_term: Image,
+    pub icon_gear: Image,
 }
 
 /// A 24px stroke icon in the sidebar's ink.
@@ -86,6 +88,7 @@ fn load_art(s: &mut State, waker: Waker) {
         icon_book: svg(icon_svg("M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 5v16M8 7h7"), 18.0),
         icon_check: svg(icon_svg("M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"), 18.0),
         icon_term: svg(icon_svg("M4 17l6-5-6-5M12 19h8"), 18.0),
+        icon_gear: svg(icon_svg("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"), 18.0),
         _cache: cache,
     });
 }
@@ -179,6 +182,8 @@ pub struct State {
     pub class_id: Option<String>,
     pub class_return: Option<Screen>,
     pub class_review: bool,
+    /// Where Ajustes returns to.
+    pub settings_return: Option<Screen>,
     pub lesson: LessonView,
     pub lab: LabState,
 }
@@ -208,6 +213,7 @@ impl Default for State {
             class_id: None,
             class_return: None,
             class_review: false,
+            settings_return: None,
             lesson: LessonView::default(),
             lab: LabState { id: String::new(), title: String::new(), objectives: Vec::new(), session: Session::new(0), input: TextEdit::new(""), running: false, saved: false },
         }
@@ -337,6 +343,7 @@ impl State {
     pub fn go_to(&mut self, target: Screen) {
         if target == self.screen { return; }
         if target == Screen::Map { return self.to_map(); }
+        if target == Screen::Settings { return self.open_settings(); }
         let Some((lesson, lab)) = self.current_class() else { return };
         match target {
             Screen::Lesson if self.lesson.id == lesson && !self.lesson.session.finished() => self.screen = Screen::Lesson,
@@ -350,6 +357,16 @@ impl State {
                 }
             }
         }
+    }
+
+    pub fn open_settings(&mut self) {
+        if self.screen == Screen::Settings { return; }
+        self.settings_return = Some(self.screen);
+        self.screen = Screen::Settings;
+    }
+
+    pub fn close_settings(&mut self) {
+        self.screen = self.settings_return.take().unwrap_or(Screen::Profiles);
     }
 
     pub fn to_map(&mut self) {
@@ -621,6 +638,18 @@ const SCENES: &[Scene] = &[
             ProfileCard { profile: Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() }, stars: 10 },
             ProfileCard { profile: Profile { id: "sam".into(), name: "Sam".into(), color: "#FFE2B8".into() }, stars: 3 },
         ]);
+    }),
+    ("profiles-new", |s| {
+        s.screen = Screen::Profiles;
+        s.profiles = Some(vec![ProfileCard { profile: Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() }, stars: 10 }]);
+        s.creating = true;
+        s.new_name = TextEdit::new("Sam");
+        s.new_color = 1;
+    }),
+    ("settings", |s| {
+        s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() });
+        s.to_map();
+        s.open_settings();
     }),
     ("map", |s| {
         s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into() });
