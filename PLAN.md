@@ -158,8 +158,8 @@ Scope:
     960×680 and 1180×760; no check by resizing a live window.
   - An independent review of the profile delete path (it removes stored data).
   - A live `cargo run` pass over hover, the tab slide-in, keyboard focus and reduced motion.
-  - An app logo: a Nubi-based icon for the window and Dock, also reused later for the
-    installers (`.icns`, `.ico`) in Phase 8.
+  - ~~An app logo~~ done: Nubi on a blue tile (`assets/icon.svg`), set as the Dock and
+    window icon; reuse it for the installers (`.icns`, `.ico`) in Phase 8.
 - IAM/STS, S3, DynamoDB, SQS, SNS. Suggested next service: DynamoDB.
 - Started on `feat/fase-4-fundamentos`: S3 object keys/prefixes lesson and a
   two-file archive lab. Tracking: `odd/tasks/fase-4-fundamentos.md`.

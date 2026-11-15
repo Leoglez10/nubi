@@ -177,6 +177,7 @@ src/
 └── view/          screens: shell (sidebar), map (Inicio), class, lesson, lab,
                    profiles, settings, setup, intro
 content/           course.toml and one TOML per lesson or lab (Spanish)
+assets/           app icon (icon.svg source, icon.png used at runtime)
 emulator/          Dockerfile for the AWS Emulator image
 scripts/           emulator.sh
 tests/             integration tests (content, classes, emulator, checker)

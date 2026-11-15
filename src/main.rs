@@ -8,7 +8,7 @@ mod view;
 mod motion;
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 use std::sync::Arc;
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -696,8 +696,7 @@ fn open_url(url: &str) {
 }
 
 fn load_content() -> Content {
-    // ponytail: content is read from the source tree; bundle it with the app in the installers phase.
-    match course::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")) {
+    match course::embedded() {
         Ok(c) => c,
         Err(e) => {
             eprintln!("labcloud: invalid course content: {e}");
@@ -786,8 +785,15 @@ const SCENES: &[Scene] = &[
     }),
 ];
 
+/// Nubi on a blue tile: the Dock icon on macOS and the window/taskbar icon on Windows.
+/// Source art: `assets/icon.svg`.
+const APP_ICON: &[u8] = include_bytes!("../assets/icon.png");
+
 fn main() {
     emulator::point_at_emulator();
+    if let Err(e) = rune::set_app_icon(APP_ICON) {
+        eprintln!("labcloud: could not set the app icon: {e}");
+    }
     let content = Arc::new(load_content());
     let root = Store::default_root();
     let store = Store::new(&root);
@@ -870,6 +876,13 @@ mod tests {
         // presented rects are [x, y, width, height]
         assert!(terminal[2] >= 340.0, "the terminal keeps a usable width: {terminal:?}");
         assert!(terminal[0] + terminal[2] <= w, "the terminal stays inside the window: {terminal:?}");
+    }
+
+    #[test]
+    fn the_app_icon_is_a_square_1024_png() {
+        assert_eq!(&APP_ICON[..8], b"\x89PNG\r\n\x1a\n");
+        let be = |at: usize| u32::from_be_bytes(APP_ICON[at..at + 4].try_into().unwrap());
+        assert_eq!((be(16), be(20)), (1024, 1024), "IHDR width and height");
     }
 
     #[test]

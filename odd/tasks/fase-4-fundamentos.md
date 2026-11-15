@@ -17,7 +17,7 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - [ ] T3 · pending from UI · inline · responsiveness: truncate the long breadcrumb, check more window sizes and a live resize; scroll bars follow macOS (document, cannot force)
 - [ ] T4 · pending from UI · delegated verifier · independent review of the profile delete path (Risk item 1: removes stored data)
 - [ ] T5 · pending from UI · inline · live `cargo run` pass: hover, tab slide-in, keyboard focus, reduced motion
-- [ ] T7 · pending from UI · inline · app logo: Nubi-based icon for the window and Dock (source art reusable for Phase 8 installers)
+- [x] T7 · pending from UI · inline · app logo: Nubi-based icon for the window and Dock (source art reusable for Phase 8 installers) — assets/icon.svg → assets/icon.png (1024², solid #2563EB tile), set with rune::set_app_icon; test checks PNG 1024×1024; Dock appearance not checked live
 - [ ] T6 · S2 · next service slice (suggested: DynamoDB), after T3–T5 and T7
 
 ## Log
@@ -32,3 +32,4 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - Next slice: DynamoDB lesson/lab and service-specific checks, then other Phase 4 services. This opening slice is complete; Phase 4 is not. Phase 4 stays local; origin/main ends at 3c40623.
 - (user, 2026-11-14): "en la fase 4 pon lo de responsividad y lo que quedo pendiente antes de emoezarla" — T3–T5 added before the next service slice (T6).
 - (user, 2026-11-14): "uno que falta es ponerle logo a la app" — T7 added before the next service slice.
+- (user): "ponle a nubi" — T7 done: Nubi icon on a blue tile.
