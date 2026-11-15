@@ -15,6 +15,7 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - S9 (user): "si" to saving the motion preference with the profile — optional `reduced_motion` in profile.json (old files read as false).
 - S10 (user): "la transicion entre pestañas quisiera que fuera lo mas rapido posible. mejora eso"
 - S11 (user): "la 3 combinada con la 5" — subtle slide (~8 px, ~120 ms) applied only to the content area; sidebar and top bar stay fixed.
+- S12 (user): "has responsividad. si esta corto que se respeten tamaños o que se activen barras de desplazamiento" / "aqui pon a nubi" (sidebar logo).
 - Assumptions: Splash, Setup and Profiles keep their flow and only take the new palette. Inicio replaces the cloud map; its numbers come from real progress (no invented stats). Existing lesson/lab logic, grading, progress format and mastery rules are unchanged. The search box is left out until there is something to search (YAGNI).
 
 ## Tasks
@@ -35,6 +36,8 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - [x] T12 · S10 · inline · fastest screen change — COVER 0 / REVEAL 0.08: swap on next frame + 80 ms fade-in; const-asserted ≤ 0.1 s
 
 - [x] T13 · S11 · inline · slide-in content only — content rises 8 pt while fading in over 120 ms; sidebar/top bar never move; non-shell screens slide whole; reduced motion: none
+
+- [x] T14 · S12 · inline · responsiveness: shared page_scroll with edge fade, sidebar nav scrolls with pinned footer, narrower lab column, Nubi as logo — RED terminal 334 pt at 960×680 → GREEN; system scroll-bar preference honored (Rune follows macOS, no app override)
 
 ## Log
 

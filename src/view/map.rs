@@ -2,7 +2,7 @@
 //! Every number comes from saved progress.
 use labcloud::grading::{self, Stop, stop_status};
 use rune::color::hex;
-use rune::{El, ScrollSpec, col, el, row, spacer, text};
+use rune::{El, col, el, row, spacer, text};
 
 use super::{BODY, H2, SMALL, STRONG, TITLE, nubi, pal, primary, progress_bar, stars};
 use crate::State;
@@ -61,7 +61,7 @@ pub fn view(s: &State) -> El {
                 .child(primary("continue-class", label, move |s: &mut State| s.open_class(&id)))));
     }
     page = page.child(module(s));
-    col().w_full().h_full().child(el().w_full().grow(1.0).scroll(ScrollSpec { stick_bottom: false }).child(row().w_full().justify_center().child(page)))
+    super::page_scroll(row().w_full().justify_center().child(page))
 }
 
 fn card() -> El {

@@ -1,6 +1,6 @@
 //! Ajustes: the signed-in profile (edit or delete it) and preferences that apply everywhere.
 use rune::color::hex;
-use rune::{El, ScrollSpec, col, el, row, spacer, text, text_input};
+use rune::{El, col, el, row, spacer, text, text_input};
 
 use super::profiles::avatar;
 use super::{BODY, SMALL, STRONG, TITLE, button, disabled, pal, plain, primary};
@@ -26,8 +26,7 @@ pub fn view(s: &State) -> El {
     if s.profile.is_some() {
         page = page.child(danger_section(s));
     }
-    col().w_full().h_full().fill(p.bg)
-        .child(el().w_full().grow(1.0).scroll(ScrollSpec { stick_bottom: false }).child(row().w_full().justify_center().child(page)))
+    super::page_scroll(row().w_full().justify_center().child(page)).fill(p.bg)
 }
 
 fn section(key: &str, title: &str, body: El) -> El {

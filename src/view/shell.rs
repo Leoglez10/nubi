@@ -22,10 +22,9 @@ pub fn wrap(s: &State, screen: Screen, content: El) -> El {
 fn sidebar(s: &State, screen: Screen) -> El {
     let p = pal();
     let icons = s.art.as_ref();
-    let mut bar = col().key("sidebar").w(SIDEBAR).h_full().gap(4.0).px(14.0).py(18.0).fill(p.surface)
-        .border_sides([0.0, 1.0, 0.0, 0.0], p.border)
-        .child(row().gap(10.0).center_y().px(10.0).pb(14.0)
-            .child(picture(icons.map(|a| &a.cloud), 30.0, 24.0))
+    let mut bar = col().w_full().gap(4.0)
+        .child(row().key("brand").gap(10.0).center_y().px(10.0).pb(14.0)
+            .child(super::nubi_face(s, super::Mood::Neutral, 34.0))
             .child(text("Lab Cloud").font(rune::tok::TextStyle::new(16.0, 700.0)).color(p.text)))
         .child(text("APRENDER").font(rune::tok::TextStyle::new(11.0, 600.0)).color(hex("#667085").unwrap_or(p.muted)).px(10.0).py(6.0));
 
@@ -62,9 +61,10 @@ fn sidebar(s: &State, screen: Screen) -> El {
                 .child(action_item("account-signout", "Cerrar sesión", icons.map(|a| &a.icon_logout), p.red_dark, |s: &mut State| s.sign_out()));
         }
     }
-    bar = bar.child(spacer()).child(environment(s));
+    // The nav scrolls when the window is short; the environment and account stay pinned below.
+    let mut footer = col().key("sidebar-footer").w_full().gap(4.0).pt(10.0).child(environment(s));
     if let Some(profile) = &s.profile {
-        bar = bar.child(
+        footer = footer.child(
             el().key("account").role("button").label(format!("Cuenta de {}", profile.name)).checked(open).focusable(true)
                 .hover(p.text.alpha(0.04)).radius(8.0).focus_ring(2.0, 2.0, p.blue)
                 .on_press(|s: &mut State| s.account_open = !s.account_open)
@@ -76,7 +76,9 @@ fn sidebar(s: &State, screen: Screen) -> El {
                     .child(text(if open { "▴" } else { "▾" }).font(SMALL).color(muted))),
         );
     }
-    bar
+    col().key("sidebar").w(SIDEBAR).h_full().px(14.0).py(18.0).fill(p.surface).border_sides([0.0, 1.0, 0.0, 0.0], p.border)
+        .child(el().key("sidebar-nav").w_full().grow(1.0).min_h(0.0).scroll(rune::ScrollSpec { stick_bottom: false }).scroll_edge_fade(16.0).child(bar))
+        .child(footer)
 }
 
 fn nav_item(key: &str, label: &str, icon: Option<&Image>, active: bool, enabled: bool, target: Screen) -> El {

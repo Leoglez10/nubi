@@ -171,6 +171,14 @@ pub fn nubi_face(s: &State, mood: Mood, w: f32) -> El {
     picture(img, w, w * 0.8).label("Nubi")
 }
 
+/// A vertical page that scrolls when the window is short, fading its edge so more content
+/// reads as more content even while the system hides scroll bars at rest.
+pub fn page_scroll(content: El) -> El {
+    rune::col().w_full().h_full()
+        .child(el().key("page-scroll").w_full().grow(1.0).min_h(0.0).scroll(rune::ScrollSpec { stick_bottom: false }).scroll_edge_fade(24.0)
+            .child(content))
+}
+
 pub fn progress_bar(key: &str, fraction: f32, fill: Color, height: f32) -> El {
     let p = pal();
     el().key(key.to_string()).w_full().h(height).radius(height / 2.0).fill(p.locked)

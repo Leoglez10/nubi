@@ -2,7 +2,7 @@
 //! a tip from Nubi.
 use labcloud::course::{Diagram, Teaching};
 use rune::color::hex;
-use rune::{Color, El, ScrollSpec, col, el, row, text};
+use rune::{Color, El, col, el, row, text};
 use super::{BODY, H2, MONO, SMALL, STRONG, TITLE, disabled, nubi, pal, plain, primary, stars};
 use crate::State;
 
@@ -12,7 +12,7 @@ pub fn view(s: &State) -> El {
     let body = row().key("class").w_full().max_w(1180.0).gap(24.0).padding(28.0).items_start().flex_wrap()
         .child(article(s, teaching))
         .child(aside(s, &id, teaching));
-    col().w_full().h_full().child(el().w_full().grow(1.0).scroll(ScrollSpec { stick_bottom: false }).child(row().w_full().justify_center().child(body)))
+    super::page_scroll(row().w_full().justify_center().child(body))
 }
 
 fn article(s: &State, teaching: &Teaching) -> El {

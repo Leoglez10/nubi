@@ -67,7 +67,7 @@ pub fn view(s: &State) -> El {
                 .child(text(txt.clone()).font(rune::tok::TextStyle::new(14.0, 500.0)).color(p.text).wrap().grow(1.0)),
         );
     }
-    let mut left = col().key("left").w(340.0).gap(16.0).child(goals);
+    let mut left = col().key("left").w(280.0).min_w(240.0).shrink().gap(16.0).child(goals);
     if l.session.complete() {
         left = left.child(result(s));
     }

@@ -850,6 +850,29 @@ mod tests {
     }
 
     #[test]
+    fn at_the_minimum_window_everything_fits_or_scrolls() {
+        let (w, h) = (960.0, 680.0);
+        for scene in ["map", "class-2", "lesson-done", "lab", "settings"] {
+            let mut s = state(scene);
+            s.profile = Some(Profile { id: "alex".into(), name: "Alex".into(), color: "#BFE0FB".into(), ..Default::default() });
+            s.account_open = true;
+            let mut rt = Runtime::new(s, view::view, (w, h), Env { system_dark: false, scale: 1.0 });
+            rt.frame(0.0);
+            rt.frame(1.0 / 60.0);
+            for key in ["environment", "account", "nav-home", "top-bar"] {
+                let (x, y) = rt.find(key).unwrap_or_else(|| panic!("{scene}: missing {key}"));
+                assert!(x < w && y < h, "{scene}: {key} off screen at ({x}, {y})");
+            }
+            assert!(rt.find("page-scroll").is_some() || scene == "lab", "{scene}: long pages scroll");
+        }
+        let rt = { let mut rt = Runtime::new(state("lab"), view::view, (w, h), Env { system_dark: false, scale: 1.0 }); rt.frame(0.0); rt };
+        let (terminal, _) = rt.presented("terminal").expect("terminal");
+        // presented rects are [x, y, width, height]
+        assert!(terminal[2] >= 340.0, "the terminal keeps a usable width: {terminal:?}");
+        assert!(terminal[0] + terminal[2] <= w, "the terminal stays inside the window: {terminal:?}");
+    }
+
+    #[test]
     fn a_long_class_scrolls_inside_and_keeps_the_sidebar_on_screen() {
         let rt = render(state("class-2"));
         let (_, y) = rt.find("environment").expect("sidebar environment card");

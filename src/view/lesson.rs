@@ -70,8 +70,7 @@ pub fn view(s: &State) -> El {
     if !finished {
         card = card.child(footer(s));
     }
-    col().w_full().h_full().child(el().w_full().grow(1.0).scroll(rune::ScrollSpec { stick_bottom: false })
-        .child(row().w_full().justify_center().items_start().padding(28.0).child(card)))
+    super::page_scroll(row().w_full().justify_center().items_start().padding(28.0).child(card))
 }
 
 fn exercise(s: &State) -> El {

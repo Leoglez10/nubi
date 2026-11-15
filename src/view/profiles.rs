@@ -4,7 +4,7 @@ use labcloud::grading;
 use rune::color::hex;
 use rune::{El, TextEdit, col, el, row, spacer, text, text_input};
 
-use super::{BODY, SMALL, STRONG, TITLE, disabled, nubi, pal, picture, plain, primary};
+use super::{BODY, Mood, SMALL, STRONG, TITLE, disabled, nubi, nubi_face, pal, plain, primary};
 use crate::{AVATAR_COLORS, Job, State};
 
 /// A profile's avatar: its color with the first letter of its name.
@@ -21,7 +21,7 @@ const CARD_H: f32 = 196.0;
 pub fn view(s: &State) -> El {
     let p = pal();
     let header = row().key("profiles-header").w_full().gap(10.0).center_y()
-        .child(picture(s.art.as_ref().map(|a| &a.cloud), 30.0, 24.0))
+        .child(nubi_face(s, Mood::Neutral, 34.0))
         .child(text("Lab Cloud").font(rune::tok::TextStyle::new(16.0, 700.0)).color(p.text))
         .child(spacer())
         .child(plain("open-settings", "Ajustes", |s: &mut State| s.open_settings()).h(36.0).px(14.0));
@@ -78,8 +78,7 @@ pub fn view(s: &State) -> El {
 }
 
 fn frame(page: El) -> El {
-    col().w_full().h_full().fill(pal().bg)
-        .child(el().w_full().grow(1.0).scroll(rune::ScrollSpec { stick_bottom: false }).child(row().w_full().justify_center().child(page)))
+    super::page_scroll(row().w_full().justify_center().child(page)).fill(pal().bg)
 }
 
 fn form(s: &State) -> El {
