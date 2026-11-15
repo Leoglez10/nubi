@@ -5,7 +5,7 @@
   <a href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest"><img alt="versión" src="https://img.shields.io/github/v/release/Leoglez10/lab-cloud-aws?label=versi%C3%B3n&color=2f6fb3"></a>
   <img alt="plataforma" src="https://img.shields.io/badge/plataforma-macOS%20%7C%20Windows%20%7C%20Linux-2f6fb3">
   <img alt="uso" src="https://img.shields.io/badge/uso-Educativo-e07b39">
-  <img alt="autor" src="https://img.shields.io/badge/autor-Leonardo%20Gonzalez-7b1fa2">
+  <a href="https://github.com/Leoglez10"><img alt="autor" src="https://img.shields.io/badge/autor-Leoglez10-7b1fa2"></a>
 </p>
 
 <p align="center">
