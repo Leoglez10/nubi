@@ -174,19 +174,26 @@ Scope:
 - Mini-games (architecture builder, command puzzles), achievements for perfect units,
   "what happens inside" animations.
 
-### Phase 7 — Website (GitHub Pages)
-- Landing page for the project, published with GitHub Pages.
-- Design it with the agent skill from https://github.com/Leonxlnx/taste-skill (MIT; art
-  direction, reference images and a browser check). Install the skill at the start of
-  this phase, after reviewing its contents.
-- Explicit download section per OS (.dmg, .exe, Linux packages), Homebrew install
-  command, notices (requirements: Docker + AWS CLI, unsigned-build warnings until code
-  signing exists, telemetry note for the emulator) and release notes.
+### Phase 7 — Website (GitHub Pages) (mostly done 2026-11-14, `docs/index.html`)
+- [x] Landing page for the project, served by GitHub Pages from `main` / `docs/`.
+- [x] Designed with the taste-skill rules (`design-taste-frontend`), checked in a headless
+  browser in light/dark and desktop/mobile widths.
+- [x] Download section per OS linking to `releases/latest/download/<asset>`, notices
+  (requirements: Docker + AWS CLI, unsigned-build warning, emulator telemetry off) and a
+  link to the release notes.
+- [ ] Homebrew install command (after the tap exists).
 
-### Phase 8 — Installers and updates (GitHub Actions)
-- Release workflow on tag: build and attach macOS `.dmg`, Windows `.exe` installer and
-  Linux packages (AppImage / .deb / .rpm) to a GitHub Release.
-- Homebrew: a tap with a cask (macOS) / formula (Linux) updated by the release workflow.
+### Phase 8 — Installers and updates (GitHub Actions) (started 2026-11-14)
+- [x] Release workflow on `v*` tags (`.github/workflows/release.yml`): universal macOS
+  `.dmg` (`scripts/package-macos.sh`, ad-hoc signed), portable Windows `.exe`, Linux
+  `.tar.gz` and `.deb`, attached to a GitHub Release with version-less asset names.
+- [x] Course content is embedded in the binary at build time (`build.rs`), so installed
+  copies do not need the source tree.
+- [ ] Windows installer (MSI/NSIS) and hiding the console window (needs `CREATE_NO_WINDOW`
+  on the `docker`/`aws` child processes first).
+- [x] App icon in the `.app` (`assets/icon.png` → `AppIcon.icns`).
+- [ ] Linux AppImage / .rpm; icon embedded in the Windows `.exe` resources.
+- [ ] Homebrew: a tap with a cask (macOS) / formula (Linux) updated by the release workflow.
 - Automatic updates: the app checks the latest GitHub Release and offers to update.
 - Code signing / notarization (Apple, Windows) to avoid OS warnings; needs certificates.
 

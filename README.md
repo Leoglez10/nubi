@@ -55,7 +55,16 @@ One unit, **Fundamentos de S3**, with two classes:
 Complete a class's practice to unlock its lab, and a class's lab to unlock the next class.
 IAM/STS, DynamoDB, SQS and SNS are planned next; see [PLAN.md](PLAN.md).
 
-## Quick start
+## Download
+
+Get the app for macOS (`.dmg`), Windows (`.exe`) or Linux (`.deb`, `.tar.gz`) from the
+[latest release](https://github.com/Leoglez10/lab-cloud-aws/releases/latest) or the
+[website](https://leoglez10.github.io/lab-cloud-aws/). You still need Docker and AWS CLI v2.
+Builds are not signed yet: on macOS, try to open the app once and then choose
+**Open Anyway** in System Settings → Privacy & Security; on Windows, choose
+**More info → Run anyway** in SmartScreen.
+
+## Quick start (from source)
 
 Requirements:
 
@@ -156,6 +165,12 @@ Headless snapshots of any screen:
 ```sh
 cargo run -- --snap out.png --scene <name>
 ```
+
+Releases: push a `v*` tag (for example `git tag v0.1.0 && git push origin v0.1.0`) and
+`.github/workflows/release.yml` builds the macOS `.dmg` (`scripts/package-macos.sh`), the
+Windows `.exe` and the Linux `.tar.gz`/`.deb`, and attaches them to a GitHub Release. Course
+content is embedded in the binary at build time by `build.rs`. The website lives in `docs/`
+(GitHub Pages, `main` branch, `/docs` folder).
 
 Scenes: `intro`, `setup`, `profiles`, `profiles-new`, `settings`, `map` (Inicio), `class`,
 `class-2`, `lesson`, `lesson-wrong`, `lesson-order`, `lesson-match`, `lesson-done`, `lab`.

@@ -188,6 +188,28 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .install .reqs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; color: var(--ink-2); }
 
+/* Download */
+.dl { background: var(--surface); border-block: 1px solid var(--line); }
+.dl .wrap { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(32px, 5vw, 72px); align-items: start; }
+.dl .reqs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.notes { display: inline-flex; align-items: center; gap: 4px; margin-top: 20px; color: var(--accent); font-weight: 550; text-decoration: none; }
+.notes:hover { text-decoration: underline; }
+.os-list { display: grid; gap: 12px; }
+.os {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center;
+  padding: 20px 22px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg);
+}
+.os > i { font-size: 30px; }
+.os p { font-size: 15px; margin-top: 2px; }
+.os .btn { padding: 10px 18px; font-family: "Geist Mono", monospace; font-size: 15px; }
+.os-btns { display: flex; gap: 8px; }
+.os.mine { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.warn { border-radius: var(--r); background: var(--surface-2); padding: 14px 18px; margin-top: 8px; }
+.warn summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 550; font-size: 15px; }
+.warn summary i { color: var(--accent); font-size: 18px; }
+.warn p { margin-top: 10px; font-size: 15px; }
+.fine { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+
 /* Roadmap */
 .road { text-align: left; }
 .road .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
@@ -223,7 +245,7 @@ footer a { color: var(--ink-2); }
 
 /* Responsive */
 @media (max-width: 960px) {
-  .hero .wrap, .lab .wrap, .install .wrap, .panel { grid-template-columns: 1fr; }
+  .hero .wrap, .lab .wrap, .install .wrap, .dl .wrap, .panel { grid-template-columns: 1fr; }
   .hero-visual .nubi { left: auto; right: -8px; width: 84px; bottom: -28px; }
   .c-a, .c-b, .c-c, .c-d, .c-e { grid-column: span 6; }
   .c-a { min-height: 260px; }
@@ -231,6 +253,8 @@ footer a { color: var(--ink-2); }
 @media (max-width: 640px) {
   .nav-links a:not(.btn) { display: none; }
   .end .box { grid-template-columns: 1fr; text-align: left; }
+  .os { grid-template-columns: auto 1fr; }
+  .os > .btn, .os-btns { grid-column: 1 / -1; justify-self: start; }
   .end .box img { width: 72px; }
   .cell { min-height: 0; }
   .c-a img { width: 120px; }
@@ -246,7 +270,7 @@ footer a { color: var(--ink-2); }
     <div class="nav-links">
       <a href="#recorrido">Recorrido</a>
       <a href="#laboratorio">Laboratorio</a>
-      <a href="#instalar">Instalar</a>
+      <a href="#descargar">Descargar</a>
       <a class="btn btn-ghost" href="https://github.com/Leoglez10/lab-cloud-aws"><i class="ph ph-github-logo"></i>GitHub</a>
     </div>
   </div>
@@ -258,7 +282,7 @@ footer a { color: var(--ink-2); }
       <h1>Aprende AWS en español, <em>sin cuenta de AWS.</em></h1>
       <p>Clases cortas, práctica guiada y laboratorios reales que corren en tu computadora contra un emulador local.</p>
       <div class="ctas">
-        <a class="btn btn-primary" href="#instalar"><i class="ph ph-download-simple"></i>Instalar</a>
+        <a class="btn btn-primary" href="#descargar"><i class="ph ph-download-simple"></i>Descargar</a>
         <a class="btn btn-ghost" href="#recorrido">Ver recorrido</a>
       </div>
     </div>
@@ -346,16 +370,50 @@ answers = ["aws s3 ls"]</pre>
   </div>
 </section>
 
-<section class="install" id="instalar">
+<section class="dl" id="descargar">
   <div class="wrap">
     <div class="reveal">
-      <h2>Listo en tres pasos.</h2>
-      <p style="margin-top:16px">La app revisa tu entorno al abrir y te ofrece un botón para instalar o iniciar lo que falte.</p>
+      <h2>Descarga Lab Cloud.</h2>
+      <p style="margin-top:16px">Gratis y de código abierto. Al abrir, la app revisa tu entorno y te ofrece un botón para instalar o iniciar lo que falte.</p>
       <div class="reqs">
         <span class="pill"><i class="ph ph-cube"></i>Docker</span>
         <span class="pill"><i class="ph ph-terminal-window"></i>AWS CLI v2</span>
-        <span class="pill"><i class="ph ph-gear-six"></i>Rust estable</span>
       </div>
+      <a class="notes" href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest">Notas de la versión <i class="ph ph-arrow-up-right"></i></a>
+    </div>
+    <div class="os-list">
+      <div class="os reveal" data-os="mac">
+        <i class="ph ph-apple-logo"></i>
+        <div><h3>macOS</h3><p>Apple Silicon e Intel, macOS 11 o superior.</p></div>
+        <a class="btn btn-primary" href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest/download/LabCloud-macos.dmg">.dmg</a>
+      </div>
+      <div class="os reveal" data-os="win">
+        <i class="ph ph-windows-logo"></i>
+        <div><h3>Windows</h3><p>Windows 10 u 11, 64 bits. Un solo .exe, sin instalador.</p></div>
+        <a class="btn btn-primary" href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest/download/LabCloud-windows-x64.exe">.exe</a>
+      </div>
+      <div class="os reveal" data-os="linux">
+        <i class="ph ph-linux-logo"></i>
+        <div><h3>Linux</h3><p>64 bits. Paquete .deb para Debian y Ubuntu, o .tar.gz para el resto.</p></div>
+        <div class="os-btns">
+          <a class="btn btn-primary" href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest/download/LabCloud-linux-x64.deb">.deb</a>
+          <a class="btn btn-ghost" href="https://github.com/Leoglez10/lab-cloud-aws/releases/latest/download/LabCloud-linux-x64.tar.gz">.tar.gz</a>
+        </div>
+      </div>
+      <details class="warn reveal">
+        <summary><i class="ph ph-shield-warning"></i>Tu sistema puede avisar que la app no está firmada</summary>
+        <p>Todavía no tenemos certificados de firma. En macOS, intenta abrirla una vez y luego, en Ajustes del Sistema, Privacidad y seguridad, elige Abrir igualmente. En Windows, en SmartScreen elige Más información y luego Ejecutar de todas formas.</p>
+      </details>
+      <p class="fine reveal"><i class="ph ph-eye-slash"></i>La app inicia AWS Emulator con la telemetría desactivada y solo en 127.0.0.1.</p>
+    </div>
+  </div>
+</section>
+
+<section class="install" id="codigo">
+  <div class="wrap">
+    <div class="reveal">
+      <h2>O compílalo tú.</h2>
+      <p style="margin-top:16px">Necesitas Rust estable además de Docker y AWS CLI v2.</p>
     </div>
     <ol>
       <li class="reveal">
@@ -396,7 +454,7 @@ cd lab-cloud-aws</code><button class="copy" aria-label="Copiar comando"><i class
     <div class="box reveal">
       <img src="nubi.svg" alt="Nubi, la mascota de Lab Cloud">
       <div><h2 style="font-size:clamp(1.5rem,1.1rem + 1.4vw,2.1rem)">Nubi te espera en la primera clase.</h2><p>Código abierto en GitHub. Reporta ideas o errores en los issues.</p></div>
-      <a class="btn btn-primary" href="#instalar"><i class="ph ph-download-simple"></i>Instalar</a>
+      <a class="btn btn-primary" href="#descargar"><i class="ph ph-download-simple"></i>Descargar</a>
     </div>
   </div>
 </section>
@@ -427,6 +485,9 @@ tabs.forEach((t, i) => {
     next.focus(); select(next);
   });
 });
+const ua = navigator.userAgent;
+const os = /Mac/.test(ua) ? 'mac' : /Win/.test(ua) ? 'win' : /Linux/.test(ua) && !/Android/.test(ua) ? 'linux' : null;
+if (os) document.querySelector(`.os[data-os="${os}"]`).classList.add('mine');
 document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', async () => {
   const icon = b.querySelector('i');
   try {
