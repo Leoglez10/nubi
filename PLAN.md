@@ -7,6 +7,11 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 
 ## Product decisions
 
+> **2026-11-14 update:** the UI moved from a game look (cloud map, chunky buttons, cloud
+> curtain) to a professional dashboard: sidebar navigation, Inicio with progress cards,
+> flat controls and a short content-only slide between tabs. Nubi stays. The "horizontal
+> map" and "cloud transitions" items below are superseded; see `odd/tasks/ui-dashboard.md`.
+
 - **Language: Spanish first.** All UI copy and course content are written in Spanish.
   A language switcher (e.g. English) is a later decision, not part of v1. Keep copy in
   data files rather than hard-coded strings so a second language can be added later.
