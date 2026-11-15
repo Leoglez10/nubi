@@ -177,6 +177,8 @@ Scope:
 ### Rename to Nubi (done 2026-11-14)
 - [x] App, crate and binary are `nubi`; "Lab Cloud" stays as the subtitle. Repo renamed to
   `Leoglez10/nubi`, website at https://leoglez10.github.io/nubi/, release assets `nubi-*`.
+- [x] Releases: v0.1.1 built on all three OSes (LabCloud-* assets); v0.1.2 is the first with
+  `nubi-*` assets, which the website links to.
 - [x] Kept on purpose: the data folder (`LabCloud` / `labcloud`), the emulator image and
   container (`labcloud/aws-emulator`, `labcloud-emulator`) and the `nubi@labcloud $` prompt.
 
