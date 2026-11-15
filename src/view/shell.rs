@@ -15,7 +15,7 @@ pub fn wrap(s: &State, screen: Screen, content: El) -> El {
     let main = col().key("shell-main").grow(1.0).h_full().fill(p.bg)
         .child(top_bar(s, screen))
         // min_h(0) lets long pages scroll inside instead of stretching the frame past the window.
-        .child(el().w_full().grow(1.0).min_h(0.0).child(content));
+        .child(super::motion::entering(s, el().key("shell-content").w_full().grow(1.0).min_h(0.0).child(content)));
     row().key("shell").w_full().h_full().min_h(0.0).child(sidebar(s, screen)).child(main)
 }
 

@@ -14,6 +14,7 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - S8 (user): "en ajustes que exista lo de eliminar y editar." — edit name/color; delete asks for confirmation and removes the profile folder.
 - S9 (user): "si" to saving the motion preference with the profile — optional `reduced_motion` in profile.json (old files read as false).
 - S10 (user): "la transicion entre pestañas quisiera que fuera lo mas rapido posible. mejora eso"
+- S11 (user): "la 3 combinada con la 5" — subtle slide (~8 px, ~120 ms) applied only to the content area; sidebar and top bar stay fixed.
 - Assumptions: Splash, Setup and Profiles keep their flow and only take the new palette. Inicio replaces the cloud map; its numbers come from real progress (no invented stats). Existing lesson/lab logic, grading, progress format and mastery rules are unchanged. The search box is left out until there is something to search (YAGNI).
 
 ## Tasks
@@ -32,6 +33,8 @@ Branch: `feat/ui-pulido` · Delivery: ask-on-risk, local work-unit commits; no p
 - [x] T10 · S7 · inline · CUENTA menu: Ajustes, Cambiar de perfil, Cerrar sesión — header and profile row both open it; sign-out clears memory and tells the worker (Job::SignOut)
 - [x] T11 · S8, S9 · inline · Ajustes: edit profile, delete with confirmation, motion switch saved to profile — cancel sends nothing, confirm sends DeleteProfile; motion loads on select
 - [x] T12 · S10 · inline · fastest screen change — COVER 0 / REVEAL 0.08: swap on next frame + 80 ms fade-in; const-asserted ≤ 0.1 s
+
+- [x] T13 · S11 · inline · slide-in content only — content rises 8 pt while fading in over 120 ms; sidebar/top bar never move; non-shell screens slide whole; reduced motion: none
 
 ## Log
 

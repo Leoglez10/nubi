@@ -350,21 +350,34 @@ mod motion_tests {
     }
 
     #[test]
-    fn the_fade_covers_the_whole_frame() {
-        for size in [(960.0, 680.0), (1180.0, 760.0)] {
-            let mut s = State { screen: Screen::Profiles, ..State::default() };
-            crate::motion::tick(&mut s, 0.0);
-            s.screen = Screen::Setup;
-            crate::motion::tick(&mut s, 1.0);
-            crate::motion::tick(&mut s, 1.0 + 1.0 / 60.0);
-            let mut rt = Runtime::new(s, view, size, Env { system_dark: false, scale: 1.0 });
-            rt.frame(0.0);
-            assert!(rt.find("screen-fade").is_some());
-            let (rect, opacity) = rt.presented("screen-fade-cover").expect("opaque full cover");
-            assert_eq!(opacity, 1.0);
-            assert!(rt.find("setup-card").is_some());
-            // The inset frame keeps the cover inside the 9pt app padding.
-            assert!(rect[0] <= 1.0 && rect[1] <= 1.0 && rect[2] >= size.0 - 20.0 && rect[3] >= size.1 - 20.0, "{rect:?} {size:?}");
-        }
+    fn a_tab_change_slides_in_the_content_and_keeps_the_sidebar_still() {
+        let (mut rt, _rx) = signed_in(Screen::Map);
+        rt.update(|s, _| { crate::motion::tick(s, 0.0); s.open_settings(); crate::motion::tick(s, 1.0); crate::motion::tick(s, 1.0 + 1.0 / 60.0); });
+        rt.frame(1.0 / 60.0);
+        let (sidebar, sidebar_opacity) = rt.presented("sidebar").expect("sidebar");
+        let (start, start_opacity) = rt.presented("shell-content").expect("content");
+        assert_eq!(sidebar_opacity, 1.0, "the sidebar never fades");
+        assert!(start_opacity < 0.05, "the new content starts transparent: {start_opacity}");
+        rt.update(|s, _| { crate::motion::tick(s, 1.0 + 1.0 / 60.0 + crate::motion::REVEAL + 0.01); });
+        rt.frame(2.0 / 60.0);
+        let (sidebar_end, _) = rt.presented("sidebar").unwrap();
+        let (end, end_opacity) = rt.presented("shell-content").unwrap();
+        assert_eq!(end_opacity, 1.0);
+        assert!(start[1] - end[1] > 6.0, "the content rises into place: {start:?} -> {end:?}");
+        assert_eq!(sidebar, sidebar_end, "the sidebar does not move");
+    }
+
+    #[test]
+    fn screens_without_a_sidebar_slide_in_whole() {
+        let mut s = State { screen: Screen::Profiles, ..State::default() };
+        crate::motion::tick(&mut s, 0.0);
+        s.screen = Screen::Setup;
+        crate::motion::tick(&mut s, 1.0);
+        crate::motion::tick(&mut s, 1.0 + 1.0 / 60.0);
+        let mut rt = Runtime::new(s, view, (1180.0, 760.0), Env { system_dark: false, scale: 1.0 });
+        rt.frame(0.0);
+        assert!(rt.find("setup-card").is_some(), "the new screen is already up");
+        let (_, opacity) = rt.presented("app-frame").unwrap();
+        assert_eq!(opacity, 1.0, "the frame itself stays; only its screen fades in");
     }
 }

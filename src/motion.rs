@@ -4,9 +4,9 @@ use std::cell::Cell;
 use crate::{Screen, State};
 
 /// Cover and reveal durations in seconds. The new screen is swapped in on the next frame and
-/// fades in briefly, so a change of tab feels instant without a hard flash.
+/// slides in briefly, so a change of tab feels instant without a hard flash.
 pub const COVER: f64 = 0.0;
-pub const REVEAL: f64 = 0.08;
+pub const REVEAL: f64 = 0.12;
 
 /// Smoothstep: no visible stop at the ends of the transition.
 fn smooth(t: f64) -> f32 {
@@ -74,8 +74,8 @@ mod tests {
     use rune::{Env, Runtime};
 
     #[test]
-    fn a_screen_change_is_done_within_a_tenth_of_a_second() {
-        const { assert!(COVER + REVEAL <= 0.1, "tab changes must feel instant") };
+    fn a_screen_change_is_done_within_150_ms() {
+        const { assert!(COVER + REVEAL <= 0.15, "tab changes must feel instant") };
         let mut s = State::default();
         tick(&mut s, 0.0);
         s.screen = Screen::Setup;
