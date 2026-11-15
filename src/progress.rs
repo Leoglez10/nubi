@@ -43,12 +43,15 @@ impl Progress {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 pub struct Profile {
     pub id: String,
     pub name: String,
     /// Avatar cloud color, e.g. "#BFE0FB".
     pub color: String,
+    /// The student's motion preference; profiles saved before it existed read as false.
+    #[serde(default)]
+    pub reduced_motion: bool,
 }
 
 pub struct Store {
@@ -92,10 +95,7 @@ impl Store {
     }
 
     pub fn create_profile(&self, name: &str, color: &str) -> io::Result<Profile> {
-        let name = name.trim();
-        if name.is_empty() || name.chars().count() > 40 {
-            return Err(invalid("the name must have 1 to 40 characters"));
-        }
+        let name = valid_name(name)?;
         let base = slug(name);
         let mut id = base.clone();
         let mut n = 2;
@@ -103,11 +103,30 @@ impl Store {
             id = format!("{base}-{n}");
             n += 1;
         }
-        let profile = Profile { id, name: name.to_string(), color: color.to_string() };
+        let profile = Profile { id, name: name.to_string(), color: color.to_string(), ..Profile::default() };
         let dir = self.dir(&profile.id)?;
         std::fs::create_dir_all(&dir)?;
         write_json(&dir.join("profile.json"), &profile)?;
         Ok(profile)
+    }
+
+    /// Saves a changed name, color or preference of an existing profile; its id and progress stay.
+    pub fn update_profile(&self, profile: &Profile) -> io::Result<()> {
+        let path = self.dir(&profile.id)?.join("profile.json");
+        if !path.exists() {
+            return Err(io::Error::new(io::ErrorKind::NotFound, "no such profile"));
+        }
+        let name = valid_name(&profile.name)?.to_string();
+        write_json(&path, &Profile { name, ..profile.clone() })
+    }
+
+    /// Removes a profile and all its progress. Callers confirm with the student first.
+    pub fn delete_profile(&self, id: &str) -> io::Result<()> {
+        let dir = self.dir(id)?;
+        if !dir.join("profile.json").exists() {
+            return Err(io::Error::new(io::ErrorKind::NotFound, "no such profile"));
+        }
+        std::fs::remove_dir_all(dir)
     }
 
     /// A profile with no saved progress yet starts empty. A corrupt file is an error, never
@@ -156,6 +175,14 @@ struct Backup {
     version: u32,
     profile: Profile,
     progress: Progress,
+}
+
+fn valid_name(name: &str) -> io::Result<&str> {
+    let name = name.trim();
+    if name.is_empty() || name.chars().count() > 40 {
+        return Err(invalid("the name must have 1 to 40 characters"));
+    }
+    Ok(name)
 }
 
 fn invalid(msg: &str) -> io::Error {
@@ -225,6 +252,53 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn editing_a_profile_keeps_its_id_and_progress() {
+        let scratch = Scratch::new("edit");
+        let store = scratch.store();
+        let alex = store.create_profile("Alex", "#BFE0FB").unwrap();
+        let mut progress = Progress::default();
+        progress.record("s3-buckets", 0);
+        store.save_progress(&alex.id, &progress).unwrap();
+
+        let edited = Profile { name: "Alexa".into(), color: "#FFE2B8".into(), reduced_motion: true, ..alex.clone() };
+        store.update_profile(&edited).unwrap();
+        assert_eq!(store.profiles().unwrap(), vec![edited.clone()]);
+        assert_eq!(store.load_progress(&alex.id).unwrap(), progress, "progress survives a rename");
+
+        let blank = Profile { name: "  ".into(), ..edited.clone() };
+        assert!(store.update_profile(&blank).is_err(), "an empty name is rejected");
+        let missing = Profile { id: "nadie".into(), ..edited };
+        assert!(store.update_profile(&missing).is_err(), "editing never creates a profile");
+        assert_eq!(store.profiles().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn deleting_a_profile_removes_only_that_profile() {
+        let scratch = Scratch::new("delete");
+        let store = scratch.store();
+        let alex = store.create_profile("Alex", "#BFE0FB").unwrap();
+        let sam = store.create_profile("Sam", "#FFE2B8").unwrap();
+        store.save_progress(&alex.id, &Progress::default()).unwrap();
+        store.delete_profile(&alex.id).unwrap();
+        assert_eq!(store.profiles().unwrap(), vec![sam.clone()]);
+        assert!(!scratch.0.join("profiles").join(&alex.id).exists());
+        assert!(store.delete_profile("../profiles").is_err(), "ids are never paths");
+        assert!(store.delete_profile("nadie").is_err(), "deleting a missing profile reports it");
+        assert_eq!(store.profiles().unwrap(), vec![sam]);
+    }
+
+    #[test]
+    fn profiles_saved_before_the_motion_preference_still_load() {
+        let scratch = Scratch::new("legacy");
+        let dir = scratch.0.join("profiles").join("alex");
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("profile.json"), r##"{"id":"alex","name":"Alex","color":"#BFE0FB"}"##).unwrap();
+        let profiles = scratch.store().profiles().unwrap();
+        assert_eq!(profiles.len(), 1);
+        assert!(!profiles[0].reduced_motion);
     }
 
     #[test]
