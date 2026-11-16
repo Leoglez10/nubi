@@ -1,7 +1,7 @@
 # Migración a Tauri
 
 Objective: replace the Rune UI with Tauri v2 (Rust backend reusing the `nubi` lib) + React/TypeScript/Vite, to get full design freedom and responsiveness.
-Branch: `feat/tauri`. Delivery: ask-on-risk (forecast ~3–4k authored lines; chain strategy asked before the first PR). Runners: `cargo test`, `npm --prefix ui test` (Vitest).
+Branch: `feat/tauri`. Delivery: single-pr (user chose "3", 2026-11-16). Runners: `cargo test`, `npm --prefix ui test` (Vitest).
 
 ## Specs
 
@@ -15,7 +15,7 @@ Branch: `feat/tauri`. Delivery: ask-on-risk (forecast ~3–4k authored lines; ch
 
 - [x] T1 · S1, S2 · inline · scaffold: workspace, rune optional, `src-tauri` crate, `ui/` Vite React TS, first command (course) rendered — tests written with the code (no observed RED): 2 Vitest + Rust JSON-shape test; live `tauri dev` window lists both classes
 - [x] T2 · S2 · inline · command surface: profiles, progress, course, setup probe/fix, lab start/run/finish + typed TS client — 18 commands over `engine::Engine`; 6 engine tests (1 vs live emulator), tests written after code (wrapping already-tested engine; no observed RED); workspace 88 tests + Clippy clean
-- [ ] T3 · S3, S4 · inline · theme + app shell (sidebar, top bar, transitions, reduced motion), responsive
+- [x] T3 · S3, S4 · inline · theme + app shell (sidebar, top bar, transitions, reduced motion), responsive — 9 Vitest (nav + shell), tests written with code (no observed RED); checked in browser preview at 1024 and 760 px (icon rail)
 - [ ] T4 · S3 · inline · intro, setup, profiles, Ajustes, CUENTA menu
 - [ ] T5 · S3 · inline · Inicio + Clase
 - [ ] T6 · S3 · inline · Práctica + results
@@ -28,3 +28,5 @@ Branch: `feat/tauri`. Delivery: ask-on-risk (forecast ~3–4k authored lines; ch
 - 2026-11-16: probe panic fix committed on main first (47c56d8). Route: all tasks inline (one sequential UI migration, no parallel writer reason).
 - T1: root is a workspace (`src-tauri` member); `rune` is optional behind default feature `rune-ui`, so `nubi-desktop` builds without Rune (`cargo tree` shows none). Course types gained `Serialize` (additive). Run the app with `ui/node_modules/.bin/tauri dev` from the repo root (the CLI looks for tauri.conf.json below the cwd). Old Rune app still builds; 82 Rust tests pass.
 - T2: lesson and lab sessions stay in Rust state (Mutex in Engine); a finished practice/lab is recorded and saved by the backend (`saved` in the view), not by the UI. Serde derives added to setup/lesson/grading/lab types (additive; tags `type`/`value`). Setup fix logic copied from the Rune worker into engine.rs; the Rune copy goes away in T8.
+- 2026-11-16 (user): "3" → single PR at the end. Native review of T1+T2 stopped with `lens_context_budget_exceeded` (40 files / 6907 lines, mostly lockfiles); no authority created. A single PR will exceed it too: review per work-unit commit when the gate asks.
+- T3: tokens in ui/src/theme.css (Rune palette); shell = sidebar (icon rail < 900px, labels kept as accessible names) + top bar (crumb ellipsis, course name yields first, level name hidden < 560px container). Screen changes use View Transitions on the content only, skipped when the profile or OS asks for reduced motion; focus moves to #page-title. Dev preview: `npm run dev` in a browser answers commands with sample data (dev-preview.ts, not in the bundle). Other screens are placeholders until T4–T7.

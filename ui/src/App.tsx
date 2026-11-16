@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
-import { api, classes, type Content } from './api'
+import { api, type Content } from './api'
+import { SHELL_SCREENS } from './nav'
+import { Shell } from './shell/Shell'
+import { AppProvider, useApp, type AppState } from './store'
+import { Screens } from './screens'
 
+/** Loads the course, then hands it to the app. */
 export default function App() {
   const [content, setContent] = useState<Content | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -9,16 +14,27 @@ export default function App() {
     api.course().then(setContent, (e) => setError(String(e)))
   }, [])
 
-  if (error) return <p role="alert">No se pudo cargar el curso: {error}</p>
-  if (!content) return <p>Cargando…</p>
+  if (error) return <p role="alert" className="boot">No se pudo cargar el curso: {error}</p>
+  if (!content) return <p className="boot">Cargando…</p>
+  const initial: AppState = { content, screen: 'profiles', stopId: null, setup: null, me: null, accountOpen: false }
   return (
-    <main>
-      <h1>Nubi</h1>
-      <ol>
-        {classes(content).map(({ node, teaching }) => (
-          <li key={node.id}>Clase {teaching.number}: {teaching.title}</li>
-        ))}
-      </ol>
-    </main>
+    <AppProvider initial={initial}>
+      <Root />
+    </AppProvider>
+  )
+}
+
+function Root() {
+  const { state, set } = useApp()
+
+  // The first setup probe runs in the background; the sidebar shows its result.
+  useEffect(() => {
+    api.probe().then((setup) => set({ setup }), () => {})
+  }, [set])
+
+  return (
+    <div className="app">
+      {SHELL_SCREENS.includes(state.screen) ? <Shell><Screens /></Shell> : <Screens />}
+    </div>
   )
 }

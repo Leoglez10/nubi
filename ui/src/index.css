@@ -1,6 +1,7 @@
-:root {
-  font-family: system-ui, sans-serif;
-  color: #0f172a;
-  background: #f8fafc;
-}
-body { margin: 0; }
+@import './theme.css';
+
+.app { block-size: 100%; }
+.boot { padding: 24px; }
+.page { padding: clamp(16px, 3vw, 32px); display: grid; gap: 16px; align-content: start; }
+.page h1 { font-size: var(--fs-title); }
+.page h1:focus { outline: none; }
