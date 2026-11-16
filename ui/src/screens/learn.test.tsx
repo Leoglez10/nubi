@@ -61,8 +61,8 @@ test('the lab button is locked until the practice is done', async () => {
 
   renderAt({}, me({ 's3-buckets': 2 }))
   await user.click(screen.getByRole('button', { name: 'Laboratorio de la clase 1' }))
-  expect(screen.getByText('Pantalla «lab» (pendiente).')).toBeInTheDocument()
-  expect(title()).toHaveTextContent('Buckets y objetos')
+  expect(screen.getByText('LABORATORIO')).toBeInTheDocument()
+  expect(title()).toHaveTextContent('Lab 1')
 })
 
 test('Clase shows explanation, example, review and the diagram for its `diagram` value', () => {
@@ -98,5 +98,6 @@ test("Clase's practice button goes to the lesson and its lab button only once pr
 
   renderAt({ screen: 'class', stopId: 's3-buckets' }, me({ 's3-buckets': 2 }))
   await user.click(screen.getByRole('button', { name: 'Ir al laboratorio' }))
-  expect(screen.getByText('Pantalla «lab» (pendiente).')).toBeInTheDocument()
+  expect(screen.getByText('LABORATORIO')).toBeInTheDocument()
+  expect(title()).toHaveTextContent('Lab 1')
 })

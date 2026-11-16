@@ -1,7 +1,7 @@
 // App state shared by every screen, and navigation with a short content transition.
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
-import type { Content, LessonView, ProgressView, SetupView } from './api'
+import type { Content, LabView, LessonView, ProgressView, SetupView } from './api'
 import type { Screen } from './nav'
 
 export interface AppState {
@@ -14,6 +14,8 @@ export interface AppState {
   accountOpen: boolean
   /** The practice in progress, kept across navigation so the student can come back to it. */
   lesson?: LessonState | null
+  /** The lab in progress, kept across navigation like `lesson`. */
+  lab?: LabState | null
 }
 
 /** What the student has picked on the current exercise, before checking it. */
@@ -35,6 +37,18 @@ export interface LessonState {
   draft: LessonDraft
   /** True while Clase was opened from this practice and should offer the way back. */
   reviewing: boolean
+}
+
+export interface LabState {
+  view: LabView
+  /** What is typed at the prompt, not sent yet. */
+  input: string
+  /** The line sent and waiting for the engine, shown with "corriendo…". */
+  running: string | null
+  /** Clase was opened from this lab ("Ver explicación" or "Repasar la clase") and should offer the way back. */
+  reviewing: 'explain' | 'review' | null
+  /** Coming back from Clase: show this attempt as it was, even when already complete. */
+  resume: boolean
 }
 
 interface Store {

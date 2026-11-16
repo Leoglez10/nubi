@@ -11,12 +11,17 @@ import './Class.css'
 export function Class() {
   const { state, set, go } = useApp()
   const shown = classOf(state.content, state.stopId) ?? currentClass(state.content, state.me?.progress)
-  // Opened with "Ver explicación" from a practice: offer only the way back to it (`class_return`).
-  // Read once on arrival, so a later visit from Inicio or the sidebar is a normal class again.
+  // Opened from a practice or a lab ("Ver explicación", "Repasar la clase"): offer only the way
+  // back to it (`class_return`). Read once on arrival, so a later visit from Inicio or the
+  // sidebar is a normal class again.
   const [fromLesson] = useState(() => state.lesson?.reviewing === true)
+  const [fromLab] = useState(() => state.lab?.reviewing ?? null)
   useEffect(() => {
     if (state.lesson?.reviewing) set({ lesson: { ...state.lesson, reviewing: false } })
   }, [state.lesson, set])
+  useEffect(() => {
+    if (state.lab?.reviewing) set({ lab: { ...state.lab, reviewing: null } })
+  }, [state.lab, set])
   if (!shown) {
     return (
       <section className="page">
@@ -32,7 +37,7 @@ export function Class() {
     <div className="page class-page">
       <article className="card class-article" aria-labelledby="page-title">
         <header className="class-head">
-          <p className="eyebrow">{`CLASE ${t.number} · EXPLICACIÓN`}</p>
+          <p className="eyebrow">{`CLASE ${t.number} · ${fromLab === 'review' ? 'REPASO' : 'EXPLICACIÓN'}`}</p>
           <h1 id="page-title" tabIndex={-1}>{t.title}</h1>
         </header>
         <p className="class-explanation">{t.explanation}</p>
@@ -50,6 +55,11 @@ export function Class() {
           {fromLesson && state.lesson?.view.id === node.id ? (
             <button type="button" className="btn btn-primary" onClick={() => go('lesson', { stopId: node.id })}>
               Volver a la práctica
+            </button>
+          ) : fromLab && state.lab?.view.id === t.lab ? (
+            <button type="button" className="btn btn-primary"
+              onClick={() => go('lab', { stopId: t.lab, lab: { ...state.lab!, reviewing: null, resume: true } })}>
+              Volver al laboratorio
             </button>
           ) : <>
             <button type="button" className="btn btn-primary" onClick={() => go('lesson', { stopId: node.id, lesson: null })}>

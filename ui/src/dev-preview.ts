@@ -1,7 +1,7 @@
 // Dev only: in a plain browser (no Tauri) answer commands with sample data, so layouts can be
 // checked at any width with `npm run dev`. Never bundled into the app (see main.tsx).
 import { mockIPC } from '@tauri-apps/api/mocks'
-import type { Answer, Exercise, LessonView } from './api'
+import type { Answer, Exercise, LabView, LessonView } from './api'
 import { content, me } from './test/fixtures'
 
 export function previewWithSampleData() {
@@ -21,7 +21,11 @@ export function previewWithSampleData() {
     update_profile: profile,
   }
   const lesson = sampleLesson(profile)
-  mockIPC((cmd, args) => lesson(cmd, args as Record<string, unknown>) ?? replies[cmd] ?? null)
+  const lab = sampleLab(profile)
+  mockIPC((cmd, args) => {
+    const a = args as Record<string, unknown>
+    return lesson(cmd, a) ?? lab(cmd, a) ?? replies[cmd] ?? null
+  })
 }
 
 /** A rough stand-in for the engine's lesson session, enough to click through a practice. */
@@ -77,6 +81,77 @@ function sampleLesson(profile: ReturnType<typeof me>) {
         index += 1
         feedback = null
         return view()
+      default:
+        return undefined
+    }
+  }
+}
+
+/** A tiny stand-in for the lab terminal: built-ins, and `aws` lines that tick the next objective. */
+function sampleLab(profile: ReturnType<typeof me>) {
+  type Lines = LabView['session']['lines']
+  let id = ''
+  let lines: Lines = []
+  let done: boolean[] = []
+  let errors = 0
+  let mistakes: LabView['session']['mistakes'] = []
+  let history: string[] = []
+  let cursor: number | null = null
+  const objectives = () => content.nodes[id]?.objectives ?? []
+  const view = (saved = false): LabView => ({
+    id,
+    session: { lines, done, errors, mistakes },
+    complete: done.length > 0 && done.every(Boolean),
+    saved: saved ? profile : null,
+  })
+  const say = (kind: Lines[number]['kind'], text: string) => { lines = [...lines, { kind, text }] }
+  return (cmd: string, args: Record<string, unknown>): unknown => {
+    switch (cmd) {
+      case 'lab_start':
+        id = args.id as string
+        lines = []
+        say('info', 'Nubi · terminal conectada a tu AWS Emulator local')
+        say('info', 'Escribe "ayuda" para ver qué puedes hacer, o "pista" si te atoras.')
+        done = objectives().map(() => false)
+        errors = 0; mistakes = []; history = []; cursor = null
+        return view()
+      case 'lab_submit': {
+        const line = (args.line as string).trim().split(/\s+/).join(' ')
+        if (!line) return view()
+        cursor = null
+        if (line === 'limpiar') { lines = []; return view() }
+        history = [...history, line]
+        say('cmd', line)
+        const next = done.indexOf(false)
+        if (line === 'ayuda') {
+          say('info', 'Escribe comandos aws reales: se ejecutan contra tu emulador local.')
+          say('info', 'Extras: pista · limpiar · ↑/↓ para repetir comandos.')
+        } else if (line === 'pista') {
+          say('info', next < 0 ? '¡Ya completaste todos los objetivos!' : `Pista: ${objectives()[next].hint}`)
+        } else if (!line.startsWith('aws ')) {
+          errors += 1
+          mistakes = [...mistakes, { command: line, error: 'Solo se permiten comandos aws.' }]
+          say('err', 'Solo se permiten comandos aws.')
+        } else if (next >= 0 && line === objectives()[next].hint) {
+          done = done.map((d, i) => d || i === next)
+          say('out', 'Vista previa: comando ejecutado.')
+          say('ok', '¡Objetivo cumplido!')
+          return new Promise((r) => setTimeout(() => r(view(done.every(Boolean))), 400))
+        } else {
+          say('out', 'Vista previa: comando ejecutado.')
+        }
+        return new Promise((r) => setTimeout(() => r(view()), 400))
+      }
+      case 'lab_history': {
+        if (args.older) {
+          if (!history.length) return null
+          cursor = cursor == null ? history.length - 1 : Math.max(0, cursor - 1)
+          return history[cursor]
+        }
+        if (cursor == null || cursor + 1 >= history.length) { cursor = null; return null }
+        cursor += 1
+        return history[cursor]
+      }
       default:
         return undefined
     }

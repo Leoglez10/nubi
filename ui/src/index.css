@@ -74,3 +74,11 @@
 
 /* A full-window screen outside the shell scrolls on its own. */
 .screen-full { block-size: 100dvh; overflow-y: auto; container-type: inline-size; }
+
+/* Perfeccionar: improve a finished attempt (Práctica and Laboratorio). */
+.btn-reward {
+  border-color: var(--orange-dark);
+  background: var(--orange-dark);
+  color: #fff;
+  &:hover:not(:disabled) { background: #93370d; }
+}
