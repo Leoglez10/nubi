@@ -1,11 +1,14 @@
 //! Grading by mastery: no lives, no XP. Answers are right or wrong, a finished stop earns
 //! stars from its error count, and the level comes from the total stars.
 
+use serde::{Deserialize, Serialize};
+
 use crate::course::Exercise;
 
 /// What the student submitted for one exercise. Indices always refer to the order in the
 /// content file (the UI maps its shuffled display back to these).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum Answer {
     Choice(usize),
     Command(String),
@@ -56,7 +59,7 @@ const LEVELS: [(u32, &str); 6] = [
     (75, "Maestro de la nube"),
 ];
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Level {
     pub number: u32,
     pub name: &'static str,
@@ -81,7 +84,8 @@ pub fn is_unlocked(order: &[&str], id: &str, completed: impl Fn(&str) -> bool) -
 }
 
 /// How a stop looks on the map.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(tag = "type", content = "stars", rename_all = "snake_case")]
 pub enum Stop {
     /// Completed, with its best stars.
     Done(u8),

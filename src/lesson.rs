@@ -1,16 +1,19 @@
 //! One lesson attempt: one exercise at a time, unlimited retries, every wrong check counted
 //! as an error (for the stars) and remembered (to review), never punished.
 
+use serde::Serialize;
+
 use crate::course::Exercise;
 use crate::grading::{Answer, is_correct};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum Feedback {
     Right,
     Wrong { hint: String },
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize)]
 pub struct LessonSession {
     pub index: usize,
     pub total: usize,

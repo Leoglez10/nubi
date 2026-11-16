@@ -14,7 +14,7 @@ Branch: `feat/tauri`. Delivery: ask-on-risk (forecast ~3–4k authored lines; ch
 ## Tasks
 
 - [x] T1 · S1, S2 · inline · scaffold: workspace, rune optional, `src-tauri` crate, `ui/` Vite React TS, first command (course) rendered — tests written with the code (no observed RED): 2 Vitest + Rust JSON-shape test; live `tauri dev` window lists both classes
-- [ ] T2 · S2 · inline · command surface: profiles, progress, course, setup probe/fix, lab start/run/finish + typed TS client
+- [x] T2 · S2 · inline · command surface: profiles, progress, course, setup probe/fix, lab start/run/finish + typed TS client — 18 commands over `engine::Engine`; 6 engine tests (1 vs live emulator), tests written after code (wrapping already-tested engine; no observed RED); workspace 88 tests + Clippy clean
 - [ ] T3 · S3, S4 · inline · theme + app shell (sidebar, top bar, transitions, reduced motion), responsive
 - [ ] T4 · S3 · inline · intro, setup, profiles, Ajustes, CUENTA menu
 - [ ] T5 · S3 · inline · Inicio + Clase
@@ -27,3 +27,4 @@ Branch: `feat/tauri`. Delivery: ask-on-risk (forecast ~3–4k authored lines; ch
 - L1 (2026-11-16, user): "la app creo que tiene limitaciones aun en diseño, como que rune aun no tiene todo lo qur quiero, seria mejor tauri?" → "todo lo del diseño, responsividad y todo" → "arranca".
 - 2026-11-16: probe panic fix committed on main first (47c56d8). Route: all tasks inline (one sequential UI migration, no parallel writer reason).
 - T1: root is a workspace (`src-tauri` member); `rune` is optional behind default feature `rune-ui`, so `nubi-desktop` builds without Rune (`cargo tree` shows none). Course types gained `Serialize` (additive). Run the app with `ui/node_modules/.bin/tauri dev` from the repo root (the CLI looks for tauri.conf.json below the cwd). Old Rune app still builds; 82 Rust tests pass.
+- T2: lesson and lab sessions stay in Rust state (Mutex in Engine); a finished practice/lab is recorded and saved by the backend (`saved` in the view), not by the UI. Serde derives added to setup/lesson/grading/lab types (additive; tags `type`/`value`). Setup fix logic copied from the Rune worker into engine.rs; the Rune copy goes away in T8.
