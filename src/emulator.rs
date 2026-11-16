@@ -67,6 +67,11 @@ fn last_line(bytes: &[u8]) -> String {
 
 /// The emulator answers an authenticated S3 call.
 pub async fn healthy() -> bool {
+    // A stopped emulator removes its ca.pem; with SSL_CERT_FILE pointing at nothing the SDK
+    // has no roots at all (and debug builds panic), so that alone means "not running".
+    if !dir().join("ca.pem").is_file() {
+        return false;
+    }
     let config = aws_config::load_from_env().await;
     aws_sdk_s3::Client::new(&config).list_buckets().send().await.is_ok()
 }
