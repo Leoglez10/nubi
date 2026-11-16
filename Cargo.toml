@@ -13,9 +13,22 @@ maintainer = "Leoglez10"
 section = "education"
 assets = [["target/release/nubi", "usr/bin/", "755"]]
 
+[workspace]
+members = ["src-tauri"]
+
+[features]
+# The Rune UI, until the Tauri app (src-tauri/ + ui/) reaches parity.
+default = ["rune-ui"]
+rune-ui = ["dep:rune"]
+
+[[bin]]
+name = "nubi"
+path = "src/main.rs"
+required-features = ["rune-ui"]
+
 [dependencies]
 # Rune is pre-release: always pin a rev of its `dev` branch.
-rune = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
+rune = { optional = true, git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
 aws-config = { version = "1", features = ["behavior-version-latest"] }
 aws-sdk-s3 = "1"
 tokio = { version = "1", features = ["rt"] }

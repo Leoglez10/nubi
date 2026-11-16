@@ -4,21 +4,21 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Course {
     pub units: Vec<Unit>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Unit {
     pub id: String,
     pub title: String,
     pub nodes: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum NodeKind {
     #[serde(rename = "leccion")]
     Lesson,
@@ -28,7 +28,7 @@ pub enum NodeKind {
     Challenge,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Node {
     pub id: String,
@@ -45,7 +45,7 @@ pub struct Node {
     pub files: Vec<LabFile>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Teaching {
     pub number: usize,
@@ -61,7 +61,7 @@ pub struct Teaching {
 }
 
 /// A small picture that teaches one idea better than a sentence.
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Diagram {
     /// A bucket holding objects, each with its key.
@@ -70,7 +70,7 @@ pub enum Diagram {
     KeyPrefixes,
 }
 
-#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct LabFile {
     /// A plain file name: no folders.
@@ -78,7 +78,7 @@ pub struct LabFile {
     pub content: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Exercise {
     /// Pick one option; `answer` is its index.
@@ -91,7 +91,7 @@ pub enum Exercise {
     Match { prompt: String, pairs: Vec<(String, String)>, hint: String },
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Objective {
     pub text: String,
@@ -100,7 +100,7 @@ pub struct Objective {
 }
 
 /// A rule the checker evaluates against the emulator's state.
-#[derive(Debug, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Check {
     BucketExists { bucket: String },
@@ -108,7 +108,7 @@ pub enum Check {
     ObjectExists { bucket: String, key: String },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Content {
     pub course: Course,
     pub nodes: BTreeMap<String, Node>,
@@ -317,5 +317,20 @@ mod tests {
         let wrong = "id = \"b\"\ntitle = \"A\"\nkind = \"lab\"\n[[objectives]]\ntext = \"t\"\nhint = \"h\"\ncheck = { type = \"bucket_exists\", bucket = \"x\" }\n";
         let s = Scratch::new("id", ONE_UNIT, &[("a.toml", wrong)]);
         assert!(load(&s.0).unwrap_err().contains("a.toml"));
+    }
+}
+
+#[cfg(test)]
+mod serialize_tests {
+    /// The Tauri UI reads this JSON (ui/src/api/types.ts): tags and names must match.
+    #[test]
+    fn content_serializes_in_the_shape_the_ui_reads() {
+        let json = serde_json::to_value(super::embedded().unwrap()).unwrap();
+        let node = &json["nodes"]["s3-buckets"];
+        assert_eq!(node["kind"], "leccion");
+        assert_eq!(node["teaching"]["number"], 1);
+        assert!(node["exercises"][0]["type"].is_string());
+        assert_eq!(json["nodes"]["lab-primer-bucket"]["objectives"][0]["check"]["type"], "bucket_exists");
+        assert!(json["course"]["units"][0]["nodes"].is_array());
     }
 }
