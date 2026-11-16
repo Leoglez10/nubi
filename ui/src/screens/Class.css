@@ -1,0 +1,214 @@
+/* Article and aside side by side when the content area is wide; stacked otherwise. */
+.class-page {
+  inline-size: min(100%, 1180px);
+  margin-inline: auto;
+  gap: 24px;
+  align-items: start;
+}
+@container (inline-size >= 900px) {
+  .class-page { grid-template-columns: minmax(0, 1fr) 280px; }
+  .class-aside { position: sticky; inset-block-start: clamp(16px, 3vw, 32px); }
+}
+
+.class-article {
+  display: grid;
+  gap: 18px;
+  min-inline-size: 0;
+  padding: clamp(18px, 4cqi, 32px);
+  & h2 { font-size: var(--fs-h2); }
+}
+.class-head { display: grid; gap: 6px; }
+.class-head h1 { font-size: var(--fs-title); overflow-wrap: anywhere; }
+.class-head h1:focus { outline: none; }
+.class-explanation { font-size: 1rem; color: var(--text-2); }
+.class-example { color: var(--text-2); }
+
+.class-visual {
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--blue-light);
+  color: var(--blue-dark);
+  font-weight: 600;
+}
+
+/* --- Diagrams --- */
+
+.class-diagram {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  & figcaption {
+    padding: 10px 16px;
+    border-block-start: 1px solid var(--border);
+    font-size: var(--fs-small);
+    color: var(--muted);
+  }
+}
+.class-diagram-art { padding: 16px; background: var(--bg); }
+
+.diagram-bucket {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--blue);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.diagram-bucket-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.s3-chip {
+  display: grid;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: var(--radius-s);
+  background: var(--blue);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.diagram-objects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  & li {
+    display: grid;
+    gap: 2px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  & code { font-family: var(--mono); font-size: 0.875rem; }
+  & span { font-size: 0.75rem; font-weight: 500; color: var(--muted); }
+}
+
+.diagram-key {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  & li { display: grid; gap: 4px; padding: 14px; min-inline-size: 0; }
+  & span { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; }
+  & code { font-family: var(--mono); font-size: 0.875rem; overflow-wrap: anywhere; }
+  & .bucket { background: var(--blue-light); color: var(--blue-dark); }
+  & .prefix { background: var(--orange-light); color: var(--orange-dark); }
+  & .name { background: var(--surface); color: var(--muted); }
+  & code { color: var(--text); }
+}
+
+/* --- Worked example --- */
+
+.class-example-visual { display: grid; gap: 12px; }
+.example-term {
+  margin: 0;
+  padding: 16px;
+  border-radius: 10px;
+  background: #0c111d;
+  color: #e4e7ec;
+  font: 0.875rem / 1.6 var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  & .prompt { color: #7cd4fd; }
+  & .out { color: #98a2b3; }
+}
+.example-sides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+.example-side {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-inline-size: 0;
+  & h3 { margin: 0 0 4px; font-size: var(--fs-small); font-weight: 600; color: var(--muted); }
+  & pre { margin: 0; font: 0.875rem / 1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+}
+
+.class-review {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #abefc6;
+  border-radius: 10px;
+  background: var(--green-light);
+  color: #054f31;
+  & h2 { font-size: var(--fs-body); }
+  & p { font-size: 0.875rem; }
+}
+.review-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 50%;
+  background: var(--green-dark);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.class-actions { display: flex; flex-wrap: wrap; gap: 10px; padding-block-start: 6px; }
+
+/* --- Aside: steps and Nubi's tip --- */
+
+.class-aside { min-inline-size: 0; }
+.class-steps {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  & h2 { padding-block-end: 8px; font-size: var(--fs-small); font-weight: 600; color: var(--muted); }
+  & ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+}
+.class-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-2);
+  &.now { background: var(--blue-light); color: var(--blue-dark); font-weight: 600; }
+}
+.step-dot {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 50%;
+  background: var(--locked);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  .now > & { background: var(--blue); color: #fff; }
+  .done > & { background: var(--green); color: #fff; }
+}
+.step-label { flex: 1; min-inline-size: 0; }
+.step-meta { font-size: 0.75rem; font-weight: 500; color: var(--faint); white-space: nowrap; }
+
+.class-nubi {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-block-start: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  & svg { flex: none; }
+}
+.class-nubi-title { font-weight: 600; color: var(--text); }

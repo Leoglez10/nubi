@@ -1,6 +1,8 @@
 // Routes each screen to its view. Screens still marked "(pendiente)" arrive in later tasks.
 import { classOf } from './nav'
 import { useApp } from './store'
+import { Class } from './screens/Class'
+import { Home } from './screens/Home'
 import { Intro } from './screens/Intro'
 import { Profiles } from './screens/Profiles'
 import { Settings } from './screens/Settings'
@@ -13,6 +15,8 @@ export function Screens() {
     case 'setup': return <Setup />
     case 'profiles': return <Profiles />
     case 'settings': return <Settings />
+    case 'home': return <Home />
+    case 'class': return <Class />
     default: return <Pending />
   }
 }

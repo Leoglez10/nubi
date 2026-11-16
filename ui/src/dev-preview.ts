@@ -10,9 +10,9 @@ export function previewWithSampleData() {
     profiles: [{ profile: profile.profile, stars: 3 }],
     select_profile: profile,
     probe: {
-      report: { docker: true, docker_running: true, aws_cli: true, emulator: false },
-      needs: [{ need: 'emulator', action: { type: 'start_emulator' } }],
-      ready: false,
+      report: { docker: true, docker_running: true, aws_cli: true, emulator: true },
+      needs: [],
+      ready: true,
       os: 'mac',
     },
     fix: 'Vista previa: aquí se iniciaría el emulador.',

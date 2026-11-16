@@ -17,7 +17,7 @@ Branch: `feat/tauri`. Delivery: single-pr (user chose "3", 2026-11-16). Runners:
 - [x] T2 · S2 · inline · command surface: profiles, progress, course, setup probe/fix, lab start/run/finish + typed TS client — 18 commands over `engine::Engine`; 6 engine tests (1 vs live emulator), tests written after code (wrapping already-tested engine; no observed RED); workspace 88 tests + Clippy clean
 - [x] T3 · S3, S4 · inline · theme + app shell (sidebar, top bar, transitions, reduced motion), responsive — 9 Vitest (nav + shell), tests written with code (no observed RED); checked in browser preview at 1024 and 760 px (icon rail)
 - [x] T4 · S3 · delegated (context backstop) · intro, setup, profiles, Ajustes, CUENTA menu — 13 Vitest in screens/entry.test.tsx, 22 total; tsc + build clean; parent checked intro and setup (emulator warning) in browser preview; profiles/Ajustes not checked by eye
-- [ ] T5 · S3 · inline · Inicio + Clase
+- [x] T5 · S3, S4 · delegated (context backstop) · Inicio + Clase — 6 Vitest (learn.test.tsx), 28 total, tests passed on first run (no observed RED); parent checked both in browser preview at 1024 px
 - [ ] T6 · S3 · inline · Práctica + results
 - [ ] T7 · S3 · inline · Laboratorio + terminal
 - [ ] T8 · S5 · inline · remove Rune, docs, release workflow
@@ -31,3 +31,5 @@ Branch: `feat/tauri`. Delivery: single-pr (user chose "3", 2026-11-16). Runners:
 - 2026-11-16 (user): "3" → single PR at the end. Native review of T1+T2 stopped with `lens_context_budget_exceeded` (40 files / 6907 lines, mostly lockfiles); no authority created. A single PR will exceed it too: review per work-unit commit when the gate asks.
 - T3: tokens in ui/src/theme.css (Rune palette); shell = sidebar (icon rail < 900px, labels kept as accessible names) + top bar (crumb ellipsis, course name yields first, level name hidden < 560px container). Screen changes use View Transitions on the content only, skipped when the profile or OS asks for reduced motion; focus moves to #page-title. Dev preview: `npm run dev` in a browser answers commands with sample data (dev-preview.ts, not in the bundle). Other screens are placeholders until T4–T7.
 - T4 (writer): setup rows built from the report, ready requires every report field (keeps the emulator warning). Delete uses native <dialog> showModal with autofocus on Cancelar. Open: reduced-motion switch disabled when nobody is signed in (store has no session-only field); new copy "Escribe tu nombre." for the empty-name error.
+- T5 (writer): lock state from me.stops with a fallback mirroring grading::stop_status (stopStatus in Home.tsx); module table stacks under 760px content width; Clase two columns from 900px. Not ported yet: class_return/class_review modes (reached from T6/T7). Invented: side-panel "Ejemplo" shows done once the practice is completed.
+- 2026-11-16: native review consent for T1–T4 (62 files) declined by the user ("Omitir esta vez").
