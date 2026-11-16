@@ -1,0 +1,56 @@
+.setup {
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 32px);
+  background: var(--bg);
+}
+
+.setup-card {
+  display: grid;
+  gap: 16px;
+  inline-size: min(100%, 660px);
+  padding: clamp(20px, 4cqi, 28px);
+}
+.setup-head { display: grid; gap: 6px; }
+.setup-head h1 { font-size: var(--fs-title); }
+.setup-head h1:focus { outline: none; }
+.setup-lead { color: var(--muted); }
+.setup-status { font-weight: 600; color: var(--blue); }
+.setup-messages { display: grid; gap: 6px; }
+.setup-messages:empty { display: none; }
+.setup-actions { display: flex; justify-content: flex-end; }
+
+.needs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+
+.need {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  background: var(--bg);
+  &.ok { background: var(--green-light); border-color: transparent; }
+  &.missing { background: var(--orange-light); border-color: #fedf89; }
+}
+.need-mark {
+  display: grid;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 30px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+}
+.need.ok .need-mark { background: var(--green); }
+.need.missing .need-mark { background: var(--orange); }
+.need-text { display: grid; gap: 2px; }
+.need-text span { font-size: var(--fs-small); color: var(--muted); }
+.need-manual { max-inline-size: 220px; font-size: var(--fs-small); }
+
+/* Narrow cards: the fix button moves under the text. */
+@container (inline-size < 560px) {
+  .need { grid-template-columns: auto minmax(0, 1fr); }
+  .need > .btn, .need-manual { grid-column: 2; justify-self: start; max-inline-size: none; }
+}

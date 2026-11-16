@@ -9,7 +9,15 @@ export function previewWithSampleData() {
     course: content,
     profiles: [{ profile: profile.profile, stars: 3 }],
     select_profile: profile,
-    probe: { report: { docker: true, docker_running: true, aws_cli: true, emulator: false }, needs: [], ready: false, os: 'mac' },
+    probe: {
+      report: { docker: true, docker_running: true, aws_cli: true, emulator: false },
+      needs: [{ need: 'emulator', action: { type: 'start_emulator' } }],
+      ready: false,
+      os: 'mac',
+    },
+    fix: 'Vista previa: aquí se iniciaría el emulador.',
+    create_profile: profile,
+    update_profile: profile,
   }
   mockIPC((cmd) => replies[cmd] ?? null)
 }

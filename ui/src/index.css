@@ -5,3 +5,67 @@
 .page { padding: clamp(16px, 3vw, 32px); display: grid; gap: 16px; align-content: start; }
 .page h1 { font-size: var(--fs-title); }
 .page h1:focus { outline: none; }
+
+/* --- Shared controls for every screen --- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-block-size: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+  &:hover:not(:disabled) { background: var(--bg); }
+  &:disabled { color: var(--disabled); cursor: default; }
+}
+.btn-primary {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+  &:hover:not(:disabled) { background: var(--blue-dark); }
+  &:disabled { border-color: var(--border); background: var(--locked); }
+}
+.btn-danger {
+  border-color: var(--red-dark);
+  background: var(--red-dark);
+  color: #fff;
+  &:hover:not(:disabled) { background: var(--red); }
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.field { display: grid; gap: 6px; min-inline-size: 0; }
+.field-label { font-size: var(--fs-small); font-weight: 600; color: var(--text-2); }
+.field input[type='text'] {
+  inline-size: 100%;
+  block-size: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font: inherit;
+  color: var(--text);
+  &::placeholder { color: var(--disabled); }
+  &[aria-invalid='true'] { border-color: var(--red); }
+}
+.field-error { font-size: var(--fs-small); color: var(--red-dark); }
+
+.note { font-size: var(--fs-small); color: var(--muted); }
+.note.error { color: var(--red-dark); }
+
+/* A full-window screen outside the shell scrolls on its own. */
+.screen-full { block-size: 100dvh; overflow-y: auto; container-type: inline-size; }

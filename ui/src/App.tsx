@@ -16,7 +16,7 @@ export default function App() {
 
   if (error) return <p role="alert" className="boot">No se pudo cargar el curso: {error}</p>
   if (!content) return <p className="boot">Cargando…</p>
-  const initial: AppState = { content, screen: 'profiles', stopId: null, setup: null, me: null, accountOpen: false }
+  const initial: AppState = { content, screen: 'intro', stopId: null, setup: null, me: null, accountOpen: false }
   return (
     <AppProvider initial={initial}>
       <Root />

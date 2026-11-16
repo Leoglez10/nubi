@@ -1,0 +1,85 @@
+.settings { inline-size: min(100%, 760px); margin-inline: auto; gap: 20px; }
+
+.settings-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  & p { margin-block-start: 4px; font-size: var(--fs-small); color: var(--muted); }
+}
+
+.settings-section {
+  overflow: hidden;
+  & > h2 {
+    padding: 14px 20px;
+    border-block-end: 1px solid var(--border);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+}
+.settings-body { padding: 20px; }
+
+.profile-edit { display: grid; gap: 16px; }
+.profile-edit-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  & div { display: grid; }
+  & span { font-size: var(--fs-small); color: var(--muted); }
+}
+
+.setting-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+.setting-text {
+  flex: 1 1 260px;
+  display: grid;
+  gap: 4px;
+  & p { font-size: var(--fs-small); color: var(--muted); }
+}
+
+.danger-outline { color: var(--red-dark); border-color: #fda29b; }
+
+/* The switch: a styled checkbox, so keyboard, label and form behavior stay native. */
+.switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  inline-size: 40px;
+  block-size: 22px;
+  margin: 0;
+  border-radius: 11px;
+  background: var(--border-strong);
+  cursor: pointer;
+  &::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 2px;
+    inset-inline-start: 2px;
+    inline-size: 18px;
+    block-size: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(16 24 40 / 0.2);
+  }
+  &:checked { background: var(--blue); }
+  &:checked::before { translate: 18px 0; }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .switch::before { transition: translate 0.15s; }
+}
+
+.confirm {
+  inline-size: min(calc(100% - 32px), 440px);
+  padding: 24px;
+  color: var(--text);
+  & h2 { font-size: var(--fs-h2); }
+  & p { margin-block: 8px 20px; color: var(--muted); }
+}
+.confirm::backdrop { background: rgb(16 24 40 / 0.45); overflow: hidden; overscroll-behavior: contain; }
+dialog:modal { overscroll-behavior: contain; }
