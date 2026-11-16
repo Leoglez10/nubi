@@ -4,6 +4,7 @@ import { useApp } from './store'
 import { Class } from './screens/Class'
 import { Home } from './screens/Home'
 import { Intro } from './screens/Intro'
+import { Lesson } from './screens/Lesson'
 import { Profiles } from './screens/Profiles'
 import { Settings } from './screens/Settings'
 import { Setup } from './screens/Setup'
@@ -17,6 +18,7 @@ export function Screens() {
     case 'settings': return <Settings />
     case 'home': return <Home />
     case 'class': return <Class />
+    case 'lesson': return <Lesson />
     default: return <Pending />
   }
 }

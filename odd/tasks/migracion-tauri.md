@@ -18,7 +18,7 @@ Branch: `feat/tauri`. Delivery: single-pr (user chose "3", 2026-11-16). Runners:
 - [x] T3 · S3, S4 · inline · theme + app shell (sidebar, top bar, transitions, reduced motion), responsive — 9 Vitest (nav + shell), tests written with code (no observed RED); checked in browser preview at 1024 and 760 px (icon rail)
 - [x] T4 · S3 · delegated (context backstop) · intro, setup, profiles, Ajustes, CUENTA menu — 13 Vitest in screens/entry.test.tsx, 22 total; tsc + build clean; parent checked intro and setup (emulator warning) in browser preview; profiles/Ajustes not checked by eye
 - [x] T5 · S3, S4 · delegated (context backstop) · Inicio + Clase — 6 Vitest (learn.test.tsx), 28 total, tests passed on first run (no observed RED); parent checked both in browser preview at 1024 px
-- [ ] T6 · S3 · inline · Práctica + results
+- [x] T6 · S3, S4 · delegated (context backstop) · Práctica + results — 9 Vitest (lesson.test.tsx), 37 total (parent fixed one stale placeholder assertion in learn.test.tsx); parent checked the choice exercise in browser preview
 - [ ] T7 · S3 · inline · Laboratorio + terminal
 - [ ] T8 · S5 · inline · remove Rune, docs, release workflow
 
@@ -33,3 +33,4 @@ Branch: `feat/tauri`. Delivery: single-pr (user chose "3", 2026-11-16). Runners:
 - T4 (writer): setup rows built from the report, ready requires every report field (keeps the emulator warning). Delete uses native <dialog> showModal with autofocus on Cancelar. Open: reduced-motion switch disabled when nobody is signed in (store has no session-only field); new copy "Escribe tu nombre." for the empty-name error.
 - T5 (writer): lock state from me.stops with a fallback mirroring grading::stop_status (stopStatus in Home.tsx); module table stacks under 760px content width; Clase two columns from 900px. Not ported yet: class_return/class_review modes (reached from T6/T7). Invented: side-panel "Ejemplo" shows done once the practice is completed.
 - 2026-11-16: native review consent for T1–T4 (62 files) declined by the user ("Omitir esta vez").
+- T6 (writer): optional `lesson` field in AppState keeps the engine view, display order, picks and the Clase return flag; reopening Práctica on the same unfinished stop does not call lesson_start. "Ver explicación" opens Clase with only "Volver a la práctica". Button copy "Intentar de nuevo" (Rune: "Reintentar"). Choice options in monospace, same as Rune.

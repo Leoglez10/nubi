@@ -1,7 +1,7 @@
 // App state shared by every screen, and navigation with a short content transition.
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
-import type { Content, ProgressView, SetupView } from './api'
+import type { Content, LessonView, ProgressView, SetupView } from './api'
 import type { Screen } from './nav'
 
 export interface AppState {
@@ -12,6 +12,29 @@ export interface AppState {
   setup: SetupView | null
   me: ProgressView | null
   accountOpen: boolean
+  /** The practice in progress, kept across navigation so the student can come back to it. */
+  lesson?: LessonState | null
+}
+
+/** What the student has picked on the current exercise, before checking it. */
+export interface LessonDraft {
+  choice: number | null
+  command: string
+  /** Order: display positions in the order placed. */
+  picked: number[]
+  /** Match: [left, right] content indices. */
+  pairs: [number, number][]
+  /** Match: the concept waiting for its meaning. */
+  left: number | null
+}
+
+export interface LessonState {
+  view: LessonView
+  /** Display order of the current order/match exercise (from `api.shuffled`), else empty. */
+  display: number[]
+  draft: LessonDraft
+  /** True while Clase was opened from this practice and should offer the way back. */
+  reviewing: boolean
 }
 
 interface Store {

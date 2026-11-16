@@ -1,5 +1,6 @@
 // Clase (src/view/class.rs): the explanation as an article with drawings, and beside it the
 // class's parts and a tip from Nubi.
+import { useEffect, useState } from 'react'
 import type { Diagram, Teaching } from '../api'
 import { Nubi } from '../art'
 import { classOf, completed, currentClass } from '../nav'
@@ -8,8 +9,14 @@ import { stars } from './Home'
 import './Class.css'
 
 export function Class() {
-  const { state, go } = useApp()
+  const { state, set, go } = useApp()
   const shown = classOf(state.content, state.stopId) ?? currentClass(state.content, state.me?.progress)
+  // Opened with "Ver explicación" from a practice: offer only the way back to it (`class_return`).
+  // Read once on arrival, so a later visit from Inicio or the sidebar is a normal class again.
+  const [fromLesson] = useState(() => state.lesson?.reviewing === true)
+  useEffect(() => {
+    if (state.lesson?.reviewing) set({ lesson: { ...state.lesson, reviewing: false } })
+  }, [state.lesson, set])
   if (!shown) {
     return (
       <section className="page">
@@ -40,13 +47,19 @@ export function Class() {
         <ReviewCard review={t.review} />
 
         <div className="class-actions">
-          <button type="button" className="btn btn-primary" onClick={() => go('lesson', { stopId: node.id })}>
-            Empezar práctica
-          </button>
-          {labReady
-            ? <button type="button" className="btn btn-primary" onClick={() => go('lab', { stopId: t.lab })}>Ir al laboratorio</button>
-            : <button type="button" className="btn" disabled>Laboratorio: termina la práctica</button>}
-          <button type="button" className="btn" onClick={() => go('home', { stopId: null })}>Volver al inicio</button>
+          {fromLesson && state.lesson?.view.id === node.id ? (
+            <button type="button" className="btn btn-primary" onClick={() => go('lesson', { stopId: node.id })}>
+              Volver a la práctica
+            </button>
+          ) : <>
+            <button type="button" className="btn btn-primary" onClick={() => go('lesson', { stopId: node.id, lesson: null })}>
+              Empezar práctica
+            </button>
+            {labReady
+              ? <button type="button" className="btn btn-primary" onClick={() => go('lab', { stopId: t.lab })}>Ir al laboratorio</button>
+              : <button type="button" className="btn" disabled>Laboratorio: termina la práctica</button>}
+            <button type="button" className="btn" onClick={() => go('home', { stopId: null })}>Volver al inicio</button>
+          </>}
         </div>
       </article>
       <Aside id={node.id} teaching={t} />

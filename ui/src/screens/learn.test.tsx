@@ -93,7 +93,7 @@ test("Clase's practice button goes to the lesson and its lab button only once pr
   expect(screen.getByRole('button', { name: 'Laboratorio: termina la práctica' })).toBeDisabled()
   expect(screen.queryByRole('button', { name: 'Ir al laboratorio' })).toBeNull()
   await user.click(screen.getByRole('button', { name: 'Empezar práctica' }))
-  expect(screen.getByText('Pantalla «lesson» (pendiente).')).toBeInTheDocument()
+  expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Práctica')
   unmount()
 
   renderAt({ screen: 'class', stopId: 's3-buckets' }, me({ 's3-buckets': 2 }))
