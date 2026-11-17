@@ -101,7 +101,7 @@ Download the file for your system from the
 
 ```sh
 brew tap leoglez10/nubi https://github.com/Leoglez10/nubi
-brew install --cask nubi
+brew install --cask leoglez10/nubi/nubi
 ```
 
 Homebrew skips the unsigned-app warning below. Update with `brew upgrade --cask nubi`.
