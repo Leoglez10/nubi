@@ -3,309 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nubi</title>
+<title>Nubi Lab Cloud | Aprende AWS en tu equipo</title>
 <meta name="description" content="Aprende AWS en español con clases, práctica y laboratorios que corren en tu computadora, sin cuenta de AWS.">
 <meta property="og:title" content="Nubi (Lab Cloud)">
 <meta property="og:description" content="Aprende AWS en español con laboratorios locales, sin cuenta de AWS.">
-<meta property="og:image" content="screenshots/inicio.png">
+<meta property="og:image" content="https://leoglez10.github.io/nubi/screenshots/inicio.png">
 <link rel="icon" href="nubi.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<style>
-:root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --surface-2: #eef1f5;
-  --ink: #101828;
-  --ink-2: #475467;
-  --line: #e4e7ec;
-  --accent: #1d4ed8;
-  --accent-ink: #ffffff;
-  --accent-soft: #e8efff;
-  --term: #0c111d;
-  --term-ink: #d0d5dd;
-  --ok: #12b76a;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 12px 32px -12px rgba(16, 24, 40, .14);
-  --r: 14px;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0f17;
-    --surface: #121826;
-    --surface-2: #182033;
-    --ink: #eef1f6;
-    --ink-2: #a5adbd;
-    --line: #232c3f;
-    --accent: #5b8cff;
-    --accent-ink: #0b0f17;
-    --accent-soft: #17254a;
-    --term: #070a10;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -16px rgba(0, 0, 0, .6);
-    color-scheme: dark;
-  }
-}
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font: 400 17px/1.6 "Geist", system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-img { max-width: 100%; height: auto; display: block; }
-a { color: inherit; }
-code, pre { font-family: "Geist Mono", ui-monospace, monospace; }
-.wrap { width: min(1200px, 100% - 32px); margin-inline: auto; }
-h1, h2, h3 { margin: 0; letter-spacing: -.025em; line-height: 1.1; font-weight: 650; }
-h2 { font-size: clamp(1.9rem, 1.3rem + 2vw, 2.75rem); }
-h3 { font-size: 1.2rem; letter-spacing: -.01em; }
-p { margin: 0; color: var(--ink-2); max-width: 62ch; }
-section { padding-block: clamp(64px, 9vw, 112px); }
-
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 12px 20px; border-radius: 999px;
-  font-weight: 550; font-size: 16px; text-decoration: none; white-space: nowrap;
-  border: 1px solid transparent;
-  transition: transform .2s cubic-bezier(.16, 1, .3, 1), background-color .2s;
-}
-.btn:active { transform: translateY(1px) scale(.98); }
-.btn-primary { background: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, var(--ink)); }
-.btn-ghost { border-color: var(--line); background: var(--surface); color: var(--ink); }
-.btn-ghost:hover { border-color: var(--ink-2); }
-.btn i { font-size: 18px; }
-
-/* Nav */
-nav {
-  position: sticky; top: 0; z-index: 10;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-}
-nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; text-decoration: none; }
-.brand img { width: 36px; }
-.brand span { display: flex; flex-direction: column; line-height: 1.15; }
-.brand small { font-size: 12px; font-weight: 500; color: var(--ink-2); }
-.nav-links { display: flex; align-items: center; gap: 28px; }
-.nav-links a:not(.btn) { text-decoration: none; color: var(--ink-2); font-size: 15px; }
-.nav-links a:not(.btn):hover { color: var(--ink); }
-.nav-links .btn { padding: 8px 16px; font-size: 15px; }
-
-/* Hero */
-.hero { padding-top: clamp(40px, 6vw, 88px); }
-.hero .wrap { display: grid; grid-template-columns: 5fr 7fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
-.hero h1 { font-size: clamp(2.4rem, 1.4rem + 3.4vw, 4rem); }
-.hero h1 em { font-style: normal; color: var(--accent); }
-.hero p { margin-top: 20px; font-size: 19px; }
-.hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-.shot {
-  position: relative;
-  border-radius: var(--r); overflow: hidden;
-  border: 1px solid var(--line); background: var(--surface);
-  box-shadow: var(--shadow);
-}
-.hero-visual { position: relative; }
-.hero-visual .nubi {
-  position: absolute; width: 112px; left: -36px; bottom: -34px;
-  filter: drop-shadow(0 10px 18px rgba(16, 24, 40, .18));
-}
-
-/* Tour (tabs) */
-.tour h2 { max-width: 18ch; }
-.tour > .wrap > p { margin-top: 16px; }
-.tabs { display: flex; gap: 6px; margin-top: 36px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
-.tabs button {
-  flex: none; display: inline-flex; align-items: center; gap: 8px;
-  font: inherit; font-size: 15px; font-weight: 500; color: var(--ink-2);
-  background: transparent; border: 1px solid transparent; border-radius: 999px;
-  padding: 9px 16px; cursor: pointer;
-  transition: background-color .2s, color .2s;
-}
-.tabs button:hover { color: var(--ink); }
-.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: var(--shadow); }
-.panel { display: grid; grid-template-columns: 1fr 2.4fr; gap: 40px; align-items: center; margin-top: 28px; }
-.panel[hidden] { display: none; }
-.panel h3 { font-size: 1.5rem; }
-.panel p { margin-top: 12px; }
-.panel .shot { animation: fade .45s cubic-bezier(.16, 1, .3, 1); }
-@keyframes fade { from { opacity: 0; transform: translateY(8px); } }
-
-/* Lab */
-.lab { background: var(--surface); border-block: 1px solid var(--line); }
-.lab .wrap { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
-.lab p { margin-top: 18px; }
-.term {
-  margin-top: 28px; padding: 18px 20px; border-radius: var(--r);
-  background: #111827; border: 1px solid #1f2737;
-  font-size: 14px; line-height: 1.8; color: var(--term-ink); overflow-x: auto;
-}
-.term .p { color: #7cb2ff; }
-.term .ok { color: #4ade80; }
-.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
-.wrap > *, .panel > *, .cell, .install li { min-width: 0; }
-
-/* Bento */
-.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-top: 44px; }
-.cell {
-  border-radius: var(--r); padding: 28px; background: var(--surface);
-  border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; min-height: 220px;
-}
-.cell i { font-size: 28px; color: var(--accent); margin-bottom: auto; }
-.cell p { font-size: 15.5px; }
-.c-a { grid-column: span 4; background: var(--accent); border-color: transparent; color: var(--accent-ink); position: relative; overflow: hidden; }
-.c-a p, .c-a i { color: color-mix(in srgb, var(--accent-ink) 82%, transparent); }
-.c-a img { position: absolute; right: -14px; bottom: -22px; width: 190px; opacity: .95; }
-.c-a .txt { max-width: 34ch; }
-.c-b { grid-column: span 2; }
-.c-c { grid-column: span 2; background: var(--surface-2); }
-.c-d { grid-column: span 2; }
-.c-e { grid-column: span 2; background: var(--term); border-color: transparent; color: #f2f4f7; }
-.c-e p { color: #a5adbd; }
-.c-e pre { margin: 0 0 auto; font-size: 13px; color: var(--term-ink); line-height: 1.7; overflow-x: auto; }
-.c-e pre b { color: #7cb2ff; font-weight: 400; }
-
-/* Install */
-.install .wrap { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(32px, 5vw, 72px); align-items: start; }
-.install ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.install li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; }
-.install li h3 { font-size: 1.05rem; display: flex; align-items: center; gap: 10px; }
-.install li h3 i { color: var(--accent); font-size: 20px; }
-.install li p { margin-top: 6px; font-size: 15.5px; }
-.code {
-  position: relative; margin-top: 12px; padding: 12px 48px 12px 14px;
-  background: var(--surface-2); border-radius: 10px; font-size: 14px; overflow-x: auto; white-space: pre;
-}
-.copy {
-  position: absolute; top: 6px; right: 6px; border: 0; background: var(--surface-2); cursor: pointer;
-  color: var(--ink-2); font-size: 18px; padding: 6px; border-radius: 8px;
-}
-.copy:hover { color: var(--ink); background: var(--surface); }
-.install .reqs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-.pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; color: var(--ink-2); }
-
-/* Download */
-.dl { background: var(--surface); border-block: 1px solid var(--line); }
-.dl .wrap { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(32px, 5vw, 72px); align-items: start; }
-.dl .reqs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-.notes { display: inline-flex; align-items: center; gap: 4px; margin-top: 20px; color: var(--accent); font-weight: 550; text-decoration: none; }
-.notes:hover { text-decoration: underline; }
-.os-list { display: grid; gap: 12px; }
-.os {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center;
-  padding: 20px 22px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg);
-}
-.os > i { font-size: 30px; }
-.os p { font-size: 15px; margin-top: 2px; }
-.os .btn { padding: 10px 18px; font-family: "Geist Mono", monospace; font-size: 15px; }
-.os-btns { display: flex; gap: 8px; }
-.os.mine { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.warn { border-radius: var(--r); background: var(--surface-2); padding: 14px 18px; margin-top: 8px; }
-.warn summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 550; font-size: 15px; }
-.warn summary i { color: var(--accent); font-size: 18px; }
-.warn p { margin-top: 10px; font-size: 15px; }
-.fine { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-
-/* Roadmap */
-.road { text-align: left; }
-.road .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
-.road .pill { font-size: 15px; padding: 10px 16px; }
-.road .pill.done { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 550; }
-
-/* Footer CTA */
-.end { padding-bottom: 48px; }
-.end .box {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 28px; align-items: center;
-  padding: clamp(28px, 4vw, 44px); border-radius: calc(var(--r) + 6px);
-  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
-}
-.end .box img { width: 96px; }
-.end .box p { margin-top: 8px; }
-footer { padding: 28px 0 40px; color: var(--ink-2); font-size: 14px; }
-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
-footer a { color: var(--ink-2); }
-
-/* Reveal */
-@media (prefers-reduced-motion: no-preference) {
-  .hero-visual .nubi { animation: bob 5s ease-in-out infinite; }
-  @keyframes bob { 50% { transform: translateY(-8px); } }
-  @supports (animation-timeline: view()) {
-    .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
-    @keyframes rise { from { opacity: 0; transform: translateY(28px); } }
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .panel .shot { animation: none; }
-}
-
-/* Responsive */
-@media (max-width: 960px) {
-  .hero .wrap, .lab .wrap, .install .wrap, .dl .wrap, .panel { grid-template-columns: 1fr; }
-  .hero-visual .nubi { left: auto; right: -8px; width: 84px; bottom: -28px; }
-  .c-a, .c-b, .c-c, .c-d, .c-e { grid-column: span 6; }
-  .c-a { min-height: 260px; }
-}
-@media (max-width: 640px) {
-  .nav-links a:not(.btn) { display: none; }
-  .end .box { grid-template-columns: 1fr; text-align: left; }
-  .os { grid-template-columns: auto 1fr; }
-  .os > .btn, .os-btns { grid-column: 1 / -1; justify-self: start; }
-  .end .box img { width: 72px; }
-  .cell { min-height: 0; }
-  .c-a img { width: 120px; }
-  .c-a .txt { max-width: 26ch; }
-}
-</style>
+<link rel="stylesheet" href="site.css">
 </head>
 <body>
 
-<nav>
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+<nav class="site-nav" aria-label="Principal">
   <div class="wrap">
     <a class="brand" href="#"><img src="nubi.svg" alt=""><span>Nubi<small>Lab Cloud</small></span></a>
     <div class="nav-links">
       <a href="#recorrido">Recorrido</a>
       <a href="#laboratorio">Laboratorio</a>
       <a href="#descargar">Descargar</a>
-      <a class="btn btn-ghost" href="https://github.com/Leoglez10/nubi"><i class="ph ph-github-logo"></i>GitHub</a>
+      <a class="btn btn-ghost" href="https://github.com/Leoglez10/nubi">GitHub</a>
     </div>
   </div>
 </nav>
 
+<main id="contenido" tabindex="-1">
 <header class="hero">
   <div class="wrap">
     <div>
-      <h1>Aprende AWS en español, <em>sin cuenta de AWS.</em></h1>
-      <p>Clases cortas, práctica guiada y laboratorios reales que corren en tu computadora contra un emulador local.</p>
+      <div class="eyebrow">Laboratorio local en español</div>
+      <h1>Aprende AWS <em>en tu equipo.</em></h1>
+      <p>Clases, ejercicios y una terminal conectada a un emulador local. Sin cuenta de AWS.</p>
       <div class="ctas">
-        <a class="btn btn-primary" href="#descargar"><i class="ph ph-download-simple"></i>Descargar</a>
+        <a class="btn btn-primary" href="#descargar">Descargar</a>
         <a class="btn btn-ghost" href="#recorrido">Ver recorrido</a>
       </div>
     </div>
-    <div class="hero-visual">
-      <div class="shot"><img src="screenshots/inicio.png" width="2360" height="1520" alt="Pantalla de inicio de Nubi con el progreso del módulo de S3 y la clase para continuar" fetchpriority="high"></div>
-      <img class="nubi" src="nubi.svg" alt="">
-    </div>
+    <figure class="hero-visual">
+      <div class="shot"><img src="screenshots/inicio.png" srcset="screenshots/inicio-720.webp 720w, screenshots/inicio-1440.webp 1440w" sizes="(max-width: 48rem) 90vw, (max-width: 60rem) 690px, (max-width: 80rem) 52vw, 640px" width="2360" height="1520" alt="Pantalla de inicio de Nubi con el progreso del módulo de S3 y la clase para continuar" fetchpriority="high"></div>
+      <figcaption class="mono"><span>Vista de la app</span><span>Módulo S3</span></figcaption>
+    </figure>
   </div>
 </header>
 
-<section class="tour" id="recorrido">
-  <div class="wrap">
-    <h2 class="reveal">Cada clase sigue el mismo camino.</h2>
-    <p class="reveal">Primero entiendes la idea, luego la practicas y al final la aplicas con comandos reales.</p>
-    <div class="tabs" role="tablist" aria-label="Pantallas de la app">
-      <button role="tab" aria-selected="true" aria-controls="p-clase" id="t-clase"><i class="ph ph-book-open"></i>Clase</button>
-      <button role="tab" aria-selected="false" aria-controls="p-practica" id="t-practica" tabindex="-1"><i class="ph ph-check-square"></i>Práctica</button>
-      <button role="tab" aria-selected="false" aria-controls="p-perfiles" id="t-perfiles" tabindex="-1"><i class="ph ph-users"></i>Perfiles</button>
-      <button role="tab" aria-selected="false" aria-controls="p-ajustes" id="t-ajustes" tabindex="-1"><i class="ph ph-gear"></i>Ajustes</button>
+<div class="journey wrap">
+  <nav class="flight" aria-label="Ruta de Nubi">
+    <p class="flight-title mono">Ruta de Nubi</p>
+    <div class="flight-track">
+      <ol>
+        <li><a href="#recorrido" aria-current="location">Recorrido</a></li>
+        <li><a href="#laboratorio">Laboratorio</a></li>
+        <li><a href="#descargar">Descargar</a></li>
+      </ol>
+      <div class="flight-window" aria-hidden="true"></div>
     </div>
-    <div class="panel" role="tabpanel" id="p-clase" aria-labelledby="t-clase">
+  </nav>
+  <div class="journey-content">
+<section class="tour" id="recorrido" data-stop>
+  <div class="wrap">
+    <h2>Cada clase sigue el mismo camino.</h2>
+    <p>Primero entiendes la idea, luego la practicas y al final la aplicas con comandos reales.</p>
+    <div class="tabs" role="tablist" aria-label="Pantallas de la app">
+      <button type="button" role="tab" aria-selected="true" aria-controls="p-clase" id="t-clase">Clase</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="p-practica" id="t-practica" tabindex="-1">Práctica</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="p-perfiles" id="t-perfiles" tabindex="-1">Perfiles</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="p-ajustes" id="t-ajustes" tabindex="-1">Ajustes</button>
+    </div>
+    <div class="panel" role="tabpanel" id="p-clase" aria-labelledby="t-clase" tabindex="0">
       <div><h3>Explicación con ejemplo</h3><p>Cada clase explica un concepto con un ejemplo resuelto. Nubi te deja una pista para recordarlo.</p></div>
       <div class="shot"><img src="screenshots/clase.png" width="2360" height="1520" alt="Pantalla de una clase con explicación y ejemplo" loading="lazy"></div>
     </div>
@@ -324,14 +87,14 @@ footer a { color: var(--ink-2); }
   </div>
 </section>
 
+<div data-stop>
 <section class="lab" id="laboratorio">
   <div class="wrap">
-    <div class="shot reveal"><img src="screenshots/laboratorio.png" width="2360" height="1520" alt="Laboratorio con objetivos a la izquierda y una terminal conectada al emulador local" loading="lazy"></div>
+    <div class="shot"><img src="screenshots/laboratorio.png" width="2360" height="1520" alt="Laboratorio con objetivos a la izquierda y una terminal conectada al emulador local" loading="lazy"></div>
     <div>
-      <div class="eyebrow">Laboratorio</div>
-      <h2>Comandos reales, cero riesgo.</h2>
+      <h2>Prueba comandos reales.</h2>
       <p>La terminal del laboratorio ejecuta la AWS CLI contra AWS Emulator en tu equipo. La app revisa cada objetivo mientras avanzas. Sin tarjeta, sin facturas sorpresa.</p>
-      <div class="term">
+      <div class="term" aria-label="Ejemplo de comando en el laboratorio">
         <div><span class="p">nubi@labcloud $</span> aws s3api create-bucket --bucket mi-primer-bucket</div>
         <div class="ok">✓ Objetivo 1 completado</div>
         <div><span class="p">nubi@labcloud $</span> pista</div>
@@ -342,99 +105,109 @@ footer a { color: var(--ink-2); }
 
 <section>
   <div class="wrap">
-    <h2 class="reveal">Hecho para aprender de verdad.</h2>
+    <h2>Hecho para aprender de verdad.</h2>
     <div class="bento">
-      <div class="cell c-a reveal">
-        <i class="ph ph-translate"></i>
+      <div class="cell c-a">
+
         <div class="txt"><h3>Todo en español</h3><p>Explicaciones, pistas y mensajes pensados para quien empieza en la nube, no traducidos a la carrera.</p></div>
-        <img src="nubi.svg" alt="">
       </div>
-      <div class="cell c-b reveal">
-        <i class="ph ph-hard-drives"></i>
+      <div class="cell c-b">
+
         <h3>100% local</h3><p>El emulador corre en Docker en tu equipo. Tus recursos viven en memoria.</p>
       </div>
-      <div class="cell c-c reveal">
-        <i class="ph ph-star"></i>
+      <div class="cell c-c">
+
         <h3>Estrellas y niveles</h3><p>Gana estrellas por práctica y laboratorio. Termina los juegos de una clase para abrir su laboratorio.</p>
       </div>
-      <div class="cell c-d reveal">
-        <i class="ph ph-lifebuoy"></i>
+      <div class="cell c-d">
+
         <h3>Nunca te quedas atorado</h3><p>Escribe "pista" en la terminal o abre la explicación sin perder tu avance.</p>
       </div>
-      <div class="cell c-e reveal">
+      <div class="cell c-e">
+        <div class="txt"><h3>Contenido abierto</h3><p>Las lecciones son archivos TOML. Agrega una clase sin tocar código.</p></div>
         <pre><b>[[exercises]]</b>
 type = "command"
 prompt = "Lista tus buckets"
 answers = ["aws s3 ls"]</pre>
-        <h3>Contenido abierto</h3><p>Las lecciones son archivos TOML. Agrega una clase sin tocar código.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="dl" id="descargar">
+</div>
+<section class="dl" id="descargar" data-stop>
   <div class="wrap">
-    <div class="reveal">
+    <div>
       <h2>Descarga Nubi.</h2>
-      <p style="margin-top:16px">Gratis y de código abierto. Al abrir, la app revisa tu entorno y te ofrece un botón para instalar o iniciar lo que falte.</p>
+      <p>Gratis y de código abierto. Al abrir, la app revisa tu entorno y te ofrece un botón para instalar o iniciar lo que falte.</p>
       <div class="reqs">
-        <span class="pill"><i class="ph ph-cube"></i>Docker</span>
-        <span class="pill"><i class="ph ph-terminal-window"></i>AWS CLI v2</span>
+        <span class="pill">Docker</span>
+        <span class="pill">AWS CLI v2</span>
       </div>
-      <a class="notes" href="https://github.com/Leoglez10/nubi/releases/latest">Notas de la versión <i class="ph ph-arrow-up-right"></i></a>
+      <a class="notes" href="https://github.com/Leoglez10/nubi/releases/latest">Notas de la versión ↗</a>
     </div>
     <div class="os-list">
-      <div class="os reveal" data-os="mac">
-        <i class="ph ph-apple-logo"></i>
-        <div><h3>macOS</h3><p>Apple Silicon e Intel, macOS 11 o superior. Con Homebrew: <code>brew tap leoglez10/nubi https://github.com/Leoglez10/nubi &amp;&amp; brew install --cask leoglez10/nubi/nubi</code></p></div>
+      <div class="os" data-os="mac">
+        <div>
+          <h3>macOS</h3>
+          <p>Apple Silicon e Intel, macOS 11 o superior.</p>
+        </div>
         <a class="btn btn-primary" href="https://github.com/Leoglez10/nubi/releases/latest/download/nubi-macos.dmg">.dmg</a>
+        <div class="code brew-command" id="brew-command" role="group" aria-label="Comando de Homebrew">
+          <code>brew tap leoglez10/nubi https://github.com/Leoglez10/nubi &amp;&amp; brew install --cask leoglez10/nubi/nubi</code>
+          <button class="copy copy-icon" type="button" aria-label="Copiar comando de Homebrew" title="Copiar comando de Homebrew"></button>
+        </div>
       </div>
-      <div class="os reveal" data-os="win">
-        <i class="ph ph-windows-logo"></i>
+      <div class="os" data-os="win">
+
         <div><h3>Windows</h3><p>Windows 10 u 11, 64 bits. Instalador .exe.</p></div>
         <a class="btn btn-primary" href="https://github.com/Leoglez10/nubi/releases/latest/download/nubi-windows-x64.exe">.exe</a>
       </div>
-      <div class="os reveal" data-os="linux">
-        <i class="ph ph-linux-logo"></i>
+      <div class="os" data-os="linux">
+
         <div><h3>Linux</h3><p>64 bits. Paquete .deb para Debian y Ubuntu, o AppImage para el resto.</p></div>
         <div class="os-btns">
           <a class="btn btn-primary" href="https://github.com/Leoglez10/nubi/releases/latest/download/nubi-linux-x64.deb">.deb</a>
           <a class="btn btn-ghost" href="https://github.com/Leoglez10/nubi/releases/latest/download/nubi-linux-x64.AppImage">.AppImage</a>
         </div>
       </div>
-      <details class="warn reveal">
-        <summary><i class="ph ph-shield-warning"></i>Tu sistema puede avisar que la app no está firmada</summary>
+      <details class="warn">
+        <summary>Tu sistema puede avisar que la app no está firmada</summary>
         <p>Todavía no tenemos certificados de firma. En macOS, intenta abrirla una vez y luego, en Ajustes del Sistema, Privacidad y seguridad, elige Abrir igualmente. En Windows, en SmartScreen elige Más información y luego Ejecutar de todas formas.</p>
       </details>
-      <p class="fine reveal"><i class="ph ph-eye-slash"></i>La app inicia AWS Emulator con la telemetría desactivada y solo en 127.0.0.1.</p>
+      <p class="fine">La app inicia AWS Emulator con la telemetría desactivada y solo en 127.0.0.1.</p>
     </div>
   </div>
 </section>
 
+  </div>
+</div>
+
 <section class="install" id="codigo">
+  <p class="sr-only" id="copy-status" role="status"></p>
   <div class="wrap">
-    <div class="reveal">
+    <div>
       <h2>O compílalo tú.</h2>
-      <p style="margin-top:16px">Necesitas Rust estable, Node.js 24, Docker, AWS CLI v2 y los <a href="https://v2.tauri.app/start/prerequisites/">requisitos de Tauri</a> de tu sistema (en Linux, WebKitGTK 4.1).</p>
+      <p>Necesitas Rust estable, Node.js 24, Docker, AWS CLI v2 y los <a href="https://v2.tauri.app/start/prerequisites/">requisitos de Tauri</a> de tu sistema (en Linux, WebKitGTK 4.1).</p>
     </div>
     <ol>
-      <li class="reveal">
-        <h3><i class="ph ph-git-branch"></i>Clona el repositorio</h3>
+      <li>
+        <h3>Clona el repositorio</h3>
         <div class="code"><code>git clone https://github.com/Leoglez10/nubi.git
-cd nubi</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
+cd nubi</code><button class="copy" type="button">Copiar</button></div>
       </li>
-      <li class="reveal">
-        <h3><i class="ph ph-package"></i>Instala la interfaz</h3>
-        <div class="code"><code>npm ci --prefix ui</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
+      <li>
+        <h3>Instala la interfaz</h3>
+        <div class="code"><code>npm ci --prefix ui</code><button class="copy" type="button">Copiar</button></div>
       </li>
-      <li class="reveal">
-        <h3><i class="ph ph-play"></i>Abre la app</h3>
-        <div class="code"><code>ui/node_modules/.bin/tauri dev</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
+      <li>
+        <h3>Abre la app</h3>
+        <div class="code"><code>ui/node_modules/.bin/tauri dev</code><button class="copy" type="button">Copiar</button></div>
       </li>
-      <li class="reveal">
-        <h3><i class="ph ph-cloud"></i>Inicia el emulador</h3>
+      <li>
+        <h3>Inicia el emulador</h3>
         <p>Desde la app, o a mano. Escucha en 127.0.0.1:9297.</p>
-        <div class="code"><code>scripts/emulator.sh start</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
+        <div class="code"><code>scripts/emulator.sh start</code><button class="copy" type="button">Copiar</button></div>
       </li>
     </ol>
   </div>
@@ -443,10 +216,10 @@ cd nubi</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-c
 <section class="road">
   <div class="wrap">
     <div class="eyebrow">En camino</div>
-    <h2 class="reveal">S3 hoy. Más servicios después.</h2>
-    <p class="reveal" style="margin-top:16px">El módulo de fundamentos de S3 ya está disponible. Los siguientes servicios entran al mapa de la nube.</p>
-    <div class="row reveal">
-      <span class="pill done"><i class="ph ph-check"></i>S3</span>
+    <h2>S3 hoy. Más servicios después.</h2>
+    <p>El módulo de fundamentos de S3 ya está disponible. Los siguientes servicios entran al mapa de la nube.</p>
+    <div class="row">
+      <span class="pill done">S3</span>
       <span class="pill">IAM y STS</span>
       <span class="pill">DynamoDB</span>
       <span class="pill">SQS</span>
@@ -457,13 +230,15 @@ cd nubi</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-c
 
 <section class="end">
   <div class="wrap">
-    <div class="box reveal">
+    <div class="box">
       <img src="nubi.svg" alt="Nubi">
-      <div><h2 style="font-size:clamp(1.5rem,1.1rem + 1.4vw,2.1rem)">Nubi te espera en la primera clase.</h2><p>Código abierto en GitHub. Reporta ideas o errores en los issues.</p></div>
-      <a class="btn btn-primary" href="#descargar"><i class="ph ph-download-simple"></i>Descargar</a>
+      <div><h2>Nubi te espera en la primera clase.</h2><p>Código abierto en GitHub. Reporta ideas o errores en los issues.</p></div>
+      <a class="btn btn-primary" href="#descargar">Ver instaladores</a>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="wrap">
@@ -472,36 +247,6 @@ cd nubi</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-c
   </div>
 </footer>
 
-<script>
-const tabs = [...document.querySelectorAll('[role="tab"]')];
-function select(tab) {
-  tabs.forEach(t => {
-    const on = t === tab;
-    t.setAttribute('aria-selected', on);
-    t.tabIndex = on ? 0 : -1;
-    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
-  });
-}
-tabs.forEach((t, i) => {
-  t.addEventListener('click', () => select(t));
-  t.addEventListener('keydown', e => {
-    const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-    if (!d) return;
-    const next = tabs[(i + d + tabs.length) % tabs.length];
-    next.focus(); select(next);
-  });
-});
-const ua = navigator.userAgent;
-const os = /Mac/.test(ua) ? 'mac' : /Win/.test(ua) ? 'win' : /Linux/.test(ua) && !/Android/.test(ua) ? 'linux' : null;
-if (os) document.querySelector(`.os[data-os="${os}"]`).classList.add('mine');
-document.querySelectorAll('.copy').forEach(b => b.addEventListener('click', async () => {
-  const icon = b.querySelector('i');
-  try {
-    await navigator.clipboard.writeText(b.previousElementSibling.textContent);
-    icon.className = 'ph ph-check';
-  } catch { icon.className = 'ph ph-x'; }
-  setTimeout(() => icon.className = 'ph ph-copy', 1600);
-}));
-</script>
+<script src="site.js" defer></script>
 </body>
 </html>
