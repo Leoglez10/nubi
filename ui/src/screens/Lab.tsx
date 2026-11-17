@@ -1,4 +1,4 @@
-// Laboratorio (src/view/lab.rs): objectives on one side, the integrated terminal on the other,
+// Laboratorio: objectives on one side, the integrated terminal on the other,
 // and the result with stars, what went wrong and "Perfeccionar". The engine owns the session;
 // this screen keeps the typed line and the running command in the store so leaving for the class
 // and coming back keeps the attempt.

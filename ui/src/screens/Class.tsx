@@ -1,4 +1,4 @@
-// Clase (src/view/class.rs): the explanation as an article with drawings, and beside it the
+// Clase: the explanation as an article with drawings, and beside it the
 // class's parts and a tip from Nubi.
 import { useEffect, useState } from 'react'
 import type { Diagram, Teaching } from '../api'

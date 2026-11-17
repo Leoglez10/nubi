@@ -1,4 +1,4 @@
-// Guided setup (src/view/setup.rs): what is missing on this machine and the one-click fix for each.
+// Guided setup: what is missing on this machine and the one-click fix for each.
 import { useState } from 'react'
 import { api, type Action, type Need, type SetupView } from '../api'
 import { useApp } from '../store'

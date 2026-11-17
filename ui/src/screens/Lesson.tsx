@@ -1,4 +1,4 @@
-// Práctica (src/view/lesson.rs): one exercise per card, a footer that says right or "try again"
+// Práctica: one exercise per card, a footer that says right or "try again"
 // with a hint, unlimited retries, and a result with stars and what to review. The engine owns the
 // session; this screen keeps the student's picks and the shuffled display order in the store so
 // leaving for the class and coming back keeps the exercise.
@@ -29,7 +29,7 @@ function exerciseOf(content: Content, view: LessonView): Exercise | undefined {
 
 /**
  * The student's answer, or null while incomplete. Order maps display positions back to content
- * indices (`answer()` in src/view/lesson.rs); match pairs are already content indices.
+ * indices (the engine grades content indices); match pairs are already content indices.
  */
 export function answerOf(ex: Exercise, draft: LessonDraft, display: number[]): Answer | null {
   switch (ex.type) {

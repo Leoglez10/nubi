@@ -1,4 +1,4 @@
-// Inicio (src/view/map.rs): where the student stands, the class to continue and the module at a
+// Inicio: where the student stands, the class to continue and the module at a
 // glance. Every number comes from saved progress.
 import { classes, type Content, type ProgressView, type Stop } from '../api'
 import { Nubi } from '../art'

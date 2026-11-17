@@ -1,4 +1,4 @@
-// Ajustes (src/view/settings.rs): the signed-in profile (edit or delete it) and preferences
+// Ajustes: the signed-in profile (edit or delete it) and preferences
 // that apply everywhere.
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { api, type Profile } from '../api'

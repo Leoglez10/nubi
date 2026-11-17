@@ -1,6 +1,6 @@
 /* Laboratorio: objectives (and the result) beside a dark terminal; stacked when content is narrow. */
 .lab-page {
-  /* The terminal's own palette (src/view/lab.rs `term()`): dark in every theme. */
+  /* The terminal's own palette (same as the original Rune terminal): dark in every theme. */
   --term-bg: #0c111d;
   --term-bar: #161b26;
   --term-text: #e4e7ec;

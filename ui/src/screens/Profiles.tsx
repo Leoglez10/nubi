@@ -1,4 +1,4 @@
-// "¿Quién va a aprender hoy?" (src/view/profiles.rs): local profiles, no passwords.
+// "¿Quién va a aprender hoy?": local profiles, no passwords.
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { api, type ProfileCard } from '../api'
 import { Avatar, Nubi } from '../art'

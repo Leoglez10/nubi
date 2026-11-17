@@ -7,28 +7,10 @@ description = "Learn AWS in Spanish with local labs against AWS Emulator"
 repository = "https://github.com/Leoglez10/lab-cloud-aws"
 publish = false
 
-# `cargo deb` (release workflow, Linux).
-[package.metadata.deb]
-maintainer = "Leoglez10"
-section = "education"
-assets = [["target/release/nubi", "usr/bin/", "755"]]
-
 [workspace]
 members = ["src-tauri"]
 
-[features]
-# The Rune UI, until the Tauri app (src-tauri/ + ui/) reaches parity.
-default = ["rune-ui"]
-rune-ui = ["dep:rune"]
-
-[[bin]]
-name = "nubi"
-path = "src/main.rs"
-required-features = ["rune-ui"]
-
 [dependencies]
-# Rune is pre-release: always pin a rev of its `dev` branch.
-rune = { optional = true, git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
 aws-config = { version = "1", features = ["behavior-version-latest"] }
 aws-sdk-s3 = "1"
 tokio = { version = "1", features = ["rt"] }
@@ -36,11 +18,3 @@ serde = { version = "1.0.229", features = ["derive"] }
 toml = "1.2.1"
 serde_json = "1.0.154"
 
-# Rune builds against patched copies of these crates (see Rune's own Cargo.toml);
-# a dependency's [patch] does not apply to us, so we repeat it at the same rev.
-[patch.crates-io]
-wgpu-hal = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
-winit = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
-parley_engine = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
-accesskit_windows = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }
-accesskit_macos = { git = "https://github.com/anomalyco/rune", rev = "2371240d6ef8d40bb9f963d784de66e5f05862f5" }

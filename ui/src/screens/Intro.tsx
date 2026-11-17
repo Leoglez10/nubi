@@ -1,4 +1,4 @@
-// The intro (src/view/intro.rs): Nubi rises over the clouds, the logo and the local-cloud
+// The intro: Nubi rises over the clouds, the logo and the local-cloud
 // checks appear one after another, then "Entrar". Static when motion is reduced.
 import { useEffect, useState, type CSSProperties } from 'react'
 import { api } from '../api'
