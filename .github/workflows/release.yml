@@ -104,3 +104,18 @@ jobs:
             nubi-windows-x64.exe
             nubi-linux-x64.deb
             nubi-linux-x64.AppImage
+      # Point the Homebrew cask (Casks/nubi.rb) at the new release so `brew upgrade` picks it up.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: repo
+      - name: Bump Homebrew cask
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sha=$(sha256sum nubi-macos.dmg | cut -d' ' -f1)
+          cd repo
+          sed -i -E "s/^  version \".*\"/  version \"$version\"/; s/^  sha256 \".*\"/  sha256 \"$sha\"/" Casks/nubi.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump Homebrew cask to $version" || exit 0
+          git push

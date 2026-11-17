@@ -257,7 +257,8 @@ tests, so run them locally before pushing. Push a `v*` tag (for example
 universal `.dmg`, the Windows installer `.exe` (NSIS) and the Linux `.deb`/`.AppImage`, and
 attaches them to a GitHub Release as `nubi-macos.dmg`, `nubi-windows-x64.exe`,
 `nubi-linux-x64.deb` and `nubi-linux-x64.AppImage` (no version in the name, so the website can
-link to `releases/latest/download/<name>`). Running it by hand (`workflow_dispatch`) from a branch
+link to `releases/latest/download/<name>`). It then commits the new `version` and `sha256` to
+`Casks/nubi.rb` on `main`, so `brew upgrade --cask nubi` picks up the release. Running it by hand (`workflow_dispatch`) from a branch
 builds the files as workflow artifacts without publishing a release. The version lives in three places:
 `Cargo.toml`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`. Course
 content is embedded in the binary at build time by `build.rs`. The website lives in `docs/`
