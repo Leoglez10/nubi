@@ -4,7 +4,7 @@ version = "0.1.2"
 edition = "2024"
 license = "MIT"
 description = "Learn AWS in Spanish with local labs against AWS Emulator"
-repository = "https://github.com/Leoglez10/lab-cloud-aws"
+repository = "https://github.com/Leoglez10/nubi"
 publish = false
 
 [workspace]
