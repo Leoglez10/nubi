@@ -415,7 +415,7 @@ answers = ["aws s3 ls"]</pre>
   <div class="wrap">
     <div class="reveal">
       <h2>O compílalo tú.</h2>
-      <p style="margin-top:16px">Necesitas Rust estable además de Docker y AWS CLI v2.</p>
+      <p style="margin-top:16px">Necesitas Rust estable, Node.js 24, Docker, AWS CLI v2 y los <a href="https://v2.tauri.app/start/prerequisites/">requisitos de Tauri</a> de tu sistema (en Linux, WebKitGTK 4.1).</p>
     </div>
     <ol>
       <li class="reveal">
@@ -424,8 +424,12 @@ answers = ["aws s3 ls"]</pre>
 cd nubi</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
       </li>
       <li class="reveal">
+        <h3><i class="ph ph-package"></i>Instala la interfaz</h3>
+        <div class="code"><code>npm ci --prefix ui</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
+      </li>
+      <li class="reveal">
         <h3><i class="ph ph-play"></i>Abre la app</h3>
-        <div class="code"><code>cargo run</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
+        <div class="code"><code>ui/node_modules/.bin/tauri dev</code><button class="copy" aria-label="Copiar comando"><i class="ph ph-copy"></i></button></div>
       </li>
       <li class="reveal">
         <h3><i class="ph ph-cloud"></i>Inicia el emulador</h3>
