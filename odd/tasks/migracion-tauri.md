@@ -20,7 +20,7 @@ Branch: `feat/tauri`. Delivery: single-pr (user chose "3", 2026-11-16). Runners:
 - [x] T5 · S3, S4 · delegated (context backstop) · Inicio + Clase — 6 Vitest (learn.test.tsx), 28 total, tests passed on first run (no observed RED); parent checked both in browser preview at 1024 px
 - [x] T6 · S3, S4 · delegated (context backstop) · Práctica + results — 9 Vitest (lesson.test.tsx), 37 total (parent fixed one stale placeholder assertion in learn.test.tsx); parent checked the choice exercise in browser preview
 - [x] T7 · S3, S4 · delegated (context backstop) · Laboratorio + terminal — 8 Vitest (lab.test.tsx), 45 total; writer proved the resume tests can fail by disabling the rule; tsc + build clean. Not checked in a live window against the emulator (engine side covered by the ignored Rust test that passed vs Kiri in T2)
-- [ ] T8 · S5 · inline · remove Rune, docs, release workflow
+- [x] T8 · S5 · delegated (context backstop) + independent verifier (Risk item 5) · remove Rune, docs, release workflow — cargo test --workspace 50 (+6 ignored, 56 with emulator), clippy clean, 45 Vitest, actionlint clean, local `tauri build --bundles app` → Nubi.app with binary nubi; verifier: 5/5 PASS, no blockers
 
 ## Log
 
@@ -35,3 +35,5 @@ Branch: `feat/tauri`. Delivery: single-pr (user chose "3", 2026-11-16). Runners:
 - 2026-11-16: native review consent for T1–T4 (62 files) declined by the user ("Omitir esta vez").
 - T6 (writer): optional `lesson` field in AppState keeps the engine view, display order, picks and the Clase return flag; reopening Práctica on the same unfinished stop does not call lesson_start. "Ver explicación" opens Clase with only "Volver a la práctica". Button copy "Intentar de nuevo" (Rune: "Reintentar"). Choice options in monospace, same as Rune.
 - T7 (writer): optional `lab` field in AppState (view, input, running line, review, resume flag); line list role=log; errors offer "Revisar el entorno" → setup. Back button "Volver al laboratorio" (Rune: "Volver a mi práctica"). Parent moved `.btn-reward` from Lesson.css to index.css. 2026-11-16: native review consent for T1–T6 declined by the user.
+- 2026-11-16 (user, after trying the live app): "es increible. sigue con lo siguiente" → T8.
+- T8: release assets keep their names (nubi-macos.dmg universal, nubi-windows-x64.exe now an NSIS installer, nubi-linux-x64.deb); nubi-linux-x64.tar.gz replaced by nubi-linux-x64.AppImage in workflow, docs/index.html, README, PLAN. Verifier risk (non-blocking): AppImage bundling downloads linuxdeploy at build time; run `workflow_dispatch` once before tagging. Native review of uncommitted T8 stopped with lens_context_budget_exceeded → committed in two slices; review the release/docs slice alone.

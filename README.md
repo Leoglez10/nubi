@@ -10,7 +10,7 @@
 
 <p align="center">
   <img alt="Rust" src="https://img.shields.io/badge/Rust-2024-b7410e?logo=rust&logoColor=white">
-  <img alt="Rune" src="https://img.shields.io/badge/UI-Rune-5c6bc0">
+  <img alt="Tauri" src="https://img.shields.io/badge/UI-Tauri%20%2B%20React-24c8db?logo=tauri&logoColor=white">
   <img alt="AWS Emulator" src="https://img.shields.io/badge/AWS-Emulator%20local-ff9900?logo=amazonwebservices&logoColor=white">
   <img alt="idioma" src="https://img.shields.io/badge/idioma-espa%C3%B1ol-2e7d32">
   <img alt="licencia" src="https://img.shields.io/github/license/Leoglez10/nubi?label=licencia">
@@ -74,7 +74,7 @@ IAM/STS, DynamoDB, SQS and SNS are planned next; see [PLAN.md](PLAN.md).
 
 ## Download
 
-Get the app for macOS (`.dmg`), Windows (`.exe`) or Linux (`.deb`, `.tar.gz`) from the
+Get the app for macOS (`.dmg`), Windows (`.exe`) or Linux (`.deb`, `.AppImage`) from the
 [latest release](https://github.com/Leoglez10/nubi/releases/latest) or the
 [website](https://leoglez10.github.io/nubi/). You still need Docker and AWS CLI v2.
 Builds are not signed yet: on macOS, try to open the app once and then choose
@@ -86,13 +86,17 @@ Builds are not signed yet: on macOS, try to open the app once and then choose
 Requirements:
 
 - [Rust](https://rustup.rs) (stable, edition 2024)
+- [Node.js](https://nodejs.org) 24 with npm
+- The [Tauri v2 system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS
+  (on Linux, WebKitGTK 4.1 and friends)
 - [Docker](https://www.docker.com/products/docker-desktop/), running
 - [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ```sh
 git clone https://github.com/Leoglez10/nubi.git
 cd nubi
-cargo run
+npm ci --prefix ui
+ui/node_modules/.bin/tauri dev
 ```
 
 The first start checks your machine. If something is missing, the setup screen shows a
@@ -165,41 +169,35 @@ official AWS Emulator Docker recipe for `aarch64` or `x86_64`.
 
 ## For developers
 
-**Stack:** Rust (edition 2024), [Rune](https://github.com/anomalyco/rune) for the native UI
-(pinned to one revision of its pre-release `dev` branch in `Cargo.toml`), `aws-sdk-s3` and
-`tokio` to check lab objectives against the emulator, `serde`/`toml`/`serde_json` for content
-and progress.
+**Stack:** a Rust engine (the `nubi` library, edition 2024: course, grading, progress, labs,
+setup) with `aws-sdk-s3` and `tokio` to check lab objectives against the emulator and
+`serde`/`toml`/`serde_json` for content and progress; a [Tauri v2](https://v2.tauri.app) app
+crate in `src-tauri/` that exposes the engine as commands; and the UI in `ui/`, React +
+TypeScript + Vite.
 
 ```sh
-cargo run                         # the app
-cargo test                        # unit and UI tests
-cargo test -- --include-ignored   # also the tests that need the emulator running
-cargo clippy --all-targets -- -D warnings
+npm ci --prefix ui                          # once: the UI dependencies and the Tauri CLI
+ui/node_modules/.bin/tauri dev              # the app, with hot reload (from the repo root)
+npm --prefix ui run dev                     # the UI alone in a browser, with sample data
+cargo test --workspace                      # engine and command tests
+cargo test --workspace -- --include-ignored # also the tests that need the emulator running
+npm --prefix ui test                        # UI tests (Vitest + Testing Library)
+cargo clippy --workspace --all-targets -- -D warnings
+ui/node_modules/.bin/tauri build            # installers for this OS under target/release/bundle/
 ```
-
-UI tests drive the real views headlessly with Rune's `Runtime` (clicks, keyboard, layout).
-Headless snapshots of any screen:
-
-```sh
-cargo run -- --snap out.png --scene <name> --at 1.5
-```
-
-`--at 1.5` captures the screen after its entry motion has settled and its images are drawn.
 
 Releases: push a `v*` tag (for example `git tag v0.1.0 && git push origin v0.1.0`) and
-`.github/workflows/release.yml` builds the macOS `.dmg` (`scripts/package-macos.sh`), the
-Windows `.exe` and the Linux `.tar.gz`/`.deb`, and attaches them to a GitHub Release. Course
+`.github/workflows/release.yml` builds with the Tauri bundler the macOS universal `.dmg`, the
+Windows installer `.exe` (NSIS) and the Linux `.deb`/`.AppImage`, and attaches them to a
+GitHub Release. Course
 content is embedded in the binary at build time by `build.rs`. The website lives in `docs/`
 (GitHub Pages, `main` branch, `/docs` folder).
-
-Scenes: `intro`, `setup`, `profiles`, `profiles-new`, `settings`, `map` (Inicio), `class`,
-`class-2`, `lesson`, `lesson-wrong`, `lesson-order`, `lesson-match`, `lesson-done`, `lab`.
 
 ### Project structure
 
 ```text
-src/
-├── main.rs        app state, navigation, the background worker (setup, labs, saving)
+src/               the engine (`nubi` library)
+├── lib.rs         module list
 ├── course.rs      loads and validates the course TOML
 ├── lesson.rs      a practice session: answers, feedback, mistakes
 ├── lab.rs         a lab session: terminal history, aws command parsing, objectives
@@ -207,15 +205,18 @@ src/
 ├── grading.rs     stars, levels, unlock order
 ├── progress.rs    local profiles and progress on disk
 ├── setup.rs       what the machine is missing and how to fix it per OS
-├── emulator.rs    emulator health and AWS CLI environment
-├── motion.rs      clock-driven screen transitions
-└── view/          screens: shell (sidebar), map (Inicio), class, lesson, lab,
-                   profiles, settings, setup, intro
+└── emulator.rs    emulator health and AWS CLI environment
+src-tauri/         the Tauri app crate (binary `nubi`): engine.rs wraps the engine as
+                   commands, main.rs registers them; tauri.conf.json, icons/
+ui/                React + TypeScript + Vite UI
+├── src/api/       typed client for the Tauri commands (sample data in the browser)
+├── src/shell/     sidebar, top bar, transitions
+└── src/screens/   intro, setup, profiles, settings, Inicio, class, practice, lab
 content/           course.toml and one TOML per lesson or lab (Spanish)
-assets/           app icon (icon.svg source, icon.png used at runtime)
+assets/            app icon sources (icon.svg, icon.png)
 emulator/          Dockerfile for the AWS Emulator image
 scripts/           emulator.sh
-tests/             integration tests (content, classes, emulator, checker)
+tests/             engine integration tests (content, classes, emulator, checker)
 docs/screenshots/  images used in this README
 odd/tasks/         feature logbooks
 ```
@@ -236,18 +237,18 @@ Course content is Spanish TOML under `content/`; no code changes are needed:
   - Labs list `[[objectives]]` with `text`, `hint` and a `check`: `bucket_exists`,
     `bucket_versioning` (`status`) or `object_exists` (`key`).
 
-`cargo test` validates every file (ids, answers in range, labs with objectives, class order).
+`cargo test --workspace` validates every file (ids, answers in range, labs with objectives, class order).
 
 ## Status
 
-Early and in active development (version 0.1.0, not published as a crate). Only S3 is covered
-so far. Rune is pre-release, so the UI dependency is pinned to an exact revision.
+Early and in active development (version 0.1.2, not published as a crate). Only S3 is covered
+so far.
 
 ## Credits
 
 - [AWS Emulator](https://github.com/aws/aws-emulator) runs every lab locally.
-- [Rune](https://github.com/anomalyco/rune) draws the native UI; its bundled Inter and
-  IBM Plex Mono fonts are the app's typefaces.
+- [Tauri](https://v2.tauri.app) runs the desktop app and [React](https://react.dev) draws
+  its UI.
 
 ## License
 

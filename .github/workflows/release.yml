@@ -1,4 +1,4 @@
-# Builds the desktop app for macOS, Windows and Linux and attaches it to a GitHub Release.
+# Builds the Tauri desktop app for macOS, Windows and Linux and attaches it to a GitHub Release.
 # Asset names carry no version so the website can link to releases/latest/download/<name>.
 name: Release
 
@@ -18,19 +18,20 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci --prefix ui
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
       - uses: Swatinem/rust-cache@v2
-      - name: Build universal binary
-        run: |
-          cargo build --release --target aarch64-apple-darwin
-          cargo build --release --target x86_64-apple-darwin
-          lipo -create -output nubi \
-            target/aarch64-apple-darwin/release/nubi \
-            target/x86_64-apple-darwin/release/nubi
-      - name: Package .app and .dmg
-        run: scripts/package-macos.sh nubi "${GITHUB_REF_NAME#v}"
+      - name: Build universal .app and .dmg
+        run: ui/node_modules/.bin/tauri build --target universal-apple-darwin --bundles dmg
+      # ponytail: unsigned; Developer ID signing and notarization need Apple certificates (PLAN Phase 8).
+      - run: cp target/universal-apple-darwin/release/bundle/dmg/*.dmg nubi-macos.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: macos
@@ -40,10 +41,19 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci --prefix ui
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build --release
-      - run: Copy-Item target/release/nubi.exe nubi-windows-x64.exe
+      - name: Build NSIS installer
+        shell: bash
+        run: ui/node_modules/.bin/tauri build --bundles nsis
+      - shell: bash
+        run: cp target/release/bundle/nsis/*-setup.exe nubi-windows-x64.exe
       - uses: actions/upload-artifact@v4
         with:
           name: windows
@@ -53,26 +63,30 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: System libraries
+      - name: System libraries (Tauri v2 prerequisites)
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libx11-dev \
-            libxcursor-dev libxrandr-dev libxi-dev libvulkan-dev libfontconfig1-dev libfreetype6-dev
+          sudo apt-get install -y build-essential file libssl-dev libxdo-dev \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci --prefix ui
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build --release
-      - name: Package .tar.gz and .deb
-        run: |
-          mkdir -p nubi-linux && cp target/release/nubi README.md nubi-linux/
-          tar czf nubi-linux-x64.tar.gz nubi-linux
-          cargo install cargo-deb --locked
-          cargo deb --no-build --output nubi-linux-x64.deb
+      - name: Build .deb and .AppImage
+        run: ui/node_modules/.bin/tauri build --bundles deb,appimage
+      - run: |
+          cp target/release/bundle/deb/*.deb nubi-linux-x64.deb
+          cp target/release/bundle/appimage/*.AppImage nubi-linux-x64.AppImage
       - uses: actions/upload-artifact@v4
         with:
           name: linux
           path: |
-            nubi-linux-x64.tar.gz
             nubi-linux-x64.deb
+            nubi-linux-x64.AppImage
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -88,5 +102,5 @@ jobs:
           files: |
             nubi-macos.dmg
             nubi-windows-x64.exe
-            nubi-linux-x64.tar.gz
             nubi-linux-x64.deb
+            nubi-linux-x64.AppImage
