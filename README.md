@@ -97,6 +97,15 @@ Download the file for your system from the
 | Linux x64 (Debian, Ubuntu) | `nubi-linux-x64.deb` | `sudo apt install ./nubi-linux-x64.deb` |
 | Linux x64 (other) | `nubi-linux-x64.AppImage` | `chmod +x nubi-linux-x64.AppImage` and run it. |
 
+**macOS with Homebrew:**
+
+```sh
+brew tap leoglez10/nubi https://github.com/Leoglez10/nubi
+brew install --cask nubi
+```
+
+Homebrew skips the unsigned-app warning below. Update with `brew upgrade --cask nubi`.
+
 > ⚠️ Builds are not signed yet. On macOS, try to open the app once and then choose
 > **Open Anyway** in System Settings → Privacy & Security. On Windows, choose
 > **More info → Run anyway** in SmartScreen.
