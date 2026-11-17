@@ -305,7 +305,7 @@ Course content is Spanish TOML under `content/`; no code changes are needed:
 
 ## Status
 
-Early and in active development (version 0.1.2, not published as a crate). Only S3 is covered
+Early and in active development (version 0.1.3, not published as a crate). Only S3 is covered
 so far.
 
 ## Credits
