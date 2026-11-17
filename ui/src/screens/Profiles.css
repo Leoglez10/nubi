@@ -1,0 +1,84 @@
+.profiles { background: var(--bg); }
+
+.profiles-page {
+  display: grid;
+  gap: 28px;
+  inline-size: min(100%, 880px);
+  margin-inline: auto;
+  padding: clamp(16px, 4vw, 32px);
+}
+
+.profiles-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.profiles-header .brand { padding: 0; }
+
+.profiles-welcome {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  & h1 { font-size: var(--fs-title); }
+  & h1:focus { outline: none; }
+  & p { color: var(--muted); }
+}
+.profiles-loading { font-weight: 600; color: var(--muted); }
+
+.profile-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 16px;
+}
+
+.profile-card {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  inline-size: 100%;
+  min-block-size: 196px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  &:hover { background: var(--bg); }
+}
+.profile-name { padding-block-start: 4px; font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }
+.profile-level { font-size: var(--fs-small); color: var(--muted); }
+.profile-stars { font-size: var(--fs-small); color: var(--orange-dark); }
+
+.new-profile {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-l);
+  background: var(--bg);
+  color: var(--blue);
+  &[aria-expanded='true'] { border-style: solid; border-color: var(--blue); background: var(--blue-light); }
+}
+.plus {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+  background: var(--blue-light);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.profile-form { display: grid; gap: 16px; padding: 24px; }
+.profile-form-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  & h2 { font-size: 1rem; font-weight: 600; }
+  & p { font-size: var(--fs-small); color: var(--muted); }
+}
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+.local-note { display: flex; align-items: center; gap: 8px; font-size: var(--fs-small); color: var(--muted); }
+.local-note .dot { flex: none; inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--green); }
+
+/* Brand block, shared look with the sidebar's. */
+.profiles .brand { display: flex; align-items: center; gap: 10px; }
+.profiles .brand-text { display: grid; line-height: 1.2; }
+.profiles .brand-text strong { font-size: 1rem; }
+.profiles .brand-text span { font-size: 0.75rem; color: var(--muted); font-weight: 500; }

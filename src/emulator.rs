@@ -55,7 +55,8 @@ pub fn start() -> Result<(), String> {
     if running {
         return Ok(());
     }
-    let home = std::env::var("HOME").map_err(|_| "HOME is not set".to_string())?;
+    let home = home().ok_or_else(|| "No se encontró tu carpeta de usuario (HOME o USERPROFILE).".to_string())?;
+    let home = home.to_string_lossy().into_owned();
     std::fs::create_dir_all(format!("{home}/.aws/emulator")).map_err(|e| e.to_string())?;
     let out = Command::new("docker").args(run_args(&home)).output().map_err(|e| format!("docker: {e}"))?;
     if out.status.success() { Ok(()) } else { Err(last_line(&out.stderr)) }
@@ -67,14 +68,25 @@ fn last_line(bytes: &[u8]) -> String {
 
 /// The emulator answers an authenticated S3 call.
 pub async fn healthy() -> bool {
+    // A stopped emulator removes its ca.pem; with SSL_CERT_FILE pointing at nothing the SDK
+    // has no roots at all (and debug builds panic), so that alone means "not running".
+    if !dir().join("ca.pem").is_file() {
+        return false;
+    }
     let config = aws_config::load_from_env().await;
     aws_sdk_s3::Client::new(&config).list_buckets().send().await.is_ok()
 }
 
 /// `~/.aws/emulator/<port>/`: the credentials, `config` and `ca.pem` the emulator writes on
 /// every start.
+/// The user's home folder: HOME, or USERPROFILE on Windows where GUI apps often lack HOME.
+fn home() -> Option<PathBuf> {
+    let var = |k| std::env::var_os(k).filter(|v| !v.is_empty()).map(PathBuf::from);
+    var("HOME").or_else(|| var("USERPROFILE"))
+}
+
 pub fn dir() -> PathBuf {
-    let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
+    let home = home().unwrap_or_default();
     home.join(".aws/emulator").join(PORT.to_string())
 }
 

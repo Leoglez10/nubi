@@ -1,0 +1,23 @@
+.color-choice { margin: 0; padding: 0; border: 0; }
+.color-choice legend { padding: 0; margin-block-end: 6px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.swatch {
+  position: relative;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: 50%;
+  border: 1px solid rgb(16 24 40 / 0.12);
+  cursor: pointer;
+  /* The radio covers the swatch: native keyboard and screen reader behavior, custom look. */
+  & input {
+    appearance: none;
+    position: absolute;
+    inset: -1px;
+    margin: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  & input:checked { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--blue); }
+  & input:focus-visible { outline: 2px solid var(--blue); outline-offset: 6px; }
+}

@@ -5,6 +5,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use serde::Serialize;
+
 use crate::course::LabFile;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -42,7 +44,8 @@ pub fn parse(line: &str) -> Input {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Kind {
     Cmd,
     Out,
@@ -51,26 +54,30 @@ pub enum Kind {
     Info,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Line {
     pub kind: Kind,
     pub text: String,
 }
 
 /// A command that failed and what AWS answered, shown back as learning.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Mistake {
     pub command: String,
     pub error: String,
 }
 
+#[derive(Serialize)]
 pub struct Session {
     pub lines: Vec<Line>,
     pub done: Vec<bool>,
     pub errors: u32,
     pub mistakes: Vec<Mistake>,
+    #[serde(skip)]
     history: Vec<String>,
+    #[serde(skip)]
     cursor: Option<usize>,
+    #[serde(skip)]
     pending: Option<String>,
 }
 

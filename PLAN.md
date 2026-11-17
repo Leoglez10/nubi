@@ -3,7 +3,8 @@
 Game-like desktop app to learn AWS: short lessons, a horizontal learning map in the
 clouds, levels and mastery ("perfection") instead of punishment. Every hands-on lab runs 100% locally
 against [aws-emulator](https://github.com/aws/aws-emulator), inside a terminal built into
-the app. The UI is a native app built with [Rune](https://github.com/anomalyco/rune).
+the app. The desktop app is built with [Tauri v2](https://v2.tauri.app): a Rust engine (the
+`nubi` library) under a React + TypeScript + Vite UI (`ui/`), with the app crate in `src-tauri/`.
 
 ## Product decisions
 
@@ -11,6 +12,12 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 > curtain) to a professional dashboard: sidebar navigation, Inicio with progress cards,
 > flat controls and a short content-only slide between tabs. Nubi stays. The "horizontal
 > map" and "cloud transitions" items below are superseded; see `odd/tasks/ui-dashboard.md`.
+
+> **2026-11-16 update:** the UI moved from Rune to Tauri v2 + React/TypeScript/Vite, for full
+> design freedom and layouts that work at any window size. The engine (course, grading,
+> progress, labs, checker, setup) stayed in Rust and is exposed as Tauri commands; the Rune
+> app was removed once the new one reached parity. Releases are built by the Tauri bundler.
+> See `odd/tasks/migracion-tauri.md`. Rune notes in the dated phases below are history.
 
 - **Language: Spanish first.** All UI copy and course content are written in Spanish.
   A language switcher (e.g. English) is a later decision, not part of v1. Keep copy in
@@ -50,7 +57,7 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 ## Core idea
 
 ```
-┌──────────────────────── Rune app ────────────────────────┐
+┌──────────────────────── Tauri app ───────────────────────┐
 │ Path · lessons · games · animations · rewards            │
 │                                                          │
 │ Integrated terminal ──spawns──▶ aws CLI ──┐              │
@@ -67,13 +74,13 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 ### Integrated terminal: approach
 
 1. **v1 — command runner (own widget).** An input line plus a scrollback of output, drawn
-   with Rune. Each command is run as a child process (`aws ...`) with `AWS_ENDPOINT_URL`
+   in the React UI (first with Rune). Each command is run as a child process (`aws ...`) with `AWS_ENDPOINT_URL`
    and the emulator CA bundle set. Only `aws` commands are allowed (plus a few built-ins
    like `clear`, `help`, `hint`), so it is not a general shell. Command history, colored
    output, autocomplete for the lab's commands.
 2. **v2 — full terminal (optional).** A real PTY (e.g. `portable-pty` + a VT parser) if
-   labs need a real shell (files, pipes, `jq`). Rune has no terminal widget, so this is
-   custom rendering work; only do it if v1 falls short.
+   labs need a real shell (files, pipes, `jq`), shown with a web terminal such as xterm.js;
+   only do it if v1 falls short.
 
 ### Local persistence: approach
 
@@ -94,7 +101,8 @@ the app. The UI is a native app built with [Rune](https://github.com/anomalyco/r
 - Fidelity varies per service (thousands of open gaps; Lambda, EC2 and S3 have the most).
   Each lab must be validated against the emulator before it ships.
 - Telemetry is on by default; the app starts the emulator with `--telemetry off`.
-- Rune is pre-release: pin a `dev` rev; its API may change. It has no terminal widget.
+- Tauri v2 on Linux needs WebKitGTK 4.1 (`libwebkit2gtk-4.1-dev`), so Linux builds run on
+  Ubuntu 22.04 or later.
 - The student needs Docker and AWS CLI v2 installed; the app checks both on first run.
 
 ## Phases
@@ -192,15 +200,19 @@ Scope:
 - [ ] Homebrew install command (after the tap exists).
 
 ### Phase 8 — Installers and updates (GitHub Actions) (started 2026-11-14)
-- [x] Release workflow on `v*` tags (`.github/workflows/release.yml`): universal macOS
-  `.dmg` (`scripts/package-macos.sh`, ad-hoc signed), portable Windows `.exe`, Linux
-  `.tar.gz` and `.deb`, attached to a GitHub Release with version-less asset names.
+- [x] Release workflow on `v*` tags (`.github/workflows/release.yml`), built by the Tauri
+  bundler since 2026-11-16: universal macOS `.dmg` (unsigned), Windows NSIS installer `.exe`,
+  Linux `.deb` and `.AppImage`, attached to a GitHub Release with version-less asset names
+  (`nubi-macos.dmg`, `nubi-windows-x64.exe`, `nubi-linux-x64.deb`, `nubi-linux-x64.AppImage`).
+  Until 2026-11-16 it built the Rune binary with `scripts/package-macos.sh` and a Linux `.tar.gz`.
 - [x] Course content is embedded in the binary at build time (`build.rs`), so installed
   copies do not need the source tree.
-- [ ] Windows installer (MSI/NSIS) and hiding the console window (needs `CREATE_NO_WINDOW`
-  on the `docker`/`aws` child processes first).
-- [x] App icon in the `.app` (`assets/icon.png` → `AppIcon.icns`).
-- [ ] Linux AppImage / .rpm; icon embedded in the Windows `.exe` resources.
+- [x] Windows installer (NSIS, from the Tauri bundler).
+- [ ] Hiding the console window of the `docker`/`aws` child processes on Windows
+  (`CREATE_NO_WINDOW`).
+- [x] App icon in every bundle (`src-tauri/icons/`).
+- [x] Linux AppImage.
+- [ ] Linux `.rpm`.
 - [ ] Homebrew: a tap with a cask (macOS) / formula (Linux) updated by the release workflow.
 - Automatic updates: the app checks the latest GitHub Release and offers to update.
 - Code signing / notarization (Apple, Windows) to avoid OS warnings; needs certificates.
@@ -211,10 +223,10 @@ Scope:
 
 ### Later
 - Language switcher (English).
-- Web version via Rune's WebGPU target. Blockers: browser trust of the self-signed cert,
-  CORS, and the terminal (no child processes in a browser).
+- Web version of the React UI. Blockers: browser trust of the self-signed cert, CORS, and
+  the terminal (no child processes in a browser).
 
 ## Fallback
 
-If Rune blocks progress, the same architecture works as a web/desktop app
-(TypeScript + AWS SDK for JavaScript, xterm.js for the terminal) with a small local proxy.
+The 2026-11-14 fallback (leave Rune for a web-technology UI) was taken on 2026-11-16: the
+UI is now React in Tauri, while the engine stayed in Rust.

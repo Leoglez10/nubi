@@ -1,0 +1,152 @@
+.home { inline-size: min(100%, 1120px); margin-inline: auto; gap: 24px; }
+
+.home-greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.home-hello { flex: 1 1 260px; display: grid; gap: 4px; min-inline-size: 0; }
+.home-hello p { color: var(--muted); }
+
+.home-nubi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-inline-size: 100%;
+  padding: 8px 16px 8px 8px;
+  box-shadow: none;
+  & svg { flex: none; }
+}
+.home-nubi-name { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+.home-nubi-tip { font-size: 0.875rem; font-weight: 500; }
+
+/* KPI cards: four across when there is room, two, then one. */
+.home-kpis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 16px;
+}
+.kpi { display: grid; gap: 6px; padding: 18px; min-inline-size: 0; }
+.kpi-label { font-size: var(--fs-small); font-weight: 500; color: var(--muted); }
+.kpi-value { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
+.kpi-sub { font-size: var(--fs-small); color: var(--faint); }
+
+.home-continue { display: grid; gap: 10px; padding: clamp(16px, 3cqi, 22px); }
+.home-continue-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+}
+.home-continue-text {
+  flex: 1 1 300px;
+  display: grid;
+  gap: 8px;
+  min-inline-size: 0;
+  & h2 { font-size: var(--fs-h2); }
+  & > p { font-size: 0.875rem; color: var(--muted); }
+}
+.home-continue-progress { display: flex; align-items: center; gap: 12px; }
+.home-continue-progress .note { white-space: nowrap; }
+
+.bar {
+  flex: 1;
+  block-size: 8px;
+  border-radius: 4px;
+  background: var(--locked);
+  overflow: hidden;
+  & > span { display: block; block-size: 100%; border-radius: inherit; background: var(--blue); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bar > span { transition: inline-size 0.3s ease-out; }
+}
+
+/* --- Module table: a real table, stacked rows in a narrow content area. --- */
+
+.home-module { overflow: hidden; }
+.home-module-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-block-end: 1px solid var(--border);
+  & h2 { font-size: 1rem; font-weight: 600; }
+}
+
+.module-table { inline-size: 100%; border-collapse: collapse; }
+.module-table thead th {
+  padding: 10px 20px;
+  background: var(--bg);
+  border-block-end: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--faint);
+  text-align: start;
+}
+.module-table tbody th,
+.module-table tbody td {
+  padding: 14px 20px;
+  border-block-end: 1px solid var(--locked);
+  text-align: start;
+  font-weight: inherit;
+  vertical-align: middle;
+}
+.module-table tbody tr:last-child > * { border-block-end: 0; }
+
+.module-class { display: flex; align-items: center; gap: 16px; min-inline-size: 0; }
+.module-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+.module-row.done .module-num { background: var(--green-light); color: var(--green-dark); }
+.module-row.current .module-num { background: var(--blue); color: #fff; }
+.module-row.locked .module-num { background: var(--locked); color: var(--muted); }
+.module-name { display: grid; gap: 2px; min-inline-size: 0; }
+.module-detail { font-size: var(--fs-small); color: var(--faint); }
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  &.done { background: var(--green-light); color: var(--green-dark); }
+  &.current { background: var(--blue-light); color: var(--blue-dark); }
+  &.locked { background: var(--locked); color: var(--muted); }
+}
+
+.module-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+@container (inline-size < 760px) {
+  .module-table,
+  .module-table tbody,
+  .module-table tr,
+  .module-table th,
+  .module-table td { display: block; }
+  .module-table thead { display: none; }
+  .module-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    padding: 14px 16px;
+    border-block-end: 1px solid var(--locked);
+  }
+  .module-table tbody tr:last-child { border-block-end: 0; }
+  .module-table tbody th,
+  .module-table tbody td { padding: 0; border: 0; }
+  .module-table tbody td:last-child { grid-column: 1 / -1; }
+  .module-class { gap: 12px; }
+  .module-actions { justify-content: flex-start; }
+  .module-actions .btn { flex: 1 1 auto; }
+}

@@ -3,7 +3,9 @@
 
 use std::process::{Command, Stdio};
 
-#[derive(Clone, Copy, Debug, PartialEq, Default)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Copy, Debug, PartialEq, Default, Serialize)]
 pub struct Report {
     pub docker: bool,
     pub docker_running: bool,
@@ -11,7 +13,8 @@ pub struct Report {
     pub emulator: bool,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Need {
     Docker,
     DockerRunning,
@@ -61,7 +64,8 @@ impl Os {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum Action {
     /// Run a program (an installer through the OS package manager, or an app launcher).
     Run { program: &'static str, args: Vec<&'static str> },
