@@ -23,6 +23,11 @@ No AWS account, no cloud bill, no passwords.
 
 ![Inicio: progress, the class to continue and the module table](docs/screenshots/inicio.png)
 
+## Contents
+
+[Install](#install) · [First run](#first-run) · [Using the app](#using-the-app) ·
+[Your data](#your-data) · [Troubleshooting](#troubleshooting) · [For developers](#for-developers)
+
 ## What it is
 
 Nubi teaches AWS fundamentals the way a short course would: each **class** explains one
@@ -72,36 +77,50 @@ One unit, **Fundamentos de S3**, with two classes:
 Complete a class's practice to unlock its lab, and a class's lab to unlock the next class.
 IAM/STS, DynamoDB, SQS and SNS are planned next; see [PLAN.md](PLAN.md).
 
-## Download
+## Install
 
-Get the app for macOS (`.dmg`), Windows (`.exe`) or Linux (`.deb`, `.AppImage`) from the
-[latest release](https://github.com/Leoglez10/nubi/releases/latest) or the
-[website](https://leoglez10.github.io/nubi/). You still need Docker and AWS CLI v2.
-Builds are not signed yet: on macOS, try to open the app once and then choose
-**Open Anyway** in System Settings → Privacy & Security; on Windows, choose
-**More info → Run anyway** in SmartScreen.
+You need, on any OS:
 
-## Quick start (from source)
-
-Requirements:
-
-- [Rust](https://rustup.rs) (stable, edition 2024)
-- [Node.js](https://nodejs.org) 24 with npm
-- The [Tauri v2 system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS
-  (on Linux, WebKitGTK 4.1 and friends)
-- [Docker](https://www.docker.com/products/docker-desktop/), running
+- [Docker](https://www.docker.com/products/docker-desktop/) (the labs run in a container limited to 2 GB of memory)
 - [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
-```sh
-git clone https://github.com/Leoglez10/nubi.git
-cd nubi
-npm ci --prefix ui
-ui/node_modules/.bin/tauri dev
-```
+If either is missing, the app can install it for you on first run (see below).
 
-The first start checks your machine. If something is missing, the setup screen shows a
-button that installs or starts it (Homebrew on macOS, winget on Windows, or the official
-download page), and builds and starts the emulator for you.
+Download the file for your system from the
+[latest release](https://github.com/Leoglez10/nubi/releases/latest) (or the
+[website](https://leoglez10.github.io/nubi/)):
+
+| System | File | How to install |
+|---|---|---|
+| macOS (Apple silicon and Intel) | `nubi-macos.dmg` | Open it and drag **Nubi** to Applications. |
+| Windows x64 | `nubi-windows-x64.exe` | Run the installer. |
+| Linux x64 (Debian, Ubuntu) | `nubi-linux-x64.deb` | `sudo apt install ./nubi-linux-x64.deb` |
+| Linux x64 (other) | `nubi-linux-x64.AppImage` | `chmod +x nubi-linux-x64.AppImage` and run it. |
+
+> ⚠️ Builds are not signed yet. On macOS, try to open the app once and then choose
+> **Open Anyway** in System Settings → Privacy & Security. On Windows, choose
+> **More info → Run anyway** in SmartScreen.
+
+**Updating:** install the new release over the old one. Your profiles and stars live outside
+the app (see [Your data](#your-data)), so updating or reinstalling keeps them.
+
+## First run
+
+1. **Setup check.** On start the app checks four things, in this order: Docker is installed,
+   Docker is running, the AWS CLI is installed, and the local emulator answers.
+2. **One-click fixes.** For each missing item the setup screen offers a fix (a button, or an instruction when the app cannot do it for you):
+
+   | Missing | macOS | Windows | Linux |
+   |---|---|---|---|
+   | Docker | `brew install --cask docker` (or the download page without Homebrew) | `winget install -e --id Docker.DockerDesktop` | Opens the Docker Engine install guide |
+   | Docker not running | Opens Docker | Tells you to open Docker Desktop from the Start menu | Tells you to run `sudo systemctl start docker` |
+   | AWS CLI | `brew install awscli` (or the download page without Homebrew) | `winget install -e --id Amazon.AWSCLI` | `brew install awscli` if Homebrew is present, otherwise the download page |
+   | Emulator | Builds the image (first time only) and starts it | same | same |
+
+   After fixing something by hand, press **Comprobar de nuevo**.
+3. **First emulator start.** The first time, Docker downloads an Amazon Linux base image and the
+   AWS Emulator package from AWS, so you need internet once. After that the labs run offline.
+4. **Create a profile** and start the first class.
 
 ## Using the app
 
@@ -135,14 +154,26 @@ app's former name, `LabCloud`, so profiles created before the rename to Nubi are
 Inside it, `profiles/<id>/profile.json` holds the name, color and motion preference, and
 `profiles/<id>/progress.json` holds the stars of each stop. Files are written atomically
 (a crash leaves the old file or the new one), and a corrupt progress file is reported and
-never silently overwritten. Lab working folders live under `labs/<id>/`.
+never silently overwritten. Lab working folders live under `labs/<lab-id>/`; each one is
+emptied and recreated with the lab's starter files every time the lab starts.
 
-- **Backup:** copy the `LabCloud` folder while the app is closed.
+| What | Matters? |
+|---|---|
+| `profiles/` | Yes: your profiles and stars. Back it up. |
+| `labs/` | No: rebuilt when a lab starts. |
+
+- **Backup:** copy the `LabCloud` (Linux: `labcloud`) folder while the app is closed. The app
+  has no export/import button yet.
+- **Restore:** put the folder back in the same place while the app is closed.
 - **Delete a profile:** Ajustes → Zona de peligro → Eliminar perfil. It removes that
   profile's folder and its progress permanently.
 
-The emulator listens only on `127.0.0.1:9297` and keeps its resources in memory: stopping it
-erases buckets and objects created in labs (your stars are not affected).
+**The emulator** runs in a Docker container named `labcloud-emulator` and listens only on
+`127.0.0.1:9297`, never on your network. On every start it writes its local certificate
+(`ca.pem`), `config` and test credentials to `~/.aws/emulator/9297/`. The app points its own
+`aws` commands at those files, so your real AWS profile in `~/.aws/` is not used. Buckets
+and objects you create in labs live in the emulator, not in your profile: replaying a lab
+resets that lab's resources, and your stars never depend on them.
 
 ## Managing the emulator by hand
 
@@ -150,7 +181,7 @@ The app starts the emulator for you, but you can also use the script:
 
 ```sh
 scripts/emulator.sh start   # build the image once and start it on 127.0.0.1:9297
-scripts/emulator.sh stop    # stop it (its resources are lost)
+scripts/emulator.sh stop    # stop and remove the container
 eval "$(scripts/emulator.sh env)"   # point the AWS CLI in your shell at the emulator
 ```
 
@@ -162,12 +193,32 @@ official AWS Emulator Docker recipe for `aarch64` or `x86_64`.
 | Problem | What to do |
 |---|---|
 | The setup screen says Docker is missing or stopped | Install Docker Desktop or start it, then press **Comprobar de nuevo**. On Linux, start it with `sudo systemctl start docker`. |
-| The emulator does not become ready | Run `scripts/emulator.sh start` to see the error, then `docker logs labcloud-emulator`. |
+| Docker works in a terminal but the app says it is stopped | The app runs `docker info` with your Docker CLI's current context. Run `docker info` in a terminal: if it fails, switch to a running context (`docker context ls`, `docker context use <name>`). |
+| macOS: Docker or the AWS CLI is installed but the app does not find it | An app opened from Finder only adds `/opt/homebrew/bin` and `/usr/local/bin` to its `PATH`. Make sure `docker` and `aws` are reachable from one of those folders. |
+| The emulator does not become ready | The first start needs internet to download the image. Run `scripts/emulator.sh start` (from a clone of this repo) to see the error, then `docker logs labcloud-emulator`. |
+| The emulator stops or fails under load | The container is limited to 2 GB of memory; give Docker at least that much. |
 | A lab objective does not tick | Check the exact bucket and key names in the objective; type `pista`. Replaying the lab resets its resources. |
 | "No se pudo crear el perfil" | Names must have 1 to 40 characters. |
 | Progress did not load | The app found a progress file it could not read and left it untouched; check `progress.json` in the data folder. |
 
 ## For developers
+
+**Requirements:**
+
+- [Rust](https://rustup.rs) (stable, edition 2024)
+- [Node.js](https://nodejs.org) 24 with npm (the version the release workflow uses)
+- The [Tauri v2 system prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS
+  (on Linux, WebKitGTK 4.1 and friends)
+- Docker and AWS CLI v2, as for end users
+
+**Run from source:**
+
+```sh
+git clone https://github.com/Leoglez10/nubi.git
+cd nubi
+npm ci --prefix ui
+ui/node_modules/.bin/tauri dev
+```
 
 **Stack:** a Rust engine (the `nubi` library, edition 2024: course, grading, progress, labs,
 setup) with `aws-sdk-s3` and `tokio` to check lab objectives against the emulator and
@@ -178,18 +229,28 @@ TypeScript + Vite.
 ```sh
 npm ci --prefix ui                          # once: the UI dependencies and the Tauri CLI
 ui/node_modules/.bin/tauri dev              # the app, with hot reload (from the repo root)
-npm --prefix ui run dev                     # the UI alone in a browser, with sample data
+npm --prefix ui run dev                     # the UI alone in a browser on http://localhost:5173, with sample data
 cargo test --workspace                      # engine and command tests
 cargo test --workspace -- --include-ignored # also the tests that need the emulator running
 npm --prefix ui test                        # UI tests (Vitest + Testing Library)
+npm --prefix ui run lint                    # UI lint (oxlint)
+npm --prefix ui run build                   # UI typecheck (tsc) and production bundle into ui/dist
 cargo clippy --workspace --all-targets -- -D warnings
 ui/node_modules/.bin/tauri build            # installers for this OS under target/release/bundle/
 ```
 
-Releases: push a `v*` tag (for example `git tag v0.1.0 && git push origin v0.1.0`) and
-`.github/workflows/release.yml` builds with the Tauri bundler the macOS universal `.dmg`, the
-Windows installer `.exe` (NSIS) and the Linux `.deb`/`.AppImage`, and attaches them to a
-GitHub Release. Course
+`tauri dev` starts Vite on port 5173 (`strictPort`), so that port must be free.
+
+**CI and releases:** the only workflow is
+[`.github/workflows/release.yml`](.github/workflows/release.yml); there is no CI that runs the
+tests, so run them locally before pushing. Push a `v*` tag (for example
+`git tag v0.1.3 && git push origin v0.1.3`) and it builds with the Tauri bundler the macOS
+universal `.dmg`, the Windows installer `.exe` (NSIS) and the Linux `.deb`/`.AppImage`, and
+attaches them to a GitHub Release as `nubi-macos.dmg`, `nubi-windows-x64.exe`,
+`nubi-linux-x64.deb` and `nubi-linux-x64.AppImage` (no version in the name, so the website can
+link to `releases/latest/download/<name>`). Running it by hand (`workflow_dispatch`) from a branch
+builds the files as workflow artifacts without publishing a release. The version lives in three places:
+`Cargo.toml`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`. Course
 content is embedded in the binary at build time by `build.rs`. The website lives in `docs/`
 (GitHub Pages, `main` branch, `/docs` folder).
 
@@ -206,9 +267,11 @@ src/               the engine (`nubi` library)
 ├── progress.rs    local profiles and progress on disk
 ├── setup.rs       what the machine is missing and how to fix it per OS
 └── emulator.rs    emulator health and AWS CLI environment
+build.rs           embeds content/ into the binary
 src-tauri/         the Tauri app crate (binary `nubi`): engine.rs wraps the engine as
-                   commands, main.rs registers them; tauri.conf.json, icons/
+                   commands, main.rs registers them; tauri.conf.json, capabilities/, icons/
 ui/                React + TypeScript + Vite UI
+├── src/App.tsx    loads the course; store.tsx holds app state, nav.ts the navigation rules
 ├── src/api/       typed client for the Tauri commands (sample data in the browser)
 ├── src/shell/     sidebar, top bar, transitions
 └── src/screens/   intro, setup, profiles, settings, Inicio, class, practice, lab
@@ -216,8 +279,9 @@ content/           course.toml and one TOML per lesson or lab (Spanish)
 assets/            app icon sources (icon.svg, icon.png)
 emulator/          Dockerfile for the AWS Emulator image
 scripts/           emulator.sh
-tests/             engine integration tests (content, classes, emulator, checker)
-docs/screenshots/  images used in this README
+tests/             engine integration tests (checker, classes, emulator, foundations, healthy)
+docs/              the website (index.html) and docs/screenshots/, the images in this README
+PLAN.md            roadmap
 odd/tasks/         feature logbooks
 ```
 
