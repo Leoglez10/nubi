@@ -1,7 +1,7 @@
 // App state shared by every screen, and navigation with a short content transition.
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
-import type { Content, LabView, LessonView, ProgressView, SetupView } from './api'
+import type { Content, LabView, LessonView, ProgressView, SetupProgress, SetupView } from './api'
 import type { Screen } from './nav'
 
 export interface AppState {
@@ -10,6 +10,9 @@ export interface AppState {
   /** The class, lesson or lab id the current screen shows. */
   stopId: string | null
   setup: SetupView | null
+  setupLog?: string
+  setupStage?: string
+  setupError?: string | null
   me: ProgressView | null
   accountOpen: boolean
   /** The practice in progress, kept across navigation so the student can come back to it. */
@@ -58,6 +61,8 @@ interface Store {
   /** Changes screen; the content area slides in unless motion is reduced. */
   go: (screen: Screen, patch?: Partial<AppState>) => void
   reducedMotion: boolean
+  setupProgress: (event: SetupProgress) => void
+  clearSetupLog: () => void
 }
 
 const Ctx = createContext<Store | null>(null)
@@ -80,6 +85,12 @@ function systemReducedMotion() {
 export function AppProvider({ initial, children }: { initial: AppState; children: ReactNode }) {
   const [state, setState] = useState(initial)
   const set = useCallback((patch: Partial<AppState>) => setState((s) => ({ ...s, ...patch })), [])
+  const setupProgress = useCallback((event: SetupProgress) => {
+    // Strip terminal control sequences; render output as text, never HTML.
+    const text = event.text.replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)|\x1b\[[0-?]*[ -/]*[@-~]|\x1b[@-_]/g, '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '')
+    setState((s) => ({ ...s, setupLog: ((s.setupLog ?? '') + text + '\n').slice(-20000), ...(event.kind === 'stage' ? { setupStage: text.slice(-500) } : {}) }))
+  }, [])
+  const clearSetupLog = useCallback(() => setState((s) => ({ ...s, setupLog: '', setupStage: '', setupError: null })), [])
   const reducedMotion = (state.me?.profile.reduced_motion ?? false) || systemReducedMotion()
 
   const go = useCallback((screen: Screen, patch: Partial<AppState> = {}) => {
@@ -92,6 +103,6 @@ export function AppProvider({ initial, children }: { initial: AppState; children
     document.startViewTransition(() => flushSync(update))
   }, [reducedMotion])
 
-  const store = useMemo(() => ({ state, set, go, reducedMotion }), [state, set, go, reducedMotion])
+  const store = useMemo(() => ({ state, set, go, reducedMotion, setupProgress, clearSetupLog }), [state, set, go, reducedMotion, setupProgress, clearSetupLog])
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>
 }

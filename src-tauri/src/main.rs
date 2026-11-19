@@ -9,9 +9,9 @@ use engine::{Engine, ProfileCard, ProgressView, SetupView};
 use nubi::course;
 use nubi::grading::Answer;
 use nubi::progress::{Profile, Store};
-use nubi::setup::Need;
+use nubi::setup::{Need, Progress};
 use serde_json::Value;
-use tauri::State;
+use tauri::{State, ipc::Channel};
 
 type R<T> = Result<T, String>;
 
@@ -21,13 +21,13 @@ fn course(engine: State<'_, Engine>) -> R<Value> {
 }
 
 #[tauri::command]
-async fn probe(engine: State<'_, Engine>) -> R<SetupView> {
-    Ok(engine.probe().await)
+async fn probe(engine: State<'_, Engine>, on_progress: Channel<Progress>) -> R<SetupView> {
+    Ok(engine.probe(move |event| { let _ = on_progress.send(event); }).await)
 }
 
 #[tauri::command]
-async fn fix(engine: State<'_, Engine>, need: Need) -> R<Option<String>> {
-    engine.fix(need).await
+async fn fix(engine: State<'_, Engine>, need: Need, on_progress: Channel<Progress>) -> R<Option<String>> {
+    engine.fix(need, move |event| { let _ = on_progress.send(event); }).await
 }
 
 #[tauri::command]

@@ -1,17 +1,25 @@
-import { invoke } from '@tauri-apps/api/core'
+import { Channel, invoke } from '@tauri-apps/api/core'
 import type {
   Answer, Content, LabView, LessonView, Need, Profile, ProfileCard, ProgressView, SetupView,
 } from './types'
 
 export * from './types'
 
+export type SetupProgress = { kind: 'stage' | 'stdout' | 'stderr'; text: string }
+
+function progressChannel(onProgress: (event: SetupProgress) => void) {
+  const channel = new Channel<SetupProgress>()
+  channel.onmessage = onProgress
+  return channel
+}
+
 /** The Rust commands in src-tauri/src/main.rs, typed. Errors reject with a Spanish message. */
 export const api = {
   course: () => invoke<Content>('course'),
 
-  probe: () => invoke<SetupView>('probe'),
+  probe: (onProgress: (event: SetupProgress) => void) => invoke<SetupView>('probe', { onProgress: progressChannel(onProgress) }),
   /** Resolves with a note to show, or null when done (probe again). */
-  fix: (need: Need) => invoke<string | null>('fix', { need }),
+  fix: (need: Need, onProgress: (event: SetupProgress) => void) => invoke<string | null>('fix', { need, onProgress: progressChannel(onProgress) }),
 
   profiles: () => invoke<ProfileCard[]>('profiles'),
   createProfile: (name: string, color: string) => invoke<ProgressView>('create_profile', { name, color }),

@@ -31,39 +31,40 @@ pub fn run_args(home: &str) -> Vec<String> {
 /// Builds the image (once) and starts the container if it is not running. Waiting for it to
 /// become healthy is the caller's job.
 pub fn start() -> Result<(), String> {
-    use std::io::Write;
+    start_with_progress(&|_| {})
+}
+
+pub fn start_with_progress(feed: crate::setup::Feed<'_>) -> Result<(), String> {
+    use crate::setup::{stage, stream};
     use std::process::{Command, Stdio};
 
-    let quiet = |args: &[&str]| Command::new("docker").args(args).stdout(Stdio::piped()).stderr(Stdio::piped()).output();
-    let image_ready = quiet(&["image", "inspect", IMAGE]).is_ok_and(|o| o.status.success());
-    if !image_ready {
+    stage(feed, "Comprobando si ya existe la imagen del emulador");
+    // Do not print the full image configuration.
+    let image_ready = Command::new("docker").args(["image", "inspect", IMAGE])
+        .stdout(Stdio::null()).stderr(Stdio::null()).status().is_ok_and(|s| s.success());
+    if image_ready {
+        stage(feed, "La imagen del emulador ya está disponible");
+    } else {
+        stage(feed, "Construyendo la imagen del emulador");
         // The Dockerfile only ADDs from a URL, so it builds without a context folder.
-        let mut build = Command::new("docker")
-            .args(["build", "--build-arg", &format!("ARCH={}", arch()), "-t", IMAGE, "-"])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::null())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| format!("docker: {e}"))?;
-        build.stdin.take().expect("piped stdin").write_all(DOCKERFILE.as_bytes()).map_err(|e| e.to_string())?;
-        let out = build.wait_with_output().map_err(|e| e.to_string())?;
-        if !out.status.success() {
-            return Err(last_line(&out.stderr));
-        }
+        stream(Command::new("docker")
+            .args(["build", "--progress=plain", "--build-arg", &format!("ARCH={}", arch()), "-t", IMAGE, "-"]),
+            Some(DOCKERFILE.as_bytes()), feed).map_err(|e| format!("docker: {e}"))?.check()?;
     }
-    let running = quiet(&["ps", "-q", "-f", &format!("name=^{CONTAINER}$")]).is_ok_and(|o| !o.stdout.is_empty());
+    stage(feed, "Comprobando si el contenedor ya está en marcha");
+    let out = stream(Command::new("docker").args(["ps", "-q", "-f", &format!("name=^{CONTAINER}$")]), None, feed)
+        .map_err(|e| format!("docker: {e}"))?;
+    let running = out.stdout.is_some();
+    out.check()?;
     if running {
+        stage(feed, "El contenedor ya está en marcha");
         return Ok(());
     }
+    stage(feed, "Iniciando el contenedor del emulador");
     let home = home().ok_or_else(|| "No se encontró tu carpeta de usuario (HOME o USERPROFILE).".to_string())?;
     let home = home.to_string_lossy().into_owned();
     std::fs::create_dir_all(format!("{home}/.aws/emulator")).map_err(|e| e.to_string())?;
-    let out = Command::new("docker").args(run_args(&home)).output().map_err(|e| format!("docker: {e}"))?;
-    if out.status.success() { Ok(()) } else { Err(last_line(&out.stderr)) }
-}
-
-fn last_line(bytes: &[u8]) -> String {
-    String::from_utf8_lossy(bytes).lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("error").to_string()
+    stream(Command::new("docker").args(run_args(&home)), None, feed).map_err(|e| format!("docker: {e}"))?.check()
 }
 
 /// The emulator answers an authenticated S3 call.

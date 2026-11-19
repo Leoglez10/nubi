@@ -19,6 +19,18 @@
 .setup-messages { display: grid; gap: 6px; }
 .setup-messages:empty { display: none; }
 .setup-actions { display: flex; justify-content: flex-end; }
+.setup-log {
+  max-block-size: 180px;
+  max-inline-size: 100%;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 8px;
+  background: #17212b;
+  color: #f1f5f9;
+  text-align: left;
+}
+.setup-log:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.setup-log pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 0.8rem/1.5 monospace; }
 
 .needs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 

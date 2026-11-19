@@ -1,7 +1,9 @@
 //! Guided setup: what the student's machine is missing before playing, and the one-click
 //! action that fixes each item on their OS.
 
-use std::process::{Command, Stdio};
+use std::io::{self, BufRead, BufReader, Read, Write};
+use std::process::{Command, ExitStatus, Stdio};
+use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 
@@ -95,23 +97,126 @@ pub fn action(need: Need, os: Os, has_brew: bool) -> Action {
     }
 }
 
-/// Probes the tools (not the emulator itself, which needs an HTTPS call).
-pub fn probe_tools() -> (bool, bool, bool) {
-    let ok = |program: &str, args: &[&str]| {
-        Command::new(program).args(args).stdout(Stdio::null()).stderr(Stdio::null()).status().is_ok_and(|s| s.success())
-    };
-    let docker = ok("docker", &["--version"]);
-    let running = docker && ok("docker", &["info"]);
-    (docker, running, ok("aws", &["--version"]))
+#[derive(Serialize)]
+pub struct Progress {
+    pub kind: &'static str,
+    pub text: String,
 }
 
-pub fn has_brew() -> bool {
-    Command::new("brew").arg("--version").stdout(Stdio::null()).stderr(Stdio::null()).status().is_ok_and(|s| s.success())
+pub type Feed<'a> = &'a (dyn Fn(Progress) + Sync);
+
+pub fn stage(feed: Feed<'_>, text: impl Into<String>) {
+    feed(Progress { kind: "stage", text: text.into() });
+}
+
+pub struct CommandResult {
+    pub status: ExitStatus,
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
+}
+
+impl CommandResult {
+    pub fn check(self) -> Result<(), String> {
+        if self.status.success() { Ok(()) }
+        else { Err(self.stderr.or(self.stdout).unwrap_or_else(|| self.status.to_string())) }
+    }
+}
+
+/// Drain both pipes concurrently, keeping only the last nonblank line from each.
+pub fn stream(command: &mut Command, input: Option<&[u8]>, feed: Feed<'_>) -> io::Result<CommandResult> {
+    let mut child = command
+        .stdin(if input.is_some() { Stdio::piped() } else { Stdio::null() })
+        .stdout(Stdio::piped()).stderr(Stdio::piped()).spawn()?;
+    let mut stdin = child.stdin.take();
+    let stdout = child.stdout.take().expect("piped stdout");
+    let stderr = child.stderr.take().expect("piped stderr");
+    // Keep callbacks serialized, even as both pipes are draining.
+    let feed = Mutex::new(feed);
+    std::thread::scope(|scope| {
+        let out = scope.spawn(|| drain(stdout, "stdout", &feed));
+        let err = scope.spawn(|| drain(stderr, "stderr", &feed));
+        let written = input.map_or(Ok(()), |bytes| stdin.as_mut().expect("piped stdin").write_all(bytes));
+        drop(stdin);
+        let status = child.wait();
+        let stdout = out.join().expect("stdout reader")?;
+        let stderr = err.join().expect("stderr reader")?;
+        let status = status?;
+        if status.success() { written?; }
+        Ok(CommandResult { status, stdout, stderr })
+    })
+}
+
+fn drain(pipe: impl Read, kind: &'static str, feed: &Mutex<Feed<'_>>) -> io::Result<Option<String>> {
+    let mut reader = BufReader::new(pipe);
+    let mut line = Vec::new();
+    let mut last = None;
+    loop {
+        // Treat CR (CLI progress redraws) as a line break and cap records before IPC.
+        let bytes = reader.fill_buf()?;
+        let end = bytes.iter().position(|b| matches!(b, b'\r' | b'\n'));
+        let len = end.unwrap_or(bytes.len());
+        line.extend_from_slice(&bytes[..len.min(4096 - line.len())]);
+        let eof = bytes.is_empty();
+        reader.consume(len + usize::from(end.is_some()));
+        if eof || end.is_some() {
+            let text = String::from_utf8_lossy(&line).into_owned();
+            if !text.trim().is_empty() {
+                last = Some(text.clone());
+                feed.lock().expect("setup feed lock")(Progress { kind, text });
+            }
+            line.clear();
+        }
+        if eof { return Ok(last); }
+    }
+}
+
+fn probe(program: &str, args: &[&str], feed: Feed<'_>) -> bool {
+    stage(feed, format!("$ {program} {}", args.join(" ")));
+    match stream(Command::new(program).args(args), None, feed) {
+        Ok(out) => out.status.success(),
+        Err(e) => {
+            stage(feed, format!("No se pudo ejecutar {program}: {e}"));
+            false
+        }
+    }
+}
+
+/// Probes the tools (not the emulator itself, which needs an HTTPS call).
+pub fn probe_tools(feed: Feed<'_>) -> (bool, bool, bool) {
+    let docker = probe("docker", &["--version"], feed);
+    let running = docker && probe("docker", &["info", "--format", "{{.ServerVersion}}"], feed);
+    (docker, running, probe("aws", &["--version"], feed))
+}
+
+pub fn has_brew(feed: Feed<'_>) -> bool {
+    !matches!(Os::current(), Os::Windows) && probe("brew", &["--version"], feed)
+}
+
+pub fn docker_running() -> bool {
+    Command::new("docker").arg("info").stdout(Stdio::null()).stderr(Stdio::null()).status().is_ok_and(|s| s.success())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn streams_both_pipes_and_keeps_the_child_failure() {
+        let events = Mutex::new(Vec::new());
+        let feed = |event: Progress| events.lock().unwrap().push(event);
+        let result = stream(
+            Command::new("sh").args(["-c", "cat; printf 'uno\\rdos' >&2; exit 7"]),
+            Some(b"desde stdin\n"),
+            &feed,
+        ).unwrap();
+        assert_eq!(result.status.code(), Some(7));
+        assert_eq!(result.check(), Err("dos".into()));
+        let events = events.into_inner().unwrap();
+        let lines = |kind| events.iter().filter(|e| e.kind == kind).map(|e| e.text.as_str()).collect::<Vec<_>>();
+        assert_eq!(lines("stdout"), ["desde stdin"]);
+        assert_eq!(lines("stderr"), ["uno", "dos"]);
+    }
 
     #[test]
     fn needs_list_what_is_missing_in_fixing_order() {

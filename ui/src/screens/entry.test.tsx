@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { mockIPC, clearMocks } from '@tauri-apps/api/mocks'
 import { afterEach, beforeAll, expect, test } from 'vitest'
@@ -109,7 +109,51 @@ test('a fix that answers with a note shows it', async () => {
   renderAt({ screen: 'setup', setup })
   await user.click(screen.getByRole('button', { name: 'Descargar Docker' }))
   expect(await screen.findByText(note)).toBeInTheDocument()
-  expect(calls).toContainEqual({ cmd: 'fix', args: { need: 'docker' } })
+  expect(calls).toContainEqual({ cmd: 'fix', args: { need: 'docker', onProgress: expect.objectContaining({ onmessage: expect.any(Function) }) } })
+})
+
+test('setup shows CLI output while a fix is still running and preserves it on failure', async () => {
+  const user = userEvent.setup()
+  let fail!: (message: string) => void
+  const pending = new Promise((_resolve, reject) => { fail = reject })
+  const calls = backend({ fix: () => pending })
+  renderAt({ screen: 'setup', setup: NO_EMULATOR })
+  const start = screen.getByRole('button', { name: 'Iniciar emulador' })
+  await user.click(start)
+  const { onProgress } = calls.find(({ cmd }) => cmd === 'fix')?.args as {
+    onProgress?: { onmessage: (message: { kind: string; text: string }) => void }
+  }
+  onProgress?.onmessage({ kind: 'stage', text: 'Construyendo la imagen del emulador' })
+  onProgress?.onmessage({ kind: 'stderr', text: '#4 downloading' })
+  const terminal = await screen.findByRole('region', { name: 'Salida de la preparación' })
+  expect(terminal).toHaveTextContent('Construyendo la imagen del emulador')
+  expect(terminal).toHaveTextContent('#4 downloading')
+  expect(start).toBeDisabled()
+  fail('Docker no pudo completar la descarga')
+  expect(await screen.findByText('Docker no pudo completar la descarga')).toBeInTheDocument()
+  expect(terminal).toHaveTextContent('#4 downloading')
+  expect(start).toBeEnabled()
+})
+
+test('rechecking streams bounded plaintext without announcing raw output', async () => {
+  const user = userEvent.setup()
+  const calls = backend({ probe: () => new Promise(() => {}) })
+  renderAt({ screen: 'setup', setup: NO_EMULATOR })
+  await user.click(screen.getByRole('button', { name: 'Comprobar de nuevo' }))
+  const { onProgress } = calls.find(({ cmd }) => cmd === 'probe')!.args as {
+    onProgress: { onmessage: (event: { kind: string; text: string }) => void }
+  }
+  act(() => {
+    onProgress.onmessage({ kind: 'stage', text: 'Revisando Docker' })
+    onProgress.onmessage({ kind: 'stdout', text: `\x1b[31m${'x'.repeat(21000)}<b>fin</b>\x1b[0m` })
+  })
+  const terminal = screen.getByRole('region', { name: 'Salida de la preparación' })
+  expect(terminal).toHaveAttribute('tabindex', '0')
+  expect(terminal.textContent!.length).toBeLessThanOrEqual(20000)
+  expect(terminal).toHaveTextContent('<b>fin</b>')
+  expect(terminal.querySelector('b')).toBeNull()
+  expect(terminal.textContent).not.toContain('\x1b')
+  expect(screen.getAllByRole('status').some((el) => el.textContent === 'Revisando Docker')).toBe(true)
 })
 
 test('a finished fix probes again and moves on once ready', async () => {

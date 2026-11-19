@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { api, type Action, type Need, type SetupView } from '../api'
 import { useApp } from '../store'
+import { SetupLog } from './SetupLog'
 import './Setup.css'
 
 /** Everything is installed and running. A missing emulator always counts, even if `ready` says otherwise. */
@@ -31,34 +32,38 @@ function busyText(need: Need, action: Action): string | null {
 }
 
 export function Setup() {
-  const { state, set, go } = useApp()
+  const { state, set, go, setupProgress, clearSetupLog } = useApp()
   const [busy, setBusy] = useState<string | null>(null)
   const [working, setWorking] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const setup = state.setup
 
   const probe = async () => {
-    const fresh = await api.probe()
+    const fresh = await api.probe(setupProgress)
     set({ setup: fresh })
     if (isReady(fresh)) go('profiles')
   }
 
   const recheck = async () => {
-    set({ setup: null })
+    setWorking(true)
+    clearSetupLog()
     setNote(null)
     try {
       await probe()
     } catch (e) {
       setNote(String(e))
+    } finally {
+      setWorking(false)
     }
   }
 
   const fix = async (need: Need, action: Action) => {
     setWorking(true)
+    clearSetupLog()
     setBusy(busyText(need, action))
     setNote(null)
     try {
-      const said = await api.fix(need)
+      const said = await api.fix(need, setupProgress)
       if (said) setNote(said)
       else await probe()
     } catch (e) {
@@ -81,7 +86,8 @@ export function Setup() {
           {busy && <p className="setup-status">{busy}</p>}
           {note && <p className="note">{note}</p>}
         </div>
-        {!working && setup && (
+        <SetupLog />
+        {!working && (
           <div className="setup-actions">
             <button type="button" className="btn" onClick={recheck}>Comprobar de nuevo</button>
           </div>
@@ -122,9 +128,9 @@ function Needs({ setup, working, onFix }: {
                 <strong>{name}</strong>
                 <span>{ok ? 'Listo' : why}</span>
               </div>
-              {!ok && !blocked && !working && action && (
+              {!ok && !blocked && action && (
                 label
-                  ? <button type="button" className="btn btn-primary" onClick={() => onFix(need, action)}>{label}</button>
+                  ? <button type="button" className="btn btn-primary" disabled={working} onClick={() => onFix(need, action)}>{label}</button>
                   : action.type === 'manual' && <span className="need-manual">{action.value}</span>
               )}
             </li>

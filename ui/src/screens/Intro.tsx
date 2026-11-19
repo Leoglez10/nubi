@@ -45,9 +45,10 @@ export function Intro() {
             </li>
           ))}
         </ul>
-        {state.setup && (
+        {state.setupError && <p role="alert">No se pudo revisar tu computadora: {state.setupError}</p>}
+        {(state.setup || state.setupError) && (
           <button type="button" className="btn btn-primary intro-enter" onClick={enter}>
-            {isReady(state.setup) ? 'Entrar' : 'Preparar mi computadora'}
+            {state.setup && isReady(state.setup) ? 'Entrar' : 'Preparar mi computadora'}
           </button>
         )}
       </div>

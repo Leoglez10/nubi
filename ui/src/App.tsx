@@ -25,12 +25,12 @@ export default function App() {
 }
 
 function Root() {
-  const { state, set } = useApp()
+  const { state, set, setupProgress } = useApp()
 
   // The first setup probe runs in the background; the sidebar shows its result.
   useEffect(() => {
-    api.probe().then((setup) => set({ setup }), () => {})
-  }, [set])
+    api.probe(setupProgress).then((setup) => set({ setup }), (e) => set({ setupError: String(e) }))
+  }, [set, setupProgress])
 
   return (
     <div className="app">

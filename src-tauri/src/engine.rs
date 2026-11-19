@@ -107,11 +107,15 @@ impl Engine {
 
     // --- Setup ---
 
-    pub async fn probe(&self) -> SetupView {
-        let (docker, docker_running, aws_cli) = tokio_blocking(setup::probe_tools).await;
-        let emulator = docker_running && emulator::healthy().await;
+    pub async fn probe(&self, feed: impl Fn(setup::Progress) + Clone + Send + Sync + 'static) -> SetupView {
+        let probe_feed = feed.clone();
+        let (docker, docker_running, aws_cli) = tokio_blocking(move || setup::probe_tools(&probe_feed)).await;
+        let emulator = if docker_running {
+            setup::stage(&feed, "Comprobando que el emulador responde a AWS S3");
+            emulator::healthy().await
+        } else { false };
         let report = Report { docker, docker_running, aws_cli, emulator };
-        let brew = tokio_blocking(setup::has_brew).await;
+        let brew = tokio_blocking(move || setup::has_brew(&feed)).await;
         let os = Os::current();
         let needs = report.needs().into_iter().map(|need| NeedView { need, action: setup::action(need, os, brew) }).collect();
         let os = match os { Os::Mac => "mac", Os::Windows => "windows", Os::Linux => "linux" };
@@ -120,27 +124,36 @@ impl Engine {
 
     /// Runs the one-click fix. `Ok(Some(note))` is something to tell the student;
     /// `Ok(None)` means done, probe again.
-    pub async fn fix(&self, need: Need) -> Result<Option<String>, String> {
-        match setup::action(need, Os::current(), tokio_blocking(setup::has_brew).await) {
+    pub async fn fix(&self, need: Need, feed: impl Fn(setup::Progress) + Clone + Send + Sync + 'static) -> Result<Option<String>, String> {
+        let brew_feed = feed.clone();
+        let brew = matches!(need, Need::Docker | Need::AwsCli)
+            && tokio_blocking(move || setup::has_brew(&brew_feed)).await;
+        match setup::action(need, Os::current(), brew) {
             Action::Run { program, args } => {
-                let out = tokio_blocking(move || Command::new(program).args(&args).output()).await;
-                match out {
-                    Ok(out) if out.status.success() => {
-                        if need == Need::DockerRunning {
-                            tokio_blocking(|| wait_until(Duration::from_secs(90), || setup::probe_tools().1)).await;
-                        }
-                        Ok(None)
+                setup::stage(&feed, format!("$ {program} {}", args.join(" ")));
+                let out = tokio_blocking({
+                    let feed = feed.clone();
+                    move || setup::stream(Command::new(program).args(args), None, &feed)
+                }).await.map_err(|e| format!("No se pudo ejecutar {program}: {e}"))?;
+                out.check().map_err(|e| format!("No se pudo completar: {e}"))?;
+                if need == Need::DockerRunning {
+                    setup::stage(&feed, "Esperando a que Docker esté listo");
+                    if !tokio_blocking(|| wait_until(Duration::from_secs(90), setup::docker_running)).await {
+                        return Err("Docker no estuvo listo a tiempo. Comprueba que Docker Desktop esté abierto y vuelve a intentarlo.".into());
                     }
-                    Ok(out) => Err(format!("No se pudo completar: {}", last_line(&out.stderr))),
-                    Err(e) => Err(format!("No se pudo ejecutar {program}: {e}")),
                 }
+                Ok(None)
             }
             Action::OpenUrl(url) => {
-                open_url(url);
-                Ok(Some("Abrimos la página oficial de descarga. Cuando termines de instalar, pulsa «Comprobar de nuevo».".into()))
+                setup::stage(&feed, "Abriendo la página oficial de descarga");
+                open_url(url).map_err(|e| format!("No se pudo iniciar el navegador: {e}. Puedes abrir {url}"))?;
+                Ok(Some(format!("Se solicitó abrir la página oficial. Si no se abrió, visita {url}. Cuando termines de instalar, pulsa «Comprobar de nuevo».")))
             }
             Action::StartEmulator => {
-                tokio_blocking(emulator::start).await.map_err(|e| format!("No se pudo iniciar el emulador: {e}"))?;
+                let start_feed = feed.clone();
+                tokio_blocking(move || emulator::start_with_progress(&start_feed)).await
+                    .map_err(|e| format!("No se pudo iniciar el emulador: {e}"))?;
+                setup::stage(&feed, "Esperando a que el emulador responda a AWS S3");
                 let start = Instant::now();
                 while start.elapsed() < Duration::from_secs(90) {
                     if emulator::healthy().await {
@@ -351,16 +364,15 @@ fn wait_until(limit: Duration, mut ok: impl FnMut() -> bool) -> bool {
     false
 }
 
-fn last_line(bytes: &[u8]) -> String {
-    String::from_utf8_lossy(bytes).lines().rev().find(|l| !l.trim().is_empty()).unwrap_or("error desconocido").to_string()
-}
-
-fn open_url(url: &str) {
-    let _ = match Os::current() {
+fn open_url(url: &str) -> std::io::Result<()> {
+    let mut child = match Os::current() {
         Os::Mac => Command::new("open").arg(url).spawn(),
         Os::Windows => Command::new("cmd").args(["/C", "start", "", url]).spawn(),
         Os::Linux => Command::new("xdg-open").arg(url).spawn(),
-    };
+    }?;
+    // Some launchers stay alive with the browser. Reap without making setup wait for it.
+    std::thread::spawn(move || { let _ = child.wait(); });
+    Ok(())
 }
 
 /// Display order for items to arrange: never the answer order.
