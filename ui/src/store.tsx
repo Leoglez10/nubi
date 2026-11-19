@@ -68,6 +68,11 @@ export function useApp(): Store {
   return store
 }
 
+/** Reduced motion for components that may render outside <AppProvider>. */
+export function useReducedMotion(): boolean {
+  return useContext(Ctx)?.reducedMotion ?? systemReducedMotion()
+}
+
 function systemReducedMotion() {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 }

@@ -1,4 +1,6 @@
 // Vector art shared by every screen: line icons, Nubi and profile avatars.
+import { useEffect, useRef } from 'react'
+import { useReducedMotion } from './store'
 
 const ICONS = {
   home: 'M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
@@ -25,16 +27,40 @@ export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
 export type Mood = 'neutral' | 'happy' | 'worried'
 const MOUTHS: Record<Mood, string> = { neutral: 'M54 64q8 7 16 0', happy: 'M51 62q11 11 22 0', worried: 'M54 68q8-7 16 0' }
 
+/** Where the glints sit before the pointer moves: up and right, as originally drawn. */
+const REST = 'translate(2 -2)'
+
 /** Nubi, the mascot. Decorative unless given a label. */
 export function Nubi({ mood = 'neutral', size = 40, label }: { mood?: Mood; size?: number; label?: string }) {
+  const eyes = useRef<SVGGElement>(null)
+  const still = useReducedMotion()
+  useEffect(() => {
+    const g = eyes.current
+    if (still || !g) return
+    // The white glints look toward the pointer, staying inside the pupils (r 5, glint r 1.6).
+    const look = (e: PointerEvent) => {
+      const r = g.ownerSVGElement!.getBoundingClientRect()
+      const dx = e.clientX - (r.left + r.width * 0.52)
+      const dy = e.clientY - (r.top + r.height * 0.56)
+      const k = 3 / Math.max(Math.hypot(dx, dy), 3 * 20)
+      g.setAttribute('transform', `translate(${(dx * k).toFixed(2)} ${(dy * k).toFixed(2)})`)
+    }
+    window.addEventListener('pointermove', look, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', look)
+      g.setAttribute('transform', REST)
+    }
+  }, [still])
   return (
     <svg width={size} height={size * 0.8} viewBox="0 0 120 96" role={label ? 'img' : undefined}
       aria-label={label} aria-hidden={label ? undefined : true}>
       <path d="M30 80h62a22 22 0 0 0 2-44 30 30 0 0 0-57-6A24 24 0 0 0 30 80z" fill="#fff" stroke="#101828" strokeWidth="3.5" strokeLinejoin="round" />
       <circle cx="50" cy="54" r="5" fill="#101828" />
       <circle cx="74" cy="54" r="5" fill="#101828" />
-      <circle cx="52" cy="52" r="1.6" fill="#fff" />
-      <circle cx="76" cy="52" r="1.6" fill="#fff" />
+      <g ref={eyes} transform={REST}>
+        <circle cx="50" cy="54" r="1.6" fill="#fff" />
+        <circle cx="74" cy="54" r="1.6" fill="#fff" />
+      </g>
       <path d={MOUTHS[mood]} fill="none" stroke="#101828" strokeWidth="3" strokeLinecap="round" />
       <circle cx="42" cy="64" r="4" fill="#fda29b" />
       <circle cx="82" cy="64" r="4" fill="#fda29b" />
