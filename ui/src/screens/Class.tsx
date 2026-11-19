@@ -6,6 +6,7 @@ import { Nubi } from '../art'
 import { classOf, completed, currentClass } from '../nav'
 import { useApp } from '../store'
 import { stars } from './Home'
+import { BucketClassScenes } from './ClassScenes'
 import './Class.css'
 
 export function Class() {
@@ -40,6 +41,9 @@ export function Class() {
           <p className="eyebrow">{`CLASE ${t.number} · ${fromLab === 'review' ? 'REPASO' : 'EXPLICACIÓN'}`}</p>
           <h1 id="page-title" tabIndex={-1}>{t.title}</h1>
         </header>
+        {node.id === 's3-buckets' && t.diagram === 'bucket_objects' ? (
+          <BucketClassScenes key={node.id} teaching={t} diagram={<DiagramView diagram={t.diagram} caption={t.visual} />} />
+        ) : <>
         <p className="class-explanation">{t.explanation}</p>
         {t.diagram
           ? <DiagramView diagram={t.diagram} caption={t.visual} />
@@ -50,6 +54,7 @@ export function Class() {
         {t.diagram && <ExampleView diagram={t.diagram} />}
 
         <ReviewCard review={t.review} />
+        </>}
 
         <div className="class-actions">
           {fromLesson && state.lesson?.view.id === node.id ? (
