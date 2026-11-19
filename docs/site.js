@@ -34,9 +34,7 @@ const links = [...flight.querySelectorAll('a')];
 if ('IntersectionObserver' in window) {
   const cloud = document.createElement('span');
   cloud.className = 'flight-cloud';
-  const mascot = new Image(120, 96);
-  mascot.src = 'nubi.svg';
-  mascot.alt = '';
+  const mascot = document.querySelector('.brand .nubi').cloneNode(true);
   cloud.append(mascot);
   flight.querySelector('.flight-window').append(cloud);
 
@@ -113,3 +111,17 @@ document.querySelectorAll('.copy').forEach(button => {
     }, 2200);
   });
 });
+
+// Nubi's white glints follow the pointer, staying inside the pupils (r 5, glint r 1.6).
+const still = matchMedia('(prefers-reduced-motion: reduce)');
+window.addEventListener('pointermove', event => {
+  if (still.matches) return;
+  document.querySelectorAll('.nubi .glints').forEach(glints => {
+    const box = glints.ownerSVGElement.getBoundingClientRect();
+    if (!box.width) return;
+    const dx = event.clientX - (box.left + box.width * .52);
+    const dy = event.clientY - (box.top + box.height * .56);
+    const k = 3 / Math.max(Math.hypot(dx, dy), 60);
+    glints.setAttribute('transform', `translate(${(dx * k).toFixed(2)} ${(dy * k).toFixed(2)})`);
+  });
+}, { passive: true });

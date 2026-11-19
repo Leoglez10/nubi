@@ -25,7 +25,7 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 1rem/1.6 system-ui, sans-serif; }
-img { display: block; max-width: 100%; height: auto; }
+img, .nubi { display: block; max-width: 100%; height: auto; }
 a { color: inherit; text-underline-offset: .22em; }
 button { font: inherit; }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
@@ -47,7 +47,7 @@ section { padding-block: clamp(3rem, 7vw, 6rem); scroll-margin-top: 5rem; }
 .site-nav .wrap, .nav-links, .brand, .ctas, .os-btns, .reqs, .row { display: flex; align-items: center; flex-wrap: wrap; }
 .site-nav .wrap { justify-content: space-between; gap: .4rem 1.25rem; padding-block: .65rem; }
 .brand { gap: .5rem; text-decoration: none; font-weight: 750; line-height: 1.15; }
-.brand img { width: 2.7rem; }
+.brand .nubi { width: 2.7rem; }
 .brand small { display: block; color: var(--muted); font-weight: 500; }
 .nav-links { gap: .2rem clamp(.65rem, 2vw, 1.6rem); font-size: .9rem; }
 .nav-links a { display: inline-flex; align-items: center; min-height: 2.75rem; text-decoration: none; }
@@ -81,7 +81,7 @@ figcaption span { background: var(--wash); }
 .flight-track { position: relative; }
 .flight-window { position: absolute; inset: 0; overflow: clip; pointer-events: none; }
 .flight-cloud { position: absolute; inset: 0; pointer-events: none; transform: translateY(calc(var(--stop, 0) * 100% / 3)); }
-.flight-cloud img { position: absolute; width: 4.5rem; left: var(--track-axis); top: calc(100% / 6); translate: 0; rotate: 0deg; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 3px #17285745); }
+.flight-cloud .nubi { position: absolute; width: 4.5rem; left: var(--track-axis); top: calc(100% / 6); translate: 0; rotate: 0deg; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 3px #17285745); }
 .journey section { border-bottom: 1px solid var(--line); }
 .journey .wrap { width: 100%; }
 
@@ -134,7 +134,7 @@ figcaption span { background: var(--wash); }
 .copy-icon:not(:empty) { color: var(--blue); }
 .end { padding-top: 0; }
 .end .box { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; background: var(--wash); border: 1px solid var(--line); border-radius: var(--radius); padding: clamp(1rem, 4vw, 2rem); }
-.end img { width: 4rem; }
+.end .nubi { width: 4rem; }
 footer { border-top: 1px solid var(--line); padding-block: 1.5rem; color: var(--muted); font-size: .84rem; }
 footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
 @media (max-width: 60rem) {
@@ -148,7 +148,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   .flight a { justify-content: center; min-height: 3.75rem; padding: 1.6rem .15rem .15rem; font-size: .82rem; text-align: center; }
   .flight a::before { position: absolute; inset: .85rem auto auto; margin: 0; }
   .flight-cloud { transform: translateX(calc(var(--stop, 0) * 100% / 3)); }
-  .flight-cloud img { width: 2.15rem; top: 1.05rem; left: calc(100% / 6); transform: translate(-50%, -50%); }
+  .flight-cloud .nubi { width: 2.15rem; top: 1.05rem; left: calc(100% / 6); transform: translate(-50%, -50%); }
 }
 @media (max-width: 42rem) {
   .panel, .lab .wrap, .dl .wrap, .install .wrap, .c-e { grid-template-columns: minmax(0, 1fr); }
@@ -159,7 +159,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 }
 @media (prefers-reduced-motion: no-preference) {
   .flight-cloud { transition: transform .68s cubic-bezier(.2, .8, .2, 1); }
-  .flight-cloud img { animation: depart .65s ease-out both; }
+  .flight-cloud .nubi { animation: depart .65s ease-out both; }
   @keyframes depart { from { opacity: 0; scale: .8; } to { opacity: 1; scale: 1; } }
 }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
