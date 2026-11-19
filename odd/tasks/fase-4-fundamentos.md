@@ -10,15 +10,18 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - Assumption: "inicia" authorizes a bounded first slice, not delivery of all Phase 4 services now. Start with S3 object keys/prefixes and an upload lab, retaining the original two stops and adding two more. IAM/STS, DynamoDB, SQS and SNS remain subsequent slices, not completion claims.
 - Non-goals: profile backup buttons, UI changes, new dependencies, cloud access or publishing Phase 4.
 
+- S4 (user, authorizing the T8 follow-up): "hazlo"
+
 ## Tasks
 
 - [x] T1 · S1, S2 · inline · S3 object keys/prefixes lesson and map continuation, original stops preserved — RED missing stops → GREEN, 46 tests passing; a4978a9
 - [x] T2 · S2, S3 · inline · two-object lab, executable hints and isolated emulator checks including replay/reset — GREEN, two full lab attempts; a4978a9
-- [ ] T3 · pending from UI · inline · responsiveness: truncate the long breadcrumb, check more window sizes and a live resize; scroll bars follow macOS (document, cannot force)
-- [ ] T4 · pending from UI · delegated verifier · independent review of the profile delete path (Risk item 1: removes stored data)
-- [ ] T5 · pending from UI · inline · live `cargo run` pass: hover, tab slide-in, keyboard focus, reduced motion
+- [ ] T3 · inline · Tauri breadcrumb truncation exists; isolated macOS WebKit resized from 1180×760 to 720×520 without horizontal shell overflow. Native app sizing still to verify.
+- [x] T4 · delegated verifier · independent profile deletion review complete: 15 UI tests and two Rust deletion tests passed with disposable data (risk item 1). No real profiles accessed.
+- [ ] T5 · inline · native Tauri hover and physical keyboard pass; WebKit with mocked IPC confirmed heading focus and one class transition in normal mode versus zero with the profile's reduced-motion option, not native end-to-end behavior.
+- [x] T8 · S4 · harden profile deletion for stable app-owned paths (risk items 1–2). Reject pre-existing links; detach the profile atomically before best-effort cleanup. Four focused deletion tests and the final offline Rust suite passed (54 passed, six ignored); independent structural verification confirmed the scoped behavior. Concurrent path replacement and guaranteed physical erasure are not covered.
 - [x] T7 · pending from UI · inline · app logo: Nubi-based icon for the window and Dock (source art reusable for Phase 8 installers) — assets/icon.svg → assets/icon.png (1024², solid #2563EB tile), set with rune::set_app_icon; test checks PNG 1024×1024; Dock appearance not checked live
-- [ ] T6 · S2 · next service slice (suggested: DynamoDB), after T3–T5 and T7
+- [ ] T6 · S2 · DynamoDB next, after the desktop follow-ups. An unsigned local ListTables probe returned HTTP 403; it does not establish emulator support. Validate against an isolated emulator before adding the lab.
 
 ## Log
 
@@ -33,3 +36,4 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - (user, 2026-11-14): "en la fase 4 pon lo de responsividad y lo que quedo pendiente antes de emoezarla" — T3–T5 added before the next service slice (T6).
 - (user, 2026-11-14): "uno que falta es ponerle logo a la app" — T7 added before the next service slice.
 - (user): "ponle a nubi" — T7 done: Nubi icon on a blue tile.
+- (user): "termiina lo pendiente" — reviewed Tauri desktop readiness and profile deletion. T4 normal-path verification passed; linked directories and partial removal were flagged for T8, not reproduced on user data.

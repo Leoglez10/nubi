@@ -161,11 +161,15 @@ Scope:
 
 ### Phase 4 — Module 1: foundations (highest-fidelity services)
 - **Before new services, close what the UI work left open:**
-  - Responsiveness: scroll bars follow the macOS preference (the app cannot force them);
-    the top-bar breadcrumb is not truncated when long; layouts were only checked at
-    960×680 and 1180×760; no check by resizing a live window.
-  - An independent review of the profile delete path (it removes stored data).
-  - A live `cargo run` pass over hover, the tab slide-in, keyboard focus and reduced motion.
+  - Responsiveness: the Tauri breadcrumb truncates long labels. A live macOS WebKit
+    window with mocked IPC resized from 1180×760 to 720×520 without horizontal shell
+    overflow. Broader native-app checks remain open.
+  - Profile deletion: independent review and disposable-fixture tests passed for normal
+    confirmation, deletion and sign-out. The hardening rejects linked app-owned paths
+    and detaches the profile before cleanup; if cleanup fails, files can remain inactive
+    on disk and the app logs the failure.
+  - Validate hover and physical keyboard navigation in the current Tauri app;
+    the isolated WebKit pass exercised route transitions and heading focus with mocked IPC.
   - ~~An app logo~~ done: Nubi on a blue tile (`assets/icon.svg`), set as the Dock and
     window icon; reuse it for the installers (`.icns`, `.ico`) in Phase 8.
 - IAM/STS, S3, DynamoDB, SQS, SNS. Suggested next service: DynamoDB.
@@ -197,7 +201,7 @@ Scope:
 - [x] Download section per OS linking to `releases/latest/download/<asset>`, notices
   (requirements: Docker + AWS CLI, unsigned-build warning, emulator telemetry off) and a
   link to the release notes.
-- [ ] Homebrew install command (after the tap exists).
+- [x] macOS Homebrew install command on the website.
 
 ### Phase 8 — Installers and updates (GitHub Actions) (started 2026-11-14)
 - [x] Release workflow on `v*` tags (`.github/workflows/release.yml`), built by the Tauri
@@ -213,7 +217,8 @@ Scope:
 - [x] App icon in every bundle (`src-tauri/icons/`).
 - [x] Linux AppImage.
 - [ ] Linux `.rpm`.
-- [ ] Homebrew: a tap with a cask (macOS) / formula (Linux) updated by the release workflow.
+- [x] macOS Homebrew cask, updated by the release workflow.
+- [ ] Linux Homebrew formula.
 - Automatic updates: the app checks the latest GitHub Release and offers to update.
 - Code signing / notarization (Apple, Windows) to avoid OS warnings; needs certificates.
 
