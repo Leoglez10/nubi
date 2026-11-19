@@ -11,17 +11,23 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - Non-goals: profile backup buttons, UI changes, new dependencies, cloud access or publishing Phase 4.
 
 - S4 (user, authorizing the T8 follow-up): "hazlo"
+- S5 (user): "haz commit y continua"
 
 ## Tasks
 
 - [x] T1 · S1, S2 · inline · S3 object keys/prefixes lesson and map continuation, original stops preserved — RED missing stops → GREEN, 46 tests passing; a4978a9
 - [x] T2 · S2, S3 · inline · two-object lab, executable hints and isolated emulator checks including replay/reset — GREEN, two full lab attempts; a4978a9
-- [ ] T3 · inline · Tauri breadcrumb truncation exists; isolated macOS WebKit resized from 1180×760 to 720×520 without horizontal shell overflow. Native app sizing still to verify.
+- [x] T3 · S5 · macOS resize verified: isolated WebKit checked horizontal shell overflow from 1180×760 to 720×520; native Tauri reached a 720×520 window frame and the setup action remained usable.
 - [x] T4 · delegated verifier · independent profile deletion review complete: 15 UI tests and two Rust deletion tests passed with disposable data (risk item 1). No real profiles accessed.
-- [ ] T5 · inline · native Tauri hover and physical keyboard pass; WebKit with mocked IPC confirmed heading focus and one class transition in normal mode versus zero with the profile's reduced-motion option, not native end-to-end behavior.
+- [ ] T5 · S5 · native Tauri with a temporary home: focused the welcome action and activated it with a process-targeted Space key; real probe output was hidden on Welcome and visible in Setup. Native course hover and keyboard traversal remain open. Isolated WebKit confirmed heading focus and the reduced-motion transition behavior.
 - [x] T8 · S4 · harden profile deletion for stable app-owned paths (risk items 1–2). Reject pre-existing links; detach the profile atomically before best-effort cleanup. Four focused deletion tests and the final offline Rust suite passed (54 passed, six ignored); independent structural verification confirmed the scoped behavior. Concurrent path replacement and guaranteed physical erasure are not covered.
 - [x] T7 · pending from UI · inline · app logo: Nubi-based icon for the window and Dock (source art reusable for Phase 8 installers) — assets/icon.svg → assets/icon.png (1024², solid #2563EB tile), set with rune::set_app_icon; test checks PNG 1024×1024; Dock appearance not checked live
 - [ ] T6 · S2 · DynamoDB next, after the desktop follow-ups. An unsigned local ListTables probe returned HTTP 403; it does not establish emulator support. Validate against an isolated emulator before adding the lab.
+
+## Local commit slices
+
+- Desktop readiness: profile deletion `b2bcd8d`, then setup output `615c039` (independent risk-bearing work units, each kept separate).
+- Course and verification notes: guided S3 prefixes `623600a` and roadmap evidence `8578f9d`. No publication shape selected.
 
 ## Log
 
@@ -37,3 +43,4 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - (user, 2026-11-14): "uno que falta es ponerle logo a la app" — T7 added before the next service slice.
 - (user): "ponle a nubi" — T7 done: Nubi icon on a blue tile.
 - (user): "termiina lo pendiente" — reviewed Tauri desktop readiness and profile deletion. T4 normal-path verification passed; linked directories and partial removal were flagged for T8, not reproduced on user data.
+- S5 native smoke on macOS: `cargo build --offline -p nubi-desktop` and two isolated AppKit accessibility runs exited 0 (accessibility press and targeted Space). Existing Docker state was not modified; clean installation was not exercised.

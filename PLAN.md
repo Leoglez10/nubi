@@ -163,13 +163,16 @@ Scope:
 - **Before new services, close what the UI work left open:**
   - Responsiveness: the Tauri breadcrumb truncates long labels. A live macOS WebKit
     window with mocked IPC resized from 1180×760 to 720×520 without horizontal shell
-    overflow. Broader native-app checks remain open.
+    overflow. Native Tauri also reached a 720×520 window frame and its setup action
+    remained usable.
   - Profile deletion: independent review and disposable-fixture tests passed for normal
     confirmation, deletion and sign-out. The hardening rejects linked app-owned paths
     and detaches the profile before cleanup; if cleanup fails, files can remain inactive
     on disk and the app logs the failure.
-  - Validate hover and physical keyboard navigation in the current Tauri app;
-    the isolated WebKit pass exercised route transitions and heading focus with mocked IPC.
+  - The native welcome action worked with a targeted Space key. Real probe output
+    stayed hidden on Welcome and was visible in Setup. Native course hover, keyboard
+    traversal, and a clean installation remain open; isolated WebKit checked heading
+    focus and the reduced-motion transition behavior.
   - ~~An app logo~~ done: Nubi on a blue tile (`assets/icon.svg`), set as the Dock and
     window icon; reuse it for the installers (`.icns`, `.ico`) in Phase 8.
 - IAM/STS, S3, DynamoDB, SQS, SNS. Suggested next service: DynamoDB.
