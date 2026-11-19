@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
+    "face": "tsc --ignoreConfig src/nubiFace.ts --target es2022 --module es2022 --lib es2022,dom --outDir ../docs",
     "tauri": "tauri"
   },
   "dependencies": {

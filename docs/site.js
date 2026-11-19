@@ -1,3 +1,5 @@
+import { nubiFace } from './nubiFace.js';
+
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 
 function selectTab(selected) {
@@ -112,16 +114,6 @@ document.querySelectorAll('.copy').forEach(button => {
   });
 });
 
-// Nubi's white glints follow the pointer, staying inside the pupils (r 5, glint r 1.6).
-const still = matchMedia('(prefers-reduced-motion: reduce)');
-window.addEventListener('pointermove', event => {
-  if (still.matches) return;
-  document.querySelectorAll('.nubi .glints').forEach(glints => {
-    const box = glints.ownerSVGElement.getBoundingClientRect();
-    if (!box.width) return;
-    const dx = event.clientX - (box.left + box.width * .52);
-    const dy = event.clientY - (box.top + box.height * .56);
-    const k = 3 / Math.max(Math.hypot(dx, dy), 60);
-    glints.setAttribute('transform', `translate(${(dx * k).toFixed(2)} ${(dy * k).toFixed(2)})`);
-  });
-}, { passive: true });
+// Nubi blinks, watches the pointer and grumbles when poked (an easter egg).
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.querySelectorAll('svg.nubi').forEach(svg => nubiFace(svg, 'happy', still));
