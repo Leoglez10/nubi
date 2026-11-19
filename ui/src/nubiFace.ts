@@ -1,7 +1,7 @@
 // Nubi's living face: every feature is a number on a spring, drawn into an <svg viewBox="0 0 120 96">.
 // The landing page uses a compiled copy: after editing, run `npm run face` in ui/ (writes docs/nubiFace.js).
 
-export type Face = 'neutral' | 'happy' | 'worried' | 'surprised' | 'annoyed' | 'angry'
+export type Face = 'neutral' | 'happy' | 'worried' | 'surprised' | 'annoyed' | 'angry' | 'asleep'
 
 // A pose is a flat list of numbers so any two faces can morph into each other:
 //  0-11 mouth: left, upper-left ctrl, upper-right ctrl, right, lower-right ctrl, lower-left ctrl
@@ -10,22 +10,26 @@ export type Face = 'neutral' | 'happy' | 'worried' | 'surprised' | 'annoyed' | '
 // 21-24 lid bottom edge y: left outer, left inner, right inner, right outer (47 = fully open)
 //    25 pupil radius
 //    26 rage: red cheeks, anger mark, trembling
+//    27 sleep: closed eyes and floating z's
 const line = (lx: number, ly: number, c1x: number, c1y: number, c2x: number, c2y: number, rx: number, ry: number) =>
   [lx, ly, c1x, c1y, c2x, c2y, rx, ry, c2x, c2y, c1x, c1y]
 const HIDDEN_BROWS = [44, 44, 55, 44, 69, 44, 80, 44, 0]
 const OPEN = [47, 47, 47, 47]
 
 const POSES: Record<Face, number[]> = {
-  neutral: [...line(54, 64, 59.3, 68.7, 64.7, 68.7, 70, 64), ...HIDDEN_BROWS, ...OPEN, 5, 0],
-  happy: [...line(51, 62, 58.3, 69.3, 65.7, 69.3, 73, 62), ...HIDDEN_BROWS, ...OPEN, 5, 0],
-  worried: [...line(54, 68, 59.3, 63.3, 64.7, 63.3, 70, 68), 44, 46, 55, 43, 69, 43, 80, 46, 1, ...OPEN, 5, 0],
-  surprised: [57, 67, 57.5, 61, 66.5, 61, 67, 67, 66.5, 73, 57.5, 73, 44, 42, 55, 40, 69, 40, 80, 42, 1, ...OPEN, 3.8, 0],
-  annoyed: [...line(55, 67, 60, 67, 64, 67, 69, 67), 43, 45, 55, 45.5, 69, 45.5, 81, 45, 1, 51, 51, 51, 51, 5, 0],
-  angry: [52, 70, 57, 62.5, 67, 62.5, 72, 70, 67, 66, 57, 66, 42, 40, 56, 46.5, 68, 46.5, 82, 40, 1, 48, 52.5, 52.5, 48, 5, 1],
+  neutral: [...line(54, 64, 59.3, 68.7, 64.7, 68.7, 70, 64), ...HIDDEN_BROWS, ...OPEN, 5, 0, 0],
+  happy: [...line(51, 62, 58.3, 69.3, 65.7, 69.3, 73, 62), ...HIDDEN_BROWS, ...OPEN, 5, 0, 0],
+  worried: [...line(54, 68, 59.3, 63.3, 64.7, 63.3, 70, 68), 44, 46, 55, 43, 69, 43, 80, 46, 1, ...OPEN, 5, 0, 0],
+  surprised: [57, 67, 57.5, 61, 66.5, 61, 67, 67, 66.5, 73, 57.5, 73, 44, 42, 55, 40, 69, 40, 80, 42, 1, ...OPEN, 3.8, 0, 0],
+  annoyed: [...line(55, 67, 60, 67, 64, 67, 69, 67), 43, 45, 55, 45.5, 69, 45.5, 81, 45, 1, 51, 51, 51, 51, 5, 0, 0],
+  angry: [52, 70, 57, 62.5, 67, 62.5, 72, 70, 67, 66, 57, 66, 42, 40, 56, 46.5, 68, 46.5, 82, 40, 1, 48, 52.5, 52.5, 48, 5, 1, 0],
+  asleep: [...line(57, 66, 60, 67.5, 64, 67.5, 67, 66), ...HIDDEN_BROWS, 59.6, 59.6, 59.6, 59.6, 5, 0, 1],
 }
 /** Each click in a row pokes Nubi one step closer to angry. */
 const POKED: Face[] = ['surprised', 'worried', 'annoyed', 'angry']
 const CALM_MS = 2200
+/** Without pointer or keyboard activity for this long, Nubi dozes off. */
+const IDLE_MS = 30000
 
 const INK = '#101828'
 const SVG = `
@@ -38,8 +42,10 @@ const SVG = `
     <g data-part="glints" transform="translate(2 -2)"><circle cx="50" cy="54" r="1.6" fill="#fff"/><circle cx="74" cy="54" r="1.6" fill="#fff"/></g>
   </g>
   <path data-part="lids" fill="#fff"/>
+  <path data-part="closed" d="M45 55q5 3.5 10 0M69 55q5 3.5 10 0" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round" opacity="0"/>
   <path data-part="brows" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round" opacity="0"/>
   <path data-part="mouth" fill="${INK}" stroke="${INK}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g data-part="zzz" opacity="0" fill="${INK}" font-family="system-ui, sans-serif" font-weight="800">ZZZ</g>
   <path data-part="vein" d="M-5-1.5q3.5 0 3.5-3.5M1.5-5q0 3.5 3.5 3.5M5 1.5q-3.5 0-3.5 3.5M-1.5 5q0-3.5-3.5-3.5"
     fill="none" stroke="#d92d20" stroke-width="2.2" stroke-linecap="round" opacity="0"/>
 </g>`
@@ -52,10 +58,16 @@ export function nubiFace(svg: SVGSVGElement, rest: Face, still: boolean) {
   // Each Nubi starts at a random point of the breath so several on screen don't move in step.
   const breath = still ? '' : `<animateTransform attributeName="transform" type="scale" values="1 1;1.012 1.03;1 1"
     dur="3.8s" begin="-${(Math.random() * 3.8).toFixed(2)}s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/>`
-  svg.innerHTML = `<g transform="translate(60 80)"><g>${breath}<g transform="translate(-60 -80)">${SVG}</g></g></g>`
+  // Sleeping z's drift up and fade, one after another.
+  const zs = [0, 1, 2].map((i) => still
+    ? `<text x="${88 + i * 6}" y="${32 - i * 7}" font-size="${7 + i * 2}">z</text>`
+    : `<text x="88" y="32" font-size="9" opacity="0">z<animateTransform attributeName="transform" type="translate"
+        values="0 0;10 -18" dur="2.4s" begin="${i * 0.8}s" repeatCount="indefinite"/><animate attributeName="opacity"
+        values="0;1;0" dur="2.4s" begin="${i * 0.8}s" repeatCount="indefinite"/></text>`).join('')
+  svg.innerHTML = `<g transform="translate(60 80)"><g>${breath}<g transform="translate(-60 -80)">${SVG.replace('ZZZ', zs)}</g></g></g>`
   const part = (name: string) => svg.querySelector(`[data-part="${name}"]`) as SVGElement
-  const [body, rage, eyes, glints, lids, brows, mouth, vein] =
-    ['body', 'rage-cheeks', 'eyes', 'glints', 'lids', 'brows', 'mouth', 'vein'].map(part)
+  const [body, rage, eyes, glints, lids, brows, mouth, vein, closed, zzz] =
+    ['body', 'rage-cheeks', 'eyes', 'glints', 'lids', 'brows', 'mouth', 'vein', 'closed', 'zzz'].map(part)
   const pupils = svg.querySelectorAll('[data-part="pupil"]')
 
   let face: Face = rest
@@ -81,6 +93,9 @@ export function nubiFace(svg: SVGSVGElement, rest: Face, still: boolean) {
     const r = Math.min(1, Math.max(0, p[26]))
     rage.setAttribute('opacity', f(r))
     vein.setAttribute('opacity', f(r))
+    const z = Math.min(1, Math.max(0, p[27]))
+    closed.setAttribute('opacity', f(z))
+    zzz.setAttribute('opacity', f(z))
     vein.setAttribute('transform', `translate(95 30) scale(${f(0.4 + 0.6 * r)}) rotate(${f(r * 12)})`)
     glints.setAttribute('transform', `translate(${f(look.x)} ${f(look.y)})`)
     // A blink is a quick close-and-open of the eyes (pupils and glints) around their center line.
@@ -127,6 +142,7 @@ export function nubiFace(svg: SVGSVGElement, rest: Face, still: boolean) {
   function scheduleBlink() {
     // Every few seconds, now and then twice in a row.
     nextBlink = setTimeout(() => {
+      if (asleep) return scheduleBlink()
       blinkAt = performance.now()
       wake()
       if (Math.random() < 0.2) setTimeout(() => { blinkAt = performance.now(); wake() }, 260)
@@ -146,6 +162,24 @@ export function nubiFace(svg: SVGSVGElement, rest: Face, still: boolean) {
     wake()
   }
 
+  // Idle for a while, Nubi falls asleep; any pointer or key activity wakes it (blinking awake).
+  let asleep = false
+  let idle: ReturnType<typeof setTimeout> | undefined
+  const doze = () => {
+    asleep = true
+    pokes = 0
+    clearTimeout(calm)
+    set('asleep')
+  }
+  const stir = () => {
+    clearTimeout(idle)
+    idle = setTimeout(doze, IDLE_MS)
+    if (!asleep) return
+    asleep = false
+    set(rest)
+    blinkAt = performance.now()
+  }
+
   // The easter egg: poke Nubi and it gets grumpier until left alone.
   const onClick = () => {
     pokes = Math.min(pokes + 1, POKED.length)
@@ -156,6 +190,9 @@ export function nubiFace(svg: SVGSVGElement, rest: Face, still: boolean) {
   }
 
   svg.addEventListener('click', onClick)
+  const ACTIVITY = ['pointermove', 'pointerdown', 'keydown'] as const
+  ACTIVITY.forEach((type) => window.addEventListener(type, stir, { passive: true }))
+  stir()
   if (!still && typeof requestAnimationFrame === 'function') {
     window.addEventListener('pointermove', onPointer, { passive: true })
     scheduleBlink()
@@ -168,12 +205,14 @@ export function nubiFace(svg: SVGSVGElement, rest: Face, still: boolean) {
     /** Changes the face Nubi rests on, e.g. when a screen's mood changes. */
     rest(next: Face) {
       rest = next
-      if (!pokes) set(next)
+      if (!pokes && !asleep) set(next)
     },
     destroy() {
       if (frame) cancelAnimationFrame(frame)
       clearTimeout(calm)
       clearTimeout(nextBlink)
+      clearTimeout(idle)
+      ACTIVITY.forEach((type) => window.removeEventListener(type, stir))
       svg.removeEventListener('click', onClick)
       window.removeEventListener('pointermove', onPointer)
     },
