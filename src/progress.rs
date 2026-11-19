@@ -120,13 +120,36 @@ impl Store {
         write_json(&path, &Profile { name, ..profile.clone() })
     }
 
-    /// Removes a profile and all its progress. Callers confirm with the student first.
+    /// Atomically removes a profile from the active store, then tries to purge its files.
+    /// Callers confirm with the student first.
     pub fn delete_profile(&self, id: &str) -> io::Result<()> {
+        self.retire_profile(id, |path| std::fs::remove_dir_all(path))
+    }
+
+    fn retire_profile(&self, id: &str, purge: impl FnOnce(&Path) -> io::Result<()>) -> io::Result<()> {
         let dir = self.dir(id)?;
-        if !dir.join("profile.json").exists() {
-            return Err(io::Error::new(io::ErrorKind::NotFound, "no such profile"));
+        let profiles = self.root.join("profiles");
+        // The OS app-data parent is trusted; reject links at all app-owned levels.
+        for path in [&self.root, &profiles, &dir] {
+            if !unlinked_metadata(path)?.is_dir() {
+                return Err(invalid("profile storage path is not a directory"));
+            }
         }
-        std::fs::remove_dir_all(dir)
+        if !unlinked_metadata(&dir.join("profile.json"))?.is_file() {
+            return Err(invalid("profile metadata is not a file"));
+        }
+
+        let retired = reserve_retired_dir(&profiles)?;
+        if let Err(error) = std::fs::rename(&dir, retired.join("profile")) {
+            let _ = std::fs::remove_dir(&retired);
+            return Err(error);
+        }
+        // The rename commits deletion from the app's point of view. An interrupted or
+        // partial purge must never restore an incomplete profile or leave it signed in.
+        if let Err(error) = purge(&retired) {
+            eprintln!("Could not purge retired profile at {}: {error}", retired.display());
+        }
+        Ok(())
     }
 
     /// A profile with no saved progress yet starts empty. A corrupt file is an error, never
@@ -167,6 +190,43 @@ impl Store {
             return Err(invalid("invalid profile id"));
         }
         Ok(self.root.join("profiles").join(id))
+    }
+}
+
+const RETIRED_PREFIX: &str = ".retired-";
+
+fn unlinked_metadata(path: &Path) -> io::Result<std::fs::Metadata> {
+    let meta = std::fs::symlink_metadata(path)?;
+    #[cfg(windows)]
+    let reparse_point = {
+        use std::os::windows::fs::MetadataExt;
+        meta.file_attributes() & 0x400 != 0 // FILE_ATTRIBUTE_REPARSE_POINT, including junctions
+    };
+    #[cfg(not(windows))]
+    let reparse_point = false;
+    if meta.is_symlink() || reparse_point {
+        return Err(invalid("refusing to delete through a linked profile path"));
+    }
+    Ok(meta)
+}
+
+fn reserve_retired_dir(profiles: &Path) -> io::Result<PathBuf> {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static NEXT: AtomicUsize = AtomicUsize::new(0);
+    loop {
+        let sequence = NEXT.fetch_add(1, Ordering::Relaxed);
+        let dir = profiles.join(format!("{RETIRED_PREFIX}{}-{sequence}", std::process::id()));
+        let mut builder = std::fs::DirBuilder::new();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::DirBuilderExt;
+            builder.mode(0o700);
+        }
+        match builder.create(&dir) {
+            Ok(()) => return Ok(dir),
+            Err(e) if e.kind() == io::ErrorKind::AlreadyExists => continue,
+            Err(e) => return Err(e),
+        }
     }
 }
 
@@ -275,6 +335,21 @@ mod tests {
         assert_eq!(store.profiles().unwrap().len(), 1);
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn deleting_rejects_a_linked_profiles_directory() {
+        let scratch = Scratch::new("delete-linked");
+        let target = scratch.0.join("empty");
+        fs::create_dir_all(&target).unwrap();
+        std::os::unix::fs::symlink(&target, scratch.0.join("profiles")).unwrap();
+
+        let err = scratch.store().delete_profile("alex").unwrap_err();
+        assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
+        assert_eq!(err.to_string(), "refusing to delete through a linked profile path");
+        assert_eq!(fs::read_dir(&target).unwrap().count(), 0);
+        assert_eq!(fs::read_link(scratch.0.join("profiles")).unwrap(), target);
+    }
+
     #[test]
     fn deleting_a_profile_removes_only_that_profile() {
         let scratch = Scratch::new("delete");
@@ -288,6 +363,25 @@ mod tests {
         assert!(store.delete_profile("../profiles").is_err(), "ids are never paths");
         assert!(store.delete_profile("nadie").is_err(), "deleting a missing profile reports it");
         assert_eq!(store.profiles().unwrap(), vec![sam]);
+    }
+
+    #[test]
+    fn deleting_keeps_the_profile_inactive_after_a_partial_purge() {
+        let scratch = Scratch::new("delete-partial");
+        let store = scratch.store();
+        let alex = store.create_profile("Alex", "#BFE0FB").unwrap();
+        let sam = store.create_profile("Sam", "#FFE2B8").unwrap();
+        store.save_progress(&alex.id, &Progress::default()).unwrap();
+
+        store.retire_profile(&alex.id, |retired| {
+            assert_eq!(store.profiles().unwrap(), vec![sam.clone()]);
+            fs::remove_file(retired.join("profile").join("progress.json")).unwrap();
+            Err(io::Error::new(io::ErrorKind::PermissionDenied, "simulated partial purge"))
+        }).unwrap();
+
+        assert!(store.export(&alex.id).is_err());
+        assert_eq!(store.profiles().unwrap(), vec![sam]);
+        assert_eq!(store.create_profile("Alex", "#BFE0FB").unwrap().id, alex.id);
     }
 
     #[test]
