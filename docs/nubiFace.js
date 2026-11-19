@@ -40,7 +40,11 @@ const SVG = `
 const f = (n) => n.toFixed(2);
 /** Draws Nubi into `svg` and keeps it alive until `destroy`. With `still`, nothing moves on its own. */
 export function nubiFace(svg, rest, still) {
-    svg.innerHTML = SVG;
+    // At rest Nubi breathes: a slow, slight stretch from its base (SVG-native, so no frame loop).
+    // Each Nubi starts at a random point of the breath so several on screen don't move in step.
+    const breath = still ? '' : `<animateTransform attributeName="transform" type="scale" values="1 1;1.012 1.03;1 1"
+    dur="3.8s" begin="-${(Math.random() * 3.8).toFixed(2)}s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/>`;
+    svg.innerHTML = `<g transform="translate(60 80)"><g>${breath}<g transform="translate(-60 -80)">${SVG}</g></g></g>`;
     const part = (name) => svg.querySelector(`[data-part="${name}"]`);
     const [body, rage, eyes, glints, lids, brows, mouth, vein] = ['body', 'rage-cheeks', 'eyes', 'glints', 'lids', 'brows', 'mouth', 'vein'].map(part);
     const pupils = svg.querySelectorAll('[data-part="pupil"]');
