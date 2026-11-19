@@ -6,7 +6,7 @@ import { Nubi } from '../art'
 import { classOf, completed, currentClass } from '../nav'
 import { useApp } from '../store'
 import { stars } from './Home'
-import { BucketClassScenes } from './ClassScenes'
+import { BucketClassScenes, PrefixClassScenes } from './ClassScenes'
 import './Class.css'
 
 export function Class() {
@@ -43,6 +43,8 @@ export function Class() {
         </header>
         {node.id === 's3-buckets' && t.diagram === 'bucket_objects' ? (
           <BucketClassScenes key={node.id} teaching={t} diagram={<DiagramView diagram={t.diagram} caption={t.visual} />} />
+        ) : node.id === 's3-objetos' && t.diagram === 'key_prefixes' ? (
+          <PrefixClassScenes key={node.id} teaching={t} diagram={<DiagramView diagram={t.diagram} caption={t.visual} />} />
         ) : <>
         <p className="class-explanation">{t.explanation}</p>
         {t.diagram

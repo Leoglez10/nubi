@@ -99,3 +99,55 @@ export function BucketClassScenes({ teaching, diagram }: { teaching: Teaching; d
     </> },
   ]} />
 }
+
+const prefix = 'informes/'
+const objectKeys = ['informes/enero.txt', 'informes/febrero.txt', 'borradores/enero.txt']
+
+export function PrefixClassScenes({ teaching, diagram }: { teaching: Teaching; diagram: ReactNode }) {
+  const [filtered, setFiltered] = useState(false)
+  const [answer, setAnswer] = useState<string | null>(null)
+  const visibleKeys = filtered ? objectKeys.filter((key) => key.startsWith(prefix)) : objectKeys
+  const correct = answer === 'informes/enero.txt'
+
+  return <SceneDeck scenes={[
+    { label: 'Entiende', title: '¿Qué identifica a un objeto en S3?', action: { label: 'Explorar el bucket' }, body: <>
+      <div className="class-nubi scene-tip"><Nubi size={44} /><p>{teaching.explanation}</p></div>
+      {diagram}
+    </> },
+    { label: 'Experimenta', title: 'Encuentra los informes', actionBelow: true,
+      action: filtered ? { label: 'Ir al repaso' } : { label: 'Filtrar por informes/', run: () => setFiltered(true) },
+      body: <>
+      <p>Filtra las claves que empiezan por <code>informes/</code>. Es una simulación: no se ejecutan comandos ni se modifican objetos.</p>
+      <div className="diagram-bucket">
+        <p className="diagram-bucket-name"><span className="s3-chip" aria-hidden="true">S3</span>Bucket: archivo-nubi</p>
+        <ul className="diagram-objects" aria-label="Claves del bucket archivo-nubi">
+          {visibleKeys.map((key) => <li key={key}><code>{key}</code></li>)}
+        </ul>
+      </div>
+      <div className="scene-controls">
+        <p role="status">{filtered ? `${visibleKeys.length} de ${objectKeys.length} claves coinciden. El filtro no borra objetos.` : `Se muestran las ${objectKeys.length} claves.`}</p>
+        {filtered && <button type="button" className="btn" onClick={() => setFiltered(false)}>Mostrar todas las claves</button>}
+      </div>
+      {filtered && <div className="scene-command">
+        <pre className="example-term"><code>aws s3 ls s3://archivo-nubi/{prefix}</code></pre>
+        <p>La lista solo muestra objetos cuyo nombre completo empieza con el prefijo indicado.</p>
+      </div>}
+    </> },
+    { label: 'Repasa', title: 'Mismo nombre, distinta clave', body: <>
+      <p>Hay un <code>enero.txt</code> en informes y otro en borradores. ¿Con qué clave identificarías el de informes?</p>
+      <div className="scene-controls">
+        {['enero.txt', 'informes/enero.txt'].map((key) => (
+          <button key={key} type="button" className="btn" aria-pressed={answer === key} onClick={() => setAnswer(key)}>{key}</button>
+        ))}
+      </div>
+      <p role="status" className="scene-feedback" data-tone={answer === null ? undefined : correct ? 'success' : 'hint'}>
+        {answer !== null && <>
+          <span aria-hidden="true">{correct ? '✓' : '↻'}</span>
+          <span>{correct ? <><strong>Correcto:</strong> <code>informes/enero.txt</code> incluye el prefijo y el nombre.</>
+            : <><strong>Inténtalo de nuevo.</strong> El nombre solo no distingue los dos objetos. Incluye el prefijo.</>}</span>
+        </>}
+      </p>
+      <div className="class-nubi scene-tip"><Nubi size={44} /><p>{teaching.review}</p></div>
+    </> },
+  ]} />
+}
