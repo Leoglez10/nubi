@@ -67,9 +67,9 @@ and all course content are in Spanish.
 | **Settings** | |
 | ![Ajustes: profile, accessibility and delete](docs/screenshots/ajustes.png) | |
 
-## Course content today
+## Course content
 
-One foundations unit with three classes:
+The source tree includes one foundations unit with three classes. The DynamoDB lab is a development preview: its core commands passed against the local emulator, but the complete in-app flow has not yet been verified. Published installers contain the course from their own release.
 
 1. **Buckets y objetos** — explanation and worked example → practice → versioning lab → review.
 2. **Claves y prefijos** — explanation and worked example → practice → two-file archive lab → review.
@@ -231,8 +231,8 @@ ui/node_modules/.bin/tauri dev
 ```
 
 **Stack:** a Rust engine (the `nubi` library, edition 2024: course, grading, progress, labs,
-setup) with `aws-sdk-s3` and `tokio` to check lab objectives against the emulator and
-`serde`/`toml`/`serde_json` for content and progress; a [Tauri v2](https://v2.tauri.app) app
+setup) with `aws-sdk-s3` for S3 checks, the AWS CLI for the DynamoDB lab, `tokio` for
+async work, and `serde`/`toml`/`serde_json` for content and progress; a [Tauri v2](https://v2.tauri.app) app
 crate in `src-tauri/` that exposes the engine as commands; and the UI in `ui/`, React +
 TypeScript + Vite.
 
