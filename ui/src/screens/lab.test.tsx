@@ -74,6 +74,20 @@ test('opening the lab starts it and shows the objectives and the first lines', a
   expect(screen.getByText('aws → 127.0.0.1:9297')).toBeInTheDocument()
 })
 
+test('the DynamoDB lab suggests only applicable commands and expands its table name', async () => {
+  const view = lab({}, { table: 'nubi-mensajes-prueba' })
+  backend({ lab_start: view })
+  const node = content.nodes[view.id]
+  const course = { ...content, nodes: { ...content.nodes, [view.id]: { ...node, objectives: [
+    { text: 'Crea tu tabla', hint: 'aws dynamodb create-table --table-name {table}', check: { type: 'dynamo_table' as const } },
+  ] } } }
+  render(<AppProvider initial={{ content: course, screen: 'lab', stopId: view.id, setup: null, me: me(), accountOpen: false }}><Screens /></AppProvider>)
+  const input = await prompt()
+  expect(screen.queryByRole('button', { name: 'aws s3 ls' })).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'siguiente paso' }))
+  expect(input).toHaveValue('aws dynamodb create-table --table-name nubi-mensajes-prueba')
+})
+
 test('Enter sends the typed line and the lines come back colored by kind', async () => {
   const user = userEvent.setup()
   const lines: Session['lines'] = [

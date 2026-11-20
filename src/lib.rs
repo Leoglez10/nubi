@@ -9,3 +9,5 @@ pub mod lab;
 pub mod lesson;
 pub mod progress;
 pub mod setup;
+
+pub mod dynamo_lab;

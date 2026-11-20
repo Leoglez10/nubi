@@ -7,7 +7,7 @@ fn s3_foundations_add_objects_and_prefixes_without_replacing_existing_stops() {
     let content = load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
     assert_eq!(
         content.order(),
-        vec!["s3-buckets", "lab-primer-bucket", "s3-objetos", "lab-archivo-s3"]
+        vec!["s3-buckets", "lab-primer-bucket", "s3-objetos", "lab-archivo-s3", "dynamodb-claves", "lab-dynamodb"]
     );
     let lesson = &content.nodes["s3-objetos"];
     assert_eq!(lesson.kind, NodeKind::Lesson);

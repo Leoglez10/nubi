@@ -26,6 +26,7 @@ export type Check =
   | { type: 'bucket_exists'; bucket: string }
   | { type: 'bucket_versioning'; bucket: string; status: string }
   | { type: 'object_exists'; bucket: string; key: string }
+  | { type: 'dynamo_table' | 'dynamo_item' | 'dynamo_read' }
 
 export interface Objective { text: string; hint: string; check: Check }
 export interface LabFile { name: string; content: string }
@@ -110,6 +111,7 @@ export interface LessonView {
 export type LineKind = 'cmd' | 'out' | 'err' | 'ok' | 'info'
 export interface LabView {
   id: string
+  table?: string | null
   session: {
     lines: { kind: LineKind; text: string }[]
     done: boolean[]

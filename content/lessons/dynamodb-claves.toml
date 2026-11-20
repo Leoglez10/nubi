@@ -1,0 +1,25 @@
+id = "dynamodb-claves"
+title = "DynamoDB: tablas y claves"
+kind = "leccion"
+
+[teaching]
+number = 3
+title = "Tablas y claves en DynamoDB"
+lab = "lab-dynamodb"
+explanation = "Una tabla contiene elementos con atributos. En una tabla con clave primaria simple, el valor de la clave de partición identifica un solo elemento. Aquí la clave es id y su tipo es texto."
+visual = "Tabla de mensajes → elemento con id = 1 → atributo message = Hola Nubi."
+example = "PutItem guarda el elemento completo. GetItem necesita el id, no el mensaje: entrega la clave id = 1 y DynamoDB devuelve el elemento asociado."
+review = "Usa el nombre y el tipo de la clave definidos por la tabla. En este ejemplo, id = \"1\" es texto, no un número."
+
+[[exercises]]
+type = "choice"
+prompt = "¿Qué atributo identifica el elemento de este ejemplo?"
+options = ["id", "message", "El nombre de la tabla"]
+answer = 0
+hint = "La tabla define id como clave de partición."
+
+[[exercises]]
+type = "order"
+prompt = "Ordena los pasos para guardar y recuperar un mensaje."
+steps = ["Crear la tabla", "Guardar el elemento con PutItem", "Recuperar el elemento por su id con GetItem"]
+hint = "Primero hace falta un lugar donde guardar el elemento."

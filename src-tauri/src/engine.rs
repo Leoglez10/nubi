@@ -34,6 +34,7 @@ struct Signed {
 
 struct LabRun {
     id: String,
+    dynamo: Option<nubi::dynamo_lab::Attempt>,
     dir: PathBuf,
     session: lab::Session,
     saved: bool,
@@ -76,6 +77,7 @@ pub struct LessonView<'a> {
 pub struct LabView<'a> {
     pub id: String,
     pub session: &'a lab::Session,
+    pub table: Option<&'a str>,
     pub complete: bool,
     /// Set once a completed lab is recorded.
     pub saved: Option<ProgressView>,
@@ -294,32 +296,58 @@ impl Engine {
 
     pub async fn lab_start(&self, id: &str) -> Result<serde_json::Value, String> {
         let node = self.content.nodes.get(id).filter(|n| n.kind == NodeKind::Lab).ok_or("Ese laboratorio no existe.")?;
-        let dir = lab::sandbox(&self.root, &node.id, &node.files).map_err(|e| format!("No se pudo preparar la carpeta del lab: {e}"))?;
-        let s3 = checker::client().await;
-        checker::reset(&s3, &node.objectives).await;
-        let done = checker::evaluate(&s3, &node.objectives).await;
+        let dynamo = (id == "lab-dynamodb").then(nubi::dynamo_lab::Attempt::new);
+        let folder = dynamo.as_ref().map_or(node.id.as_str(), |attempt| attempt.table.as_str());
+        let dir = lab::sandbox(&self.root, folder, &node.files).map_err(|e| format!("No se pudo preparar la carpeta del lab: {e}"))?;
         let mut session = lab::Session::new(node.objectives.len());
-        session.update(&done);
-        self.state().lab = Some(LabRun { id: id.to_string(), dir, session, saved: false });
+        if dynamo.is_none() {
+            let s3 = checker::client().await;
+            checker::reset(&s3, &node.objectives).await;
+            session.update(&checker::evaluate(&s3, &node.objectives).await);
+        }
+        self.state().lab = Some(LabRun { id: id.to_string(), dir, session, saved: false, dynamo });
         self.lab_view(None)
     }
 
     /// One line typed in the lab terminal: built-ins answer at once, `aws` commands run
     /// against the emulator and the objectives are checked again.
     pub async fn lab_submit(&self, line: &str) -> Result<serde_json::Value, String> {
-        let (id, dir, args) = {
+        let (id, dir, args, dynamo) = {
             let mut st = self.state();
             let run = st.lab.as_mut().ok_or("No hay un laboratorio en curso.")?;
-            let hints: Vec<String> = self.content.nodes[run.id.as_str()].objectives.iter().map(|o| o.hint.clone()).collect();
-            (run.id.clone(), run.dir.clone(), run.session.submit(line, &hints))
+            if run.dynamo.as_ref().is_some_and(|attempt| attempt.busy) {
+                return Err("Espera a que termine el comando actual.".into());
+            }
+            let objectives = &self.content.nodes[run.id.as_str()].objectives;
+            let hints = run.dynamo.as_ref().map_or_else(
+                || objectives.iter().map(|o| o.hint.clone()).collect(),
+                |attempt| attempt.hints(objectives),
+            );
+            let args = run.session.submit(line, &hints);
+            if let Some(attempt) = &mut run.dynamo { attempt.busy = args.is_some(); }
+            (run.id.clone(), run.dir.clone(), args, run.dynamo.clone())
         };
         let Some(args) = args else { return self.lab_view(None) };
-        let (ok, out, err) = tokio_blocking(move || lab::run_aws(&args, &dir)).await;
-        let done = checker::evaluate(&checker::client().await, &self.content.nodes[id.as_str()].objectives).await;
+        let objectives = &self.content.nodes[id.as_str()].objectives;
+        let (result, done, read) = if let Some(attempt) = dynamo {
+            let objectives = objectives.to_vec();
+            let cwd = dir.clone();
+            let out = tokio_blocking(move || attempt.execute(&args, &objectives, &cwd)).await;
+            (out.result, out.checks, out.read)
+        } else {
+            let cwd = dir.clone();
+            let result = tokio_blocking(move || lab::run_aws(&args, &cwd)).await;
+            (result, Some(checker::evaluate(&checker::client().await, objectives).await), false)
+        };
         let mut st = self.state();
-        let run = st.lab.as_mut().filter(|r| r.id == id).ok_or("El laboratorio cambió mientras corría el comando.")?;
+        let run = st.lab.as_mut().filter(|r| r.id == id && r.dir == dir).ok_or("El laboratorio cambió mientras corría el comando.")?;
+        if let Some(attempt) = &mut run.dynamo {
+            attempt.busy = false;
+            if read { attempt.record_read(); }
+        }
+        let (ok, out, err) = result;
         run.session.finish_run(ok, &out, &err);
-        run.session.update(&done);
+        if let Some(done) = done { run.session.update(&done); }
         let finish = (run.session.complete() && !run.saved).then_some(run.session.errors);
         let saved = match finish {
             Some(errors) => {
@@ -344,7 +372,7 @@ impl Engine {
     fn lab_view(&self, saved: Option<ProgressView>) -> Result<serde_json::Value, String> {
         let st = self.state();
         let run = st.lab.as_ref().ok_or("No hay un laboratorio en curso.")?;
-        let view = LabView { id: run.id.clone(), session: &run.session, complete: run.session.complete(), saved };
+        let view = LabView { id: run.id.clone(), session: &run.session, table: run.dynamo.as_ref().map(|a| a.table.as_str()), complete: run.session.complete(), saved };
         serde_json::to_value(view).map_err(|e| e.to_string())
     }
 }

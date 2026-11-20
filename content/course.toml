@@ -4,4 +4,4 @@
 [[units]]
 id = "fundamentos"
 title = "Isla 1 · Fundamentos"
-nodes = ["s3-buckets", "lab-primer-bucket", "s3-objetos", "lab-archivo-s3"]
+nodes = ["s3-buckets", "lab-primer-bucket", "s3-objetos", "lab-archivo-s3", "dynamodb-claves", "lab-dynamodb"]

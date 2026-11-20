@@ -69,13 +69,14 @@ and all course content are in Spanish.
 
 ## Course content today
 
-One unit, **Fundamentos de S3**, with two classes:
+One foundations unit with three classes:
 
 1. **Buckets y objetos** — explanation and worked example → practice → versioning lab → review.
 2. **Claves y prefijos** — explanation and worked example → practice → two-file archive lab → review.
+3. **Tablas y claves en DynamoDB** — practice partition keys, then create a table and store and retrieve a message in the local emulator. Use the exact terminal hints: they include your attempt's table name. Replaying starts with a new table and does not delete previous tables.
 
 Complete a class's practice to unlock its lab, and a class's lab to unlock the next class.
-IAM/STS, DynamoDB, SQS and SNS are planned next; see [PLAN.md](PLAN.md).
+IAM/STS, SQS and SNS are planned next; see [PLAN.md](PLAN.md).
 
 ## Install
 
@@ -315,7 +316,7 @@ Course content is Spanish TOML under `content/`; no code changes are needed:
 
 ## Status
 
-Early and in active development (version 0.1.3, not published as a crate). Only S3 is covered
+Early and in active development (version 0.1.3, not published as a crate). S3 and introductory DynamoDB are covered
 so far.
 
 ## Credits

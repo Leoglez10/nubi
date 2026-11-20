@@ -22,6 +22,7 @@ pub async fn passes(client: &Client, check: &Check) -> bool {
             .await
             .is_ok_and(|out| out.status().is_some_and(|s| s.as_str() == status)),
         Check::ObjectExists { bucket, key } => client.head_object().bucket(bucket).key(key).send().await.is_ok(),
+        Check::DynamoTable | Check::DynamoItem | Check::DynamoRead => false,
     }
 }
 
@@ -40,8 +41,9 @@ pub async fn evaluate(client: &Client, objectives: &[Objective]) -> Vec<bool> {
 pub async fn reset(client: &Client, objectives: &[Objective]) {
     let mut buckets: Vec<&str> = objectives
         .iter()
-        .map(|o| match &o.check {
-            Check::BucketExists { bucket } | Check::BucketVersioning { bucket, .. } | Check::ObjectExists { bucket, .. } => bucket.as_str(),
+        .filter_map(|o| match &o.check {
+            Check::BucketExists { bucket } | Check::BucketVersioning { bucket, .. } | Check::ObjectExists { bucket, .. } => Some(bucket.as_str()),
+            Check::DynamoTable | Check::DynamoItem | Check::DynamoRead => None,
         })
         .collect();
     buckets.sort_unstable();

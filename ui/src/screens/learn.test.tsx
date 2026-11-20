@@ -22,7 +22,7 @@ const title = () => screen.getByRole('heading', { level: 1 })
 test('Inicio greets the profile and shows totals from saved progress', () => {
   renderAt({}, me({ 's3-buckets': 3, 'lab-primer-bucket': 2 }))
   expect(title()).toHaveTextContent('Hola, Alex')
-  expect(screen.getByText('Llevas 1 de 2 clases del módulo de S3.')).toBeInTheDocument()
+  expect(screen.getByText('Llevas 1 de 2 clases del módulo de fundamentos.')).toBeInTheDocument()
   const kpis = within(screen.getByRole('list', { name: 'Tu progreso' }))
   const kpi = (label: string) => kpis.getByText(label).closest('li')!
   expect(kpi('Clases completadas')).toHaveTextContent('1 / 2')

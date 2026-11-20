@@ -12,6 +12,7 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 
 - S4 (user, authorizing the T8 follow-up): "hazlo"
 - S5 (user): "haz commit y continua"
+- S6 (user, authorizing the DynamoDB lesson and lab): "hazlo"
 
 ## Tasks
 
@@ -22,7 +23,9 @@ Branch: `feat/fase-4-fundamentos` · Delivery: single-pr (local opening slice on
 - [ ] T5 · S5 · native Tauri with a temporary home: focused the welcome action and activated it with a process-targeted Space key; real probe output was hidden on Welcome and visible in Setup. Native course hover and keyboard traversal remain open. Isolated WebKit confirmed heading focus and the reduced-motion transition behavior.
 - [x] T8 · S4 · harden profile deletion for stable app-owned paths (risk items 1–2). Reject pre-existing links; detach the profile atomically before best-effort cleanup. Four focused deletion tests and the final offline Rust suite passed (54 passed, six ignored); independent structural verification confirmed the scoped behavior. Concurrent path replacement and guaranteed physical erasure are not covered.
 - [x] T7 · pending from UI · inline · app logo: Nubi-based icon for the window and Dock (source art reusable for Phase 8 installers) — assets/icon.svg → assets/icon.png (1024², solid #2563EB tile), set with rune::set_app_icon; test checks PNG 1024×1024; Dock appearance not checked live
-- [ ] T6 · S2 · DynamoDB next, after the desktop follow-ups. An unsigned local ListTables probe returned HTTP 403; it does not establish emulator support. Validate against an isolated emulator before adding the lab.
+- [x] T9 · S2, S3 · DynamoDB emulator feasibility: the user ran an authenticated smoke test against the local emulator with a uniquely named temporary table. It created the table, wrote and read back an item, deleted the table, and waited for its disappearance.
+- [ ] T6 · S2, S3, S6 · DynamoDB lesson and lab implemented locally; native verification is pending. Each attempt uses a fresh table and replay does not delete earlier tables.
+- Offline evidence for T6: 56 Rust tests and 50 UI tests passed, six Rust integration tests were ignored, and the UI build passed. The S3 terminal regression matched the baseline; independent static verification confirmed command isolation and identified a stale S3 suggestion, which was removed and tested. The manual DynamoDB smoke test is not proof of Nubi's end-to-end lab or replay.
 
 ## Local commit slices
 

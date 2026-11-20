@@ -5,8 +5,8 @@ use std::path::Path;
 fn guided_classes_pair_existing_nodes_with_teaching() {
     let content = load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
     let classes = content.classes();
-    assert_eq!(classes.len(), 2);
-    for (number, lesson, lab) in [(1, "s3-buckets", "lab-primer-bucket"), (2, "s3-objetos", "lab-archivo-s3")] {
+    assert_eq!(classes.len(), 3);
+    for (number, lesson, lab) in [(1, "s3-buckets", "lab-primer-bucket"), (2, "s3-objetos", "lab-archivo-s3"), (3, "dynamodb-claves", "lab-dynamodb")] {
         let (node, teaching) = classes[number - 1];
         assert_eq!(node.id, lesson);
         assert_eq!(teaching.number, number);
@@ -23,7 +23,7 @@ fn guided_classes_pair_existing_nodes_with_teaching() {
 fn each_class_teaches_with_its_own_diagram() {
     let content = load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("content")).unwrap();
     let diagrams: Vec<Option<Diagram>> = content.classes().iter().map(|(_, t)| t.diagram).collect();
-    assert_eq!(diagrams, vec![Some(Diagram::BucketObjects), Some(Diagram::KeyPrefixes)]);
+    assert_eq!(diagrams, vec![Some(Diagram::BucketObjects), Some(Diagram::KeyPrefixes), None]);
 }
 
 #[test]

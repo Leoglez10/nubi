@@ -38,7 +38,7 @@ export function Home() {
   const starCount = Object.values(progress?.nodes ?? {}).reduce((n, r) => n + r.best_stars, 0)
   const practiced = all.filter((c) => completed(progress, c.node.id)).length
   const kpis: [string, string, string][] = [
-    ['Clases completadas', `${done} / ${total}`, 'Módulo de S3'],
+    ['Clases completadas', `${done} / ${total}`, 'Módulo de fundamentos'],
     ['Estrellas', String(starCount), `de ${stops * 3} posibles`],
     ['Prácticas', String(practiced), `de ${total}`],
     ['Nivel', String(me?.level.number ?? 1), me?.level.name ?? ''],
@@ -49,7 +49,7 @@ export function Home() {
       <header className="home-greeting">
         <div className="home-hello">
           <h1 id="page-title" tabIndex={-1}>{me ? `Hola, ${me.profile.name}` : 'Hola'}</h1>
-          <p>{`Llevas ${done} de ${total} clases del módulo de S3.`}</p>
+          <p>{`Llevas ${done} de ${total} clases del módulo de fundamentos.`}</p>
         </div>
         {tip && (
           <aside className="home-nubi card" aria-label="Nubi">
@@ -114,7 +114,7 @@ function ModuleTable() {
   return (
     <section className="card home-module" aria-labelledby="home-module-title">
       <header className="home-module-head">
-        <h2 id="home-module-title">Módulo 1 · Fundamentos de S3</h2>
+        <h2 id="home-module-title">Módulo 1 · Fundamentos</h2>
         <span className="note">{`${all.length} clases`}</span>
       </header>
       <table className="module-table" aria-labelledby="home-module-title">

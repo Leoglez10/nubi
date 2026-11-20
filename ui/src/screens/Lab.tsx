@@ -152,11 +152,12 @@ function Playing({ lab, title, error, setError, again, toClass }: PlayingProps) 
     if (view.complete && lab.running == null) resultTitle.current?.focus()
   }, [view.complete])
 
-  const nextHint = objectives[done.findIndex((d) => !d)]?.hint
+  const hint = objectives[done.findIndex((d) => !d)]?.hint
+  const nextHint = view.table ? hint?.replaceAll("{table}", view.table) : hint
   const suggestions: [string, string][] = [
     ...(nextHint && !view.complete ? [['siguiente paso', nextHint] as [string, string]] : []),
     ['pista', 'pista'],
-    ['aws s3 ls', 'aws s3 ls'],
+    ...(!view.table ? [['aws s3 ls', 'aws s3 ls'] as [string, string]] : []),
   ]
 
   return (

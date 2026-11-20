@@ -91,7 +91,7 @@ pub enum Exercise {
     Match { prompt: String, pairs: Vec<(String, String)>, hint: String },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Objective {
     pub text: String,
@@ -106,6 +106,9 @@ pub enum Check {
     BucketExists { bucket: String },
     BucketVersioning { bucket: String, status: String },
     ObjectExists { bucket: String, key: String },
+    DynamoTable,
+    DynamoItem,
+    DynamoRead,
 }
 
 #[derive(Debug, Serialize)]
@@ -265,7 +268,7 @@ mod tests {
     #[test]
     fn the_shipped_course_is_valid() {
         let content = load(&shipped()).unwrap();
-        assert_eq!(content.order(), vec!["s3-buckets", "lab-primer-bucket", "s3-objetos", "lab-archivo-s3"]);
+        assert_eq!(content.order(), vec!["s3-buckets", "lab-primer-bucket", "s3-objetos", "lab-archivo-s3", "dynamodb-claves", "lab-dynamodb"]);
         assert_eq!(content.nodes["s3-buckets"].kind, NodeKind::Lesson);
         assert_eq!(content.nodes["s3-buckets"].exercises.len(), 5);
         assert_eq!(content.nodes["lab-primer-bucket"].objectives.len(), 3);
